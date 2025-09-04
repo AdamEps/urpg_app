@@ -17,6 +17,7 @@ class GameState: ObservableObject {
     @Published var showObjectives = false
     @Published var showTapCounter = false
     @Published var showIdleCollectionDetails = false
+    @Published var showTapDetails = false
     
     // Player data
     @Published var playerName: String = "Commander"
@@ -27,6 +28,7 @@ class GameState: ObservableObject {
     // Tap tracking
     @Published var currentLocationTapCount: Int = 0
     @Published var locationTapCounts: [String: Int] = [:]
+    @Published var totalTapsCount: Int = 0
     
     // Idle collection tracking
     @Published var locationIdleCollectionCounts: [String: Int] = [:]
@@ -190,6 +192,7 @@ class GameState: ObservableObject {
         // Update tap counters
         currentLocationTapCount += 1
         locationTapCounts[currentLocation.id, default: 0] += 1
+        totalTapsCount += 1
         
         // 10% chance for Numins bonus
         if Double.random(in: 0...100) <= 10.0 {

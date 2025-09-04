@@ -1100,33 +1100,69 @@ struct ObjectivesView: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Taps Section
+                    // Gameplay Section
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Taps")
+                        Text("Gameplay")
                             .font(.title2)
                             .fontWeight(.bold)
                         
-                        ForEach(gameState.availableLocations, id: \.id) { location in
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(location.name)
-                                        .font(.headline)
-                                    Text("\(location.system) • \(location.kind.rawValue)")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                        // Total Taps Tracker (collapsible)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                gameState.showTapDetails.toggle()
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Total Taps")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("All location taps combined")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(gameState.totalTapsCount)")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.blue)
+                                    
+                                    Image(systemName: gameState.showTapDetails ? "chevron.up" : "chevron.down")
+                                        .foregroundColor(.blue)
                                 }
-                                
-                                Spacer()
-                                
-                                Text("\(gameState.locationTapCounts[location.id, default: 0])")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.blue)
                             }
+                            .buttonStyle(PlainButtonStyle())
                             .padding(.vertical, 8)
                             .padding(.horizontal, 12)
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(8)
+                            
+                            // Expanded details
+                            if gameState.showTapDetails {
+                                ForEach(gameState.availableLocations, id: \.id) { location in
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(location.name)
+                                                .font(.subheadline)
+                                            Text("\(location.system) • \(location.kind.rawValue)")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(gameState.locationTapCounts[location.id, default: 0])")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.blue)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.gray.opacity(0.05))
+                                    .cornerRadius(6)
+                                }
+                            }
                         }
                     }
                     
