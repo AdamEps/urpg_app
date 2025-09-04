@@ -192,7 +192,7 @@ struct TopBarView: View {
                         .foregroundColor(.white)
                     
                     // Level progress bar
-                    ProgressView(value: Double(gameState.playerXP), total: 100.0)
+                    ProgressView(value: gameState.getXPProgressPercentage())
                         .frame(width: 60)
                         .tint(.green)
                     
@@ -379,6 +379,32 @@ struct LocationView: View {
                         .offset(y: -160)
                         .transition(.scale.combined(with: .opacity))
                         .animation(.easeInOut(duration: 0.3), value: gameState.showNuminsFeedback)
+                    }
+                    
+                    // XP collection feedback
+                    if gameState.showXPFeedback {
+                        VStack {
+                            Text("+\(gameState.lastXPAmount)")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.purple)
+                            
+                            Text("XP")
+                                .font(.caption)
+                                .foregroundColor(.purple)
+                                .multilineTextAlignment(.center)
+                            
+                            Text("(Experience!)")
+                                .font(.caption2)
+                                .foregroundColor(.purple)
+                                .fontWeight(.medium)
+                        }
+                        .padding(8)
+                        .background(Color.purple.opacity(0.2))
+                        .cornerRadius(8)
+                        .offset(y: -200)
+                        .transition(.scale.combined(with: .opacity))
+                        .animation(.easeInOut(duration: 0.3), value: gameState.showXPFeedback)
                     }
                 }
                 

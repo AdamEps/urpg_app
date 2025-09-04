@@ -21,9 +21,17 @@ class GameState: ObservableObject {
     
     // Player data
     @Published var playerName: String = "Commander"
-    @Published var playerLevel: Int = 1
+    @Published var playerLevel: Int = 0
     @Published var playerXP: Int = 0
     @Published var currency: Int = 0
+    
+    // XP requirements for each level (Fibonacci sequence)
+    private let xpRequirements: [Int] = [
+        1000, 2000, 3000, 5000, 8000, 13000, 21000, 34000, 55000, 89000,
+        144000, 233000, 377000, 610000, 987000, 1597000, 2584000, 4181000, 6765000, 10946000,
+        17711000, 28657000, 46368000, 75025000, 121393000, 196418000, 317811000, 514229000, 832040000, 1346269000,
+        2178309000, 3524578000, 5702887000, 9227465000, 14930352000, 24157817000, 39088169000, 63245986000, 102334155000, 165580141000
+    ]
     
     // Tap tracking
     @Published var currentLocationTapCount: Int = 0
@@ -42,6 +50,8 @@ class GameState: ObservableObject {
     @Published var showIdleCollectionFeedback: Bool = false
     @Published var lastNuminsAmount: Int = 0
     @Published var showNuminsFeedback: Bool = false
+    @Published var lastXPAmount: Int = 0
+    @Published var showXPFeedback: Bool = false
     
     // Idle collection tracking
     private var idleCollectionTimer: Double = 0.0
@@ -157,6 +167,11 @@ class GameState: ObservableObject {
         locationIdleCollectionCounts[currentLocation.id, default: 0] += 1
         totalIdleCollectionCount += 1
         
+        // 2% chance for XP from idle collection
+        if Double.random(in: 0...100) <= 2.0 {
+            addXP(1)
+        }
+        
         // Show visual feedback for idle collection
         lastIdleCollectedResource = selectedResource
         showIdleCollectionFeedback = true
@@ -225,6 +240,11 @@ class GameState: ObservableObject {
             }
             
             print("Bonus! Collected \(Int(numinsAmount)) Numins!")
+        }
+        
+        // 1% chance for XP from tapping
+        if Double.random(in: 0...100) <= 1.0 {
+            addXP(1)
         }
         
         // Show visual feedback
@@ -416,6 +436,55 @@ class GameState: ObservableObject {
     
     deinit {
         gameTimer?.invalidate()
+    }
+    
+    // MARK: - XP Management
+    
+    func addXP(_ amount: Int) {
+        playerXP += amount
+        
+        // Check for level ups
+        while canLevelUp() {
+            levelUp()
+        }
+        
+        // Show XP feedback
+        lastXPAmount = amount
+        showXPFeedback = true
+        
+        // Hide XP feedback after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.showXPFeedback = false
+        }
+        
+        print("Gained \(amount) XP! Total XP: \(playerXP), Level: \(playerLevel)")
+    }
+    
+    private func canLevelUp() -> Bool {
+        guard playerLevel < xpRequirements.count else { return false }
+        return playerXP >= getXPRequiredForNextLevel()
+    }
+    
+    private func levelUp() {
+        guard canLevelUp() else { return }
+        
+        let xpRequired = getXPRequiredForNextLevel()
+        playerXP -= xpRequired
+        playerLevel += 1
+        
+        print("LEVEL UP! Now level \(playerLevel)")
+        // TODO: Add level up rewards and effects
+    }
+    
+    func getXPRequiredForNextLevel() -> Int {
+        guard playerLevel < xpRequirements.count else { return Int.max }
+        return xpRequirements[playerLevel]
+    }
+    
+    func getXPProgressPercentage() -> Double {
+        let required = getXPRequiredForNextLevel()
+        guard required != Int.max else { return 1.0 }
+        return min(Double(playerXP) / Double(required), 1.0)
     }
     
     // MARK: - Helper Functions
