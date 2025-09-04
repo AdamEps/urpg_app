@@ -97,15 +97,17 @@ struct ContentView: View {
                     }
                 }
                 
-                // Tap counter pop out positioned under location name at top
+                // Tap counter pop out positioned on right side under location name
                 VStack {
                     if gameState.showTapCounter {
                         HStack(alignment: .top, spacing: 0) {
+                            Spacer()
+                            
                             // Toggle button on left side of tap counter box when open
                             Button(action: {
                                 gameState.showTapCounter.toggle()
                             }) {
-                                Image(systemName: "chevron.up")
+                                Image(systemName: "chevron.right")
                                     .font(.title2)
                                     .foregroundColor(.white)
                                     .padding(8)
@@ -120,18 +122,18 @@ struct ContentView: View {
                             // Tap counter box
                             TapCounterView(gameState: gameState)
                                 .frame(width: UIScreen.main.bounds.width * 0.4)
-                            
-                            Spacer()
                         }
-                        .padding(.leading, 0)
+                        .padding(.trailing, 0)
                         .padding(.top, 60) // Position under location name
                     } else {
                         HStack {
-                            // Toggle button on left side of screen when closed
+                            Spacer()
+                            
+                            // Toggle button on right side of screen when closed
                             Button(action: {
                                 gameState.showTapCounter.toggle()
                             }) {
-                                Image(systemName: "chevron.down")
+                                Image(systemName: "chevron.left")
                                     .font(.title2)
                                     .foregroundColor(.white)
                                     .padding(8)
@@ -142,10 +144,8 @@ struct ContentView: View {
                                     )
                                     .cornerRadius(6)
                             }
-                            
-                            Spacer()
                         }
-                        .padding(.leading, 0)
+                        .padding(.trailing, 0)
                         .padding(.top, 60) // Position under location name
                     }
                 }
@@ -484,10 +484,7 @@ struct TapCounterView: View {
             HStack(spacing: 2) {
                 Text("Taps:")
                     .font(.caption2)
-                    .foregroundColor(.blue)
-                    .onTapGesture {
-                        gameState.resetCurrentLocationTapCount()
-                    }
+                    .foregroundColor(.white)
                 
                 Spacer()
                 
