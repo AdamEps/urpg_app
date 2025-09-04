@@ -26,6 +26,10 @@ class GameState: ObservableObject {
     @Published var currentLocationTapCount: Int = 0
     @Published var locationTapCounts: [String: Int] = [:]
     
+    // Visual feedback
+    @Published var lastCollectedResource: ResourceType?
+    @Published var showCollectionFeedback: Bool = false
+    
     private var gameTimer: Timer?
     
     init() {
@@ -154,6 +158,7 @@ class GameState: ObservableObject {
         for i in resources.indices {
             if resources[i].type == selectedResource {
                 resources[i].amount += 1
+                print("Collected 1 \(selectedResource.rawValue) - Total: \(resources[i].amount)")
                 break
             }
         }
@@ -162,7 +167,16 @@ class GameState: ObservableObject {
         currentLocationTapCount += 1
         locationTapCounts[currentLocation.id, default: 0] += 1
         
-        // Add some visual feedback here if needed
+        // Show visual feedback
+        lastCollectedResource = selectedResource
+        showCollectionFeedback = true
+        
+        // Hide feedback after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.showCollectionFeedback = false
+        }
+        
+        print("Tap #\(currentLocationTapCount) - Collected: \(selectedResource.rawValue)")
     }
     
     private func selectResourceFromDropTable(_ dropTable: [(ResourceType, Double)]) -> ResourceType {

@@ -210,24 +210,71 @@ struct LocationView: View {
             // Full screen background
             Color.clear
             
-            // Centered clickable location
-            Button(action: {
-                gameState.tapLocation()
-            }) {
-                VStack {
-                    Image(systemName: "globe")
-                        .font(.system(size: 60))
-                        .foregroundColor(.blue)
+            VStack(spacing: 20) {
+                // Tap counter and reset button
+                HStack {
+                    Text("Taps: \(gameState.currentLocationTapCount)")
+                        .font(.headline)
+                        .foregroundColor(.primary)
                     
-                    Text("Tap to Collect")
-                        .font(.caption)
-                        .foregroundColor(.white)
+                    Spacer()
+                    
+                    Button("Reset") {
+                        gameState.resetCurrentLocationTapCount()
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(8)
                 }
-                .frame(width: 120, height: 120)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(20)
+                .padding(.horizontal, 20)
+                
+                // Centered clickable location
+                ZStack {
+                    Button(action: {
+                        gameState.tapLocation()
+                    }) {
+                        VStack {
+                            Image(systemName: "globe")
+                                .font(.system(size: 60))
+                                .foregroundColor(.blue)
+                            
+                            Text("Tap to Collect")
+                                .font(.caption)
+                                .foregroundColor(.white)
+                        }
+                        .frame(width: 120, height: 120)
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(20)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    // Collection feedback
+                    if gameState.showCollectionFeedback, let resource = gameState.lastCollectedResource {
+                        VStack {
+                            Text("+1")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.green)
+                            
+                            Text(resource.rawValue)
+                                .font(.caption)
+                                .foregroundColor(.green)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(8)
+                        .background(Color.green.opacity(0.2))
+                        .cornerRadius(8)
+                        .offset(y: -80)
+                        .transition(.scale.combined(with: .opacity))
+                        .animation(.easeInOut(duration: 0.3), value: gameState.showCollectionFeedback)
+                    }
+                }
+                
+                Spacer()
             }
-            .buttonStyle(PlainButtonStyle())
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
