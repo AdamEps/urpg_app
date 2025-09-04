@@ -1256,9 +1256,13 @@ struct ResourcesPageView: View {
                     // Show sorted owned resources first
                     ForEach(sortedResources, id: \.type) { resource in
                         Button(action: {
-                            gameState.selectedResourceForDetail = resource.type
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                gameState.selectedResourceForDetail = resource.type
+                            }
                         }) {
                             ResourceCard(resource: resource)
+                                .scaleEffect(gameState.selectedResourceForDetail == resource.type ? 0.95 : 1.0)
+                                .animation(.spring(response: 0.2, dampingFraction: 0.8), value: gameState.selectedResourceForDetail)
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
@@ -1528,73 +1532,127 @@ struct ResourcesPageView: View {
 struct ResourceDetailView: View {
     let resource: Resource
     @ObservedObject var gameState: GameState
-    
+
     var body: some View {
-        HStack(spacing: 16) {
-            // Larger resource icon
-            Image(systemName: resource.icon)
-                .font(.system(size: 60))
-                .foregroundColor(resource.color)
-                .frame(width: 100, height: 100)
-                .background(Color.black.opacity(0.3))
-                .cornerRadius(8)
-            
-            VStack(alignment: .leading, spacing: 8) {
-                // Resource name and quantity
-                HStack {
-                    Text(resource.type.rawValue)
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    
+        ZStack {
+            // Clean background
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.black.opacity(0.8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(resource.color.opacity(0.3), lineWidth: 1)
+                )
+
+            VStack(alignment: .leading, spacing: 12) {
+                // Top row - Icon, Name, and Close button
+                HStack(spacing: 12) {
+                    // Icon and name side by side
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(resource.color.opacity(0.15))
+                                .frame(width: 50, height: 50)
+
+                            Image(systemName: resource.icon)
+                                .font(.system(size: 24))
+                                .foregroundColor(resource.color)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(resource.type.rawValue)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+
+                            Text("\(Int(resource.amount)) units")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(resource.color)
+                        }
+                    }
+
                     Spacer()
-                    
-                    Text("\(Int(resource.amount))")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(resource.color)
+
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            gameState.selectedResourceForDetail = nil
+                        }
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3)
+                            .foregroundColor(.white.opacity(0.6))
+                    }
                 }
-                
-                // Lore text
+
+                // Description - takes up remaining space
                 Text(gameState.getResourceLore(for: resource.type))
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.8))
-                    .lineLimit(3)
-                    .multilineTextAlignment(.leading)
-                
-                // Collection locations
-                HStack {
-                    Text("Found at:")
-                        .font(.caption2)
-                        .foregroundColor(.white.opacity(0.6))
-                    
-                    Text(gameState.getResourceCollectionLocations(for: resource.type).joined(separator: ", "))
-                        .font(.caption2)
-                        .foregroundColor(.blue)
-                        .lineLimit(1)
+                    .font(.callout)
+                    .foregroundColor(.white.opacity(0.9))
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+
+                // Collection locations at bottom
+                if !gameState.getResourceCollectionLocations(for: resource.type).isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Found at:")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white.opacity(0.7))
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 6) {
+                                ForEach(gameState.getResourceCollectionLocations(for: resource.type), id: \.self) { location in
+                                    Text(location)
+                                        .font(.caption)
+                                        .foregroundColor(.blue.opacity(0.9))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 3)
+                                        .background(Color.blue.opacity(0.1))
+                                        .cornerRadius(6)
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            
-            Spacer()
-            
-            // Close button
-            Button(action: {
-                gameState.selectedResourceForDetail = nil
-            }) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.white.opacity(0.6))
-            }
+            .padding(20)
         }
-        .padding(24)
-        .background(Color.black.opacity(0.4))
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.gray, lineWidth: 1)
-        )
-        .cornerRadius(8)
-        .padding(.horizontal)
-        .padding(.vertical, 6)
+        .frame(height: 280)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .transition(.opacity)
+    }
+    
+    private func getResourceCategory(for resourceType: ResourceType) -> String {
+        switch resourceType {
+        case .ironOre, .titanium, .aluminum, .nickel, .cobalt, .chromium, .vanadium, .manganese:
+            return "Metals"
+        case .silicon, .carbon, .nitrogen, .phosphorus, .sulfur, .calcium, .magnesium, .helium3:
+            return "Elements"
+        case .water, .oxygen:
+            return "Life Support"
+        case .plasma, .element, .isotope, .energy, .radiation, .heat, .light, .gravity, .magnetic, .solar:
+            return "Energy"
+        case .numins:
+            return "Currency"
+        case .hydrogen, .methane, .ammonia, .ice, .crystals, .minerals:
+            return "Planetary"
+        case .scrapMetal, .electronics, .fuelCells, .dataCores, .circuits, .alloys, .components, .techParts, .batteries, .wiring:
+            return "Technology"
+        case .food, .textiles, .tools, .medicine, .seeds, .livestock, .grain, .vegetables, .herbs, .supplies:
+            return "Organic"
+        case .heavyElements, .denseMatter, .compressedGas, .exoticMatter, .gravitons, .darkEnergy, .neutronium, .quarkMatter, .strangeMatter, .antimatter:
+            return "Exotic"
+        case .redPlasma, .infraredEnergy, .stellarWind, .magneticFields, .cosmicRays, .photons, .particles, .solarFlares, .corona, .chromosphere:
+            return "Stellar"
+        case .stellarDust, .cosmicDebris, .microParticles, .spaceGas, .ionStreams, .electronFlow, .protonBeams, .neutronFlux, .gammaRays, .xRays:
+            return "Cosmic"
+        case .researchData, .labEquipment, .samples, .experiments, .prototypes, .blueprints, .formulas, .algorithms, .code, .documentation:
+            return "Research"
+        case .frozenGases, .iceCrystals, .preservedMatter, .ancientArtifacts, .relics, .fossils, .rareElements, .crystallineStructures, .geologicalSamples:
+            return "Ancient"
+        }
     }
 }
 
