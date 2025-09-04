@@ -416,10 +416,64 @@ struct LocationView: View {
                     }
                 }
                 
+                // Location Screen Slots (4 slots for cards/items)
+                LocationSlotsView(gameState: gameState)
+                
                 Spacer()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - Location Slots View
+struct LocationSlotsView: View {
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("Location Enhancements")
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .padding(.bottom, 4)
+            
+            HStack(spacing: 12) {
+                ForEach(0..<4, id: \.self) { index in
+                    LocationSlotView(slotIndex: index, gameState: gameState)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Color.black.opacity(0.6))
+        .cornerRadius(12)
+        .padding(.horizontal, 16)
+    }
+}
+
+struct LocationSlotView: View {
+    let slotIndex: Int
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .frame(width: 60, height: 80)
+                .overlay(
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
+                        
+                        Text("Slot \(slotIndex + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
+                )
+        }
     }
 }
 
