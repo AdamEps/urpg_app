@@ -17,6 +17,19 @@ struct ContentView: View {
                     // Top Bar (always visible)
                     TopBarView(gameState: gameState)
                     
+                    // Location name header
+                    HStack {
+                        Spacer()
+                        Text(gameState.currentLocation.name)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .background(Color.black.opacity(0.3))
+                    
                     // Main game area
                     LocationView(gameState: gameState)
                     
@@ -185,30 +198,23 @@ struct LocationView: View {
             Color.clear
             
             // Centered clickable location
-            VStack(spacing: 12) {
-                Text("Current Location")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                
-                // Tap to collect resources
-                Button(action: {
-                    gameState.tapLocation()
-                }) {
-                    VStack {
-                        Image(systemName: "globe")
-                            .font(.system(size: 60))
-                            .foregroundColor(.blue)
-                        
-                        Text("Tap to Collect")
-                            .font(.caption)
-                            .foregroundColor(.white)
-                    }
-                    .frame(width: 120, height: 120)
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(20)
+            Button(action: {
+                gameState.tapLocation()
+            }) {
+                VStack {
+                    Image(systemName: "globe")
+                        .font(.system(size: 60))
+                        .foregroundColor(.blue)
+                    
+                    Text("Tap to Collect")
+                        .font(.caption)
+                        .foregroundColor(.white)
                 }
-                .buttonStyle(PlainButtonStyle())
+                .frame(width: 120, height: 120)
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(20)
             }
+            .buttonStyle(PlainButtonStyle())
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
