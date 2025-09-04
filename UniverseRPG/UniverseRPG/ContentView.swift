@@ -21,12 +21,6 @@ struct ContentView: View {
                     VStack(spacing: 16) {
                         // Current location view
                         LocationView(gameState: gameState)
-                        
-                        // Construction area
-                        ConstructionView(gameState: gameState)
-                        
-                        // Resources display
-                        ResourcesView(gameState: gameState)
                     }
                     .padding()
                 }
@@ -318,7 +312,7 @@ struct BottomNavigationView: View {
             Spacer()
             
             Button("Construction") {
-                gameState.showConstructionMenu = true
+                gameState.showConstructionPage = true
             }
             .buttonStyle(.bordered)
             
@@ -332,7 +326,7 @@ struct BottomNavigationView: View {
             Spacer()
             
             Button("Resources") {
-                // Resources are already shown in main view
+                gameState.showResourcesPage = true
             }
             .buttonStyle(.bordered)
             
@@ -350,6 +344,12 @@ struct BottomNavigationView: View {
         }
         .sheet(isPresented: $gameState.showShop) {
             ShopView(gameState: gameState)
+        }
+        .sheet(isPresented: $gameState.showConstructionPage) {
+            ConstructionPageView(gameState: gameState)
+        }
+        .sheet(isPresented: $gameState.showResourcesPage) {
+            ResourcesPageView(gameState: gameState)
         }
         .sheet(isPresented: $gameState.showCards) {
             CardsView(gameState: gameState)
@@ -407,6 +407,74 @@ struct ConstructionMenuView: View {
         }
     }
 }
+
+// MARK: - Construction Page View
+struct ConstructionPageView: View {
+    @ObservedObject var gameState: GameState
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Construction Bays
+                    ForEach(gameState.constructionBays) { bay in
+                        ConstructionBayRow(bay: bay, gameState: gameState)
+                    }
+                    
+                    // Add new bay button (placeholder)
+                    Button("Unlock New Bay") {
+                        // TODO: Implement bay unlocking
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(true) // Disabled for now
+                }
+                .padding()
+            }
+            .navigationTitle("Construction Bays")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $gameState.showConstructionMenu) {
+            ConstructionMenuView(gameState: gameState)
+        }
+    }
+}
+
+// MARK: - Resources Page View
+struct ResourcesPageView: View {
+    @ObservedObject var gameState: GameState
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
+                    ForEach(gameState.resources, id: \.type) { resource in
+                        ResourceCard(resource: resource)
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("Resources")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 // MARK: - Placeholder Views
 struct StarMapView: View {

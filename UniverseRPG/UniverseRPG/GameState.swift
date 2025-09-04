@@ -8,8 +8,10 @@ class GameState: ObservableObject {
     @Published var constructionBays: [ConstructionBay] = []
     @Published var availableLocations: [Location] = []
     @Published var showConstructionMenu = false
+    @Published var showConstructionPage = false
     @Published var showLocations = false
     @Published var showShop = false
+    @Published var showResourcesPage = false
     @Published var showCards = false
     
     // Player data
