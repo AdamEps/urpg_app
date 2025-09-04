@@ -138,7 +138,7 @@ struct TopBarView: View {
                         .tint(.green)
                     
                     Button(action: {
-                        // Objectives action
+                        gameState.showObjectives.toggle()
                     }) {
                         Image(systemName: "target")
                             .foregroundColor(.white)
@@ -546,6 +546,9 @@ struct BottomNavigationView: View {
         .sheet(isPresented: $gameState.showCards) {
             CardsView(gameState: gameState)
         }
+        .sheet(isPresented: $gameState.showObjectives) {
+            ObjectivesView(gameState: gameState)
+        }
     }
 }
 
@@ -739,6 +742,27 @@ struct CardsView: View {
         NavigationView {
             Text("Cards Coming Soon!")
                 .navigationTitle("Cards")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Done") {
+                            dismiss()
+                        }
+                    }
+                }
+        }
+    }
+}
+
+// MARK: - Objectives View
+struct ObjectivesView: View {
+    @ObservedObject var gameState: GameState
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            Text("Objectives Coming Soon!")
+                .navigationTitle("Objectives")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
