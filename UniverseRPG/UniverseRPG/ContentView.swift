@@ -176,6 +176,19 @@ struct HeaderView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
             
+            // Tap counter with reset button
+            HStack {
+                Text("Taps: \(gameState.currentLocationTapCount)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Button("Reset") {
+                    gameState.resetCurrentLocationTapCount()
+                }
+                .font(.caption)
+                .foregroundColor(.blue)
+            }
+            
             HStack {
                 ForEach(gameState.resources.prefix(5), id: \.type) { resource in
                     ResourceBadge(resource: resource)
@@ -660,9 +673,8 @@ struct ResourcesPageView: View {
         NavigationView {
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
-                    // Show all resource types twice to fill 12 rows (60 total items)
-                    ForEach(0..<60, id: \.self) { index in
-                        let resourceType = ResourceType.allCases[index % ResourceType.allCases.count]
+                    // Show all resource types exactly once
+                    ForEach(ResourceType.allCases, id: \.self) { resourceType in
                         let resource = gameState.resources.first { $0.type == resourceType } ?? 
                                      Resource(type: resourceType, amount: 0, icon: getResourceIcon(for: resourceType), color: getResourceColor(for: resourceType))
                         ResourceCard(resource: resource)
@@ -676,6 +688,11 @@ struct ResourcesPageView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         dismiss()
+                    }
+                }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Test") {
+                        gameState.printDropTableTestResults(taps: 100)
                     }
                 }
             }
@@ -840,16 +857,60 @@ struct ObjectivesView: View {
     
     var body: some View {
         NavigationView {
-            Text("Objectives Coming Soon!")
-                .navigationTitle("Objectives")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Done") {
-                            dismiss()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Taps Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Taps")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        ForEach(gameState.availableLocations, id: \.id) { location in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(location.name)
+                                        .font(.headline)
+                                    Text("\(location.system) • \(location.kind.rawValue)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Text("\(gameState.locationTapCounts[location.id, default: 0])")
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.blue)
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
                         }
                     }
+                    
+                    // Coming Soon Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Coming Soon")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        Text("More objectives and achievements will be added in future updates!")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                    }
                 }
+                .padding()
+            }
+            .navigationTitle("Objectives")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }

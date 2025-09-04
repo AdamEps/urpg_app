@@ -22,6 +22,10 @@ class GameState: ObservableObject {
     @Published var playerXP: Int = 0
     @Published var currency: Int = 1000
     
+    // Tap tracking
+    @Published var currentLocationTapCount: Int = 0
+    @Published var locationTapCounts: [String: Int] = [:]
+    
     private var gameTimer: Timer?
     
     init() {
@@ -142,30 +146,41 @@ class GameState: ObservableObject {
     }
     
     func tapLocation() {
-        // Active tapping mechanic - gives immediate resources
-        let tapReward = getTapReward()
+        // Active tapping mechanic - gives immediate resources based on drop table percentages
+        let dropTable = getLocationDropTable()
+        let selectedResource = selectResourceFromDropTable(dropTable)
         
+        // Add 1 of the selected resource
         for i in resources.indices {
-            if let reward = tapReward[resources[i].type] {
-                resources[i].amount += reward
+            if resources[i].type == selectedResource {
+                resources[i].amount += 1
+                break
             }
         }
+        
+        // Update tap counters
+        currentLocationTapCount += 1
+        locationTapCounts[currentLocation.id, default: 0] += 1
         
         // Add some visual feedback here if needed
     }
     
-    private func getTapReward() -> [ResourceType: Double] {
-        // Tap rewards based on current location (1 item per tap with rarity bias)
-        switch currentLocation.id {
-        case "taragam-7":
-            return [.ironOre: 1, .silicon: 1, .water: 1, .oxygen: 1, .carbon: 1]
-        case "elcinto":
-            return [.ironOre: 1, .silicon: 1, .helium3: 1, .titanium: 1, .aluminum: 1]
-        case "taragon-gamma":
-            return [.plasma: 1, .element: 1, .isotope: 1, .energy: 1, .radiation: 1]
-        default:
-            return [.ironOre: 1]
+    private func selectResourceFromDropTable(_ dropTable: [(ResourceType, Double)]) -> ResourceType {
+        // Generate random number between 0 and 100
+        let randomValue = Double.random(in: 0...100)
+        
+        // Find which resource this random value corresponds to
+        var cumulativePercentage: Double = 0
+        
+        for (resourceType, percentage) in dropTable {
+            cumulativePercentage += percentage
+            if randomValue <= cumulativePercentage {
+                return resourceType
+            }
         }
+        
+        // Fallback to first resource if something goes wrong
+        return dropTable.first?.0 ?? .ironOre
     }
     
     func startConstruction(recipe: ConstructionRecipe) {
@@ -260,6 +275,14 @@ class GameState: ObservableObject {
     
     func changeLocation(to location: Location) {
         currentLocation = location
+        
+        // Update current location tap count
+        currentLocationTapCount = locationTapCounts[location.id, default: 0]
+    }
+    
+    func resetCurrentLocationTapCount() {
+        currentLocationTapCount = 0
+        locationTapCounts[currentLocation.id] = 0
     }
     
     func getLocationDropTable() -> [(ResourceType, Double)] {
@@ -279,6 +302,41 @@ class GameState: ObservableObject {
             return Array(zip(resources, percentages))
         default:
             return []
+        }
+    }
+    
+    // MARK: - Testing Functions
+    
+    func testDropTableDistribution(taps: Int = 1000) -> [ResourceType: Int] {
+        // Test function to verify drop table percentages work correctly
+        var results: [ResourceType: Int] = [:]
+        let dropTable = getLocationDropTable()
+        
+        // Initialize counters
+        for (resourceType, _) in dropTable {
+            results[resourceType] = 0
+        }
+        
+        // Simulate taps
+        for _ in 0..<taps {
+            let selectedResource = selectResourceFromDropTable(dropTable)
+            results[selectedResource, default: 0] += 1
+        }
+        
+        return results
+    }
+    
+    func printDropTableTestResults(taps: Int = 1000) {
+        let results = testDropTableDistribution(taps: taps)
+        let dropTable = getLocationDropTable()
+        
+        print("Drop Table Test Results (\(taps) taps):")
+        print("Expected vs Actual percentages:")
+        
+        for (resourceType, expectedPercentage) in dropTable {
+            let actualCount = results[resourceType] ?? 0
+            let actualPercentage = Double(actualCount) / Double(taps) * 100.0
+            print("\(resourceType.rawValue): Expected \(expectedPercentage)%, Actual \(String(format: "%.1f", actualPercentage))% (\(actualCount)/\(taps))")
         }
     }
     
