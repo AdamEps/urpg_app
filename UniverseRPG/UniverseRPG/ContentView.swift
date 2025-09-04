@@ -1024,6 +1024,16 @@ struct BottomNavigationView: View {
             Spacer()
             
             Button(action: {
+                gameState.currentPage = .location
+            }) {
+                Image(systemName: "house.fill")
+                    .font(.title2)
+                    .foregroundColor(gameState.currentPage == .location ? .blue : .white)
+            }
+            
+            Spacer()
+            
+            Button(action: {
                 gameState.currentPage = .construction
             }) {
                 Image(systemName: "hammer.fill")
@@ -1466,20 +1476,32 @@ struct ResourcesPageView: View {
 // MARK: - Placeholder Views
 struct StarMapView: View {
     @ObservedObject var gameState: GameState
-    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        VStack {
+            // Page header
+            HStack {
+                Text("Star Map")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.top)
+            
             List {
                 ForEach(gameState.availableLocations, id: \.id) { location in
                     Button(action: {
                         gameState.changeLocation(to: location)
-                        dismiss()
+                        gameState.currentPage = .location
                     }) {
                         HStack {
                             VStack(alignment: .leading) {
                                 Text(location.name)
                                     .fontWeight(.medium)
+                                    .foregroundColor(.primary)
                                 Text("\(location.system) • \(location.kind.rawValue)")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
@@ -1493,15 +1515,7 @@ struct StarMapView: View {
                     }
                 }
             }
-            .navigationTitle("Star Map")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
+            .listStyle(PlainListStyle())
         }
     }
 }
