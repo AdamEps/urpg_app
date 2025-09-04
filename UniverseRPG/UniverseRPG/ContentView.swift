@@ -416,10 +416,10 @@ struct LocationView: View {
                     }
                 }
                 
+                Spacer()
+                
                 // Location Screen Slots (4 slots for cards/items)
                 LocationSlotsView(gameState: gameState)
-                
-                Spacer()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
