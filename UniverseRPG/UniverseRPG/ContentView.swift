@@ -34,8 +34,8 @@ struct ContentView: View {
                 VStack {
                     Spacer()
                     
-                    HStack {
-                        if gameState.showLocationResources {
+                    if gameState.showLocationResources {
+                        HStack(alignment: .bottom) {
                             Spacer()
                             
                             // Toggle button on left side of resource box when open
@@ -44,16 +44,24 @@ struct ContentView: View {
                             }) {
                                 Image(systemName: "chevron.right")
                                     .font(.title2)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.white)
                                     .padding(8)
-                                    .background(Color.white)
-                                    .cornerRadius(8)
+                                    .background(Color.black)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.gray, lineWidth: 1)
+                                    )
+                                    .cornerRadius(6)
                             }
                             
                             // Resource box
                             LocationResourceListView(gameState: gameState)
                                 .frame(width: UIScreen.main.bounds.width * 0.5)
-                        } else {
+                        }
+                        .padding(.trailing, 0)
+                        .padding(.bottom, 100) // Position above bottom navigation
+                    } else {
+                        HStack {
                             Spacer()
                             
                             // Toggle button on right side of screen when closed
@@ -62,15 +70,19 @@ struct ContentView: View {
                             }) {
                                 Image(systemName: "chevron.left")
                                     .font(.title2)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.white)
                                     .padding(8)
-                                    .background(Color.white)
-                                    .cornerRadius(8)
+                                    .background(Color.black)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.gray, lineWidth: 1)
+                                    )
+                                    .cornerRadius(6)
                             }
                         }
+                        .padding(.trailing, 0)
+                        .padding(.bottom, 100) // Position above bottom navigation
                     }
-                    .padding(.trailing, 0)
-                    .padding(.bottom, 100) // Position above bottom navigation
                 }
             }
             .navigationBarHidden(true)
