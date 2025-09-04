@@ -30,6 +30,10 @@ class GameState: ObservableObject {
     @Published var lastCollectedResource: ResourceType?
     @Published var showCollectionFeedback: Bool = false
     
+    // Idle collection tracking
+    private var idleCollectionTimer: Double = 0.0
+    private let idleCollectionInterval: Double = 10.0 // 10 seconds
+    
     private var gameTimer: Timer?
     
     init() {
@@ -106,35 +110,34 @@ class GameState: ObservableObject {
             }
         }
         
-        // Idle resource collection
-        collectIdleResources()
-    }
-    
-    private func collectIdleResources() {
-        // Simple idle collection - add small amounts of resources over time
-        for i in resources.indices {
-            let resource = resources[i]
-            let idleRate = getResourceIdleRate(for: resource.type)
-            resources[i].amount += idleRate
+        // Idle resource collection - every 10 seconds
+        idleCollectionTimer += 1.0
+        if idleCollectionTimer >= idleCollectionInterval {
+            idleCollectionTimer = 0.0
+            performIdleCollection()
         }
     }
     
-    private func getResourceIdleRate(for type: ResourceType) -> Double {
-        // Idle collection: 1 item per minute (1/60 per second) with drop table odds
-        // For MVP, simplified to basic rates
-        switch type {
-        case .ironOre, .silicon, .water, .oxygen, .carbon:
-            return 1.0/60.0 // 1 per minute
-        case .nitrogen, .phosphorus, .sulfur, .calcium, .magnesium:
-            return 0.5/60.0 // 0.5 per minute
-        case .helium3, .titanium, .aluminum, .nickel, .cobalt:
-            return 0.3/60.0 // 0.3 per minute
-        case .chromium, .vanadium, .manganese:
-            return 0.2/60.0 // 0.2 per minute
-        case .plasma, .element, .isotope, .energy, .radiation:
-            return 0.1/60.0 // 0.1 per minute
-        case .heat, .light, .gravity, .magnetic, .solar:
-            return 0.05/60.0 // 0.05 per minute
+    private func performIdleCollection() {
+        // Idle collection: collect one resource every 10 seconds based on current location's drop table
+        let dropTable = getLocationDropTable()
+        let selectedResource = selectResourceFromDropTable(dropTable)
+        
+        // Add 1 of the selected resource (same logic as tapLocation)
+        if let existingIndex = resources.firstIndex(where: { $0.type == selectedResource }) {
+            // Resource already exists, increment amount
+            resources[existingIndex].amount += 1
+            print("Idle collected 1 \(selectedResource.rawValue) - Total: \(resources[existingIndex].amount)")
+        } else {
+            // Resource doesn't exist, create new entry
+            let newResource = Resource(
+                type: selectedResource,
+                amount: 1,
+                icon: getResourceIcon(for: selectedResource),
+                color: getResourceColor(for: selectedResource)
+            )
+            resources.append(newResource)
+            print("Idle collected 1 \(selectedResource.rawValue) - First collection!")
         }
     }
     
