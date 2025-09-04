@@ -190,7 +190,7 @@ struct HeaderView: View {
             }
             
             HStack {
-                ForEach(gameState.resources.prefix(5), id: \.type) { resource in
+                ForEach(gameState.resources.filter { $0.amount > 0 }.prefix(5), id: \.type) { resource in
                     ResourceBadge(resource: resource)
                 }
             }
@@ -210,8 +210,8 @@ struct LocationView: View {
             // Full screen background
             Color.clear
             
-            VStack(spacing: 20) {
-                // Tap counter and reset button
+            VStack {
+                // Tap counter and reset button at top
                 HStack {
                     Text("Taps: \(gameState.currentLocationTapCount)")
                         .font(.headline)
@@ -230,6 +230,9 @@ struct LocationView: View {
                     .cornerRadius(8)
                 }
                 .padding(.horizontal, 20)
+                .padding(.top, 20)
+                
+                Spacer()
                 
                 // Centered clickable location
                 ZStack {
@@ -524,6 +527,29 @@ struct ResourceCard: View {
     }
 }
 
+// MARK: - Empty Resource Card (placeholder for future resources)
+struct EmptyResourceCard: View {
+    var body: some View {
+        VStack(spacing: 4) {
+            Image(systemName: "questionmark.square")
+                .font(.title2)
+                .foregroundColor(.gray)
+            
+            Text("???")
+                .font(.caption2)
+                .foregroundColor(.gray)
+        }
+        .frame(height: 80)
+        .frame(maxWidth: .infinity)
+        .background(Color.black.opacity(0.3))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+        )
+        .cornerRadius(8)
+    }
+}
+
 // MARK: - Resource Badge
 struct ResourceBadge: View {
     let resource: Resource
@@ -720,11 +746,18 @@ struct ResourcesPageView: View {
         NavigationView {
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
-                    // Show all resource types exactly once
-                    ForEach(ResourceType.allCases, id: \.self) { resourceType in
-                        let resource = gameState.resources.first { $0.type == resourceType } ?? 
-                                     Resource(type: resourceType, amount: 0, icon: getResourceIcon(for: resourceType), color: getResourceColor(for: resourceType))
-                        ResourceCard(resource: resource)
+                    // Show 30 rows (150 total items) - existing resources + empty placeholders
+                    ForEach(0..<150, id: \.self) { index in
+                        if index < ResourceType.allCases.count {
+                            // Show existing resource types
+                            let resourceType = ResourceType.allCases[index]
+                            let resource = gameState.resources.first { $0.type == resourceType } ?? 
+                                         Resource(type: resourceType, amount: 0, icon: getResourceIcon(for: resourceType), color: getResourceColor(for: resourceType))
+                            ResourceCard(resource: resource)
+                        } else {
+                            // Show empty placeholder for future resources
+                            EmptyResourceCard()
+                        }
                     }
                 }
                 .padding()
