@@ -499,6 +499,97 @@ struct LocationResourceListView: View {
         case .magnetic: return "magnet"
         case .solar: return "sun.max.fill"
         case .numins: return "star.fill"
+        
+        // TaraGam 3 resources
+        case .hydrogen: return "h.circle.fill"
+        case .methane: return "flame"
+        case .ammonia: return "drop.triangle"
+        case .ice: return "snowflake"
+        case .crystals: return "diamond"
+        case .minerals: return "cube"
+        
+        // Abandoned Star Ship resources
+        case .scrapMetal: return "wrench.and.screwdriver"
+        case .electronics: return "cpu"
+        case .fuelCells: return "battery.100"
+        case .dataCores: return "externaldrive"
+        case .circuits: return "circle.grid.cross"
+        case .alloys: return "rectangle.stack"
+        case .components: return "gearshape.2"
+        case .techParts: return "gear"
+        case .batteries: return "battery.50"
+        case .wiring: return "cable.connector"
+        
+        // Ernest's Homestead resources
+        case .food: return "leaf"
+        case .textiles: return "tshirt"
+        case .tools: return "hammer"
+        case .medicine: return "cross.case"
+        case .seeds: return "seedling"
+        case .livestock: return "pawprint"
+        case .grain: return "leaf.circle"
+        case .vegetables: return "carrot"
+        case .herbs: return "leaf.arrow.circlepath"
+        case .supplies: return "shippingbox"
+        
+        // Koraxon resources
+        case .heavyElements: return "atom"
+        case .denseMatter: return "circle.fill"
+        case .compressedGas: return "cloud.fill"
+        case .exoticMatter: return "sparkles"
+        case .gravitons: return "arrow.down.circle"
+        case .darkEnergy: return "moon.stars"
+        case .neutronium: return "n.circle"
+        case .quarkMatter: return "q.circle"
+        case .strangeMatter: return "s.circle"
+        case .antimatter: return "minus.circle"
+        
+        // Taragon Beta resources
+        case .redPlasma: return "flame.circle"
+        case .infraredEnergy: return "thermometer"
+        case .stellarWind: return "wind"
+        case .magneticFields: return "magnifyingglass"
+        case .cosmicRays: return "rays"
+        case .photons: return "lightbulb"
+        case .particles: return "circle.dotted"
+        case .solarFlares: return "sun.max"
+        case .corona: return "sun.haze"
+        case .chromosphere: return "circle.hexagongrid"
+        
+        // Violis Alpha resources
+        case .stellarDust: return "sparkle"
+        case .cosmicDebris: return "trash"
+        case .microParticles: return "circle.grid.3x3"
+        case .spaceGas: return "cloud"
+        case .ionStreams: return "arrow.right"
+        case .electronFlow: return "e.circle"
+        case .protonBeams: return "p.circle"
+        case .neutronFlux: return "n.circle.fill"
+        case .gammaRays: return "g.circle"
+        case .xRays: return "x.circle"
+        
+        // Violis Outpost resources
+        case .researchData: return "doc.text"
+        case .labEquipment: return "flask"
+        case .samples: return "testtube.2"
+        case .experiments: return "beaker"
+        case .prototypes: return "cube.transparent"
+        case .blueprints: return "doc.plaintext"
+        case .formulas: return "function"
+        case .algorithms: return "chevron.left.forwardslash.chevron.right"
+        case .code: return "curlybraces"
+        case .documentation: return "book"
+        
+        // Rogue Wanderer resources
+        case .frozenGases: return "snowflake.circle"
+        case .iceCrystals: return "diamond.fill"
+        case .preservedMatter: return "cube.box"
+        case .ancientArtifacts: return "crown"
+        case .relics: return "building.columns"
+        case .fossils: return "leaf.fill"
+        case .rareElements: return "r.circle"
+        case .crystallineStructures: return "diamond.circle"
+        case .geologicalSamples: return "mountain.2"
         }
     }
     
@@ -533,6 +624,97 @@ struct LocationResourceListView: View {
         case .magnetic: return .blue
         case .solar: return .yellow
         case .numins: return .yellow
+        
+        // TaraGam 3 resources
+        case .hydrogen: return .cyan
+        case .methane: return .orange
+        case .ammonia: return .green
+        case .ice: return .blue
+        case .crystals: return .purple
+        case .minerals: return .brown
+        
+        // Abandoned Star Ship resources
+        case .scrapMetal: return .gray
+        case .electronics: return .blue
+        case .fuelCells: return .green
+        case .dataCores: return .purple
+        case .circuits: return .yellow
+        case .alloys: return .gray
+        case .components: return .orange
+        case .techParts: return .blue
+        case .batteries: return .green
+        case .wiring: return .red
+        
+        // Ernest's Homestead resources
+        case .food: return .green
+        case .textiles: return .blue
+        case .tools: return .gray
+        case .medicine: return .red
+        case .seeds: return .brown
+        case .livestock: return .orange
+        case .grain: return .yellow
+        case .vegetables: return .green
+        case .herbs: return .green
+        case .supplies: return .brown
+        
+        // Koraxon resources
+        case .heavyElements: return .purple
+        case .denseMatter: return .black
+        case .compressedGas: return .cyan
+        case .exoticMatter: return .purple
+        case .gravitons: return .blue
+        case .darkEnergy: return .black
+        case .neutronium: return .gray
+        case .quarkMatter: return .red
+        case .strangeMatter: return .purple
+        case .antimatter: return .white
+        
+        // Taragon Beta resources
+        case .redPlasma: return .red
+        case .infraredEnergy: return .red
+        case .stellarWind: return .cyan
+        case .magneticFields: return .blue
+        case .cosmicRays: return .purple
+        case .photons: return .yellow
+        case .particles: return .white
+        case .solarFlares: return .orange
+        case .corona: return .yellow
+        case .chromosphere: return .orange
+        
+        // Violis Alpha resources
+        case .stellarDust: return .gray
+        case .cosmicDebris: return .brown
+        case .microParticles: return .white
+        case .spaceGas: return .cyan
+        case .ionStreams: return .blue
+        case .electronFlow: return .yellow
+        case .protonBeams: return .red
+        case .neutronFlux: return .gray
+        case .gammaRays: return .green
+        case .xRays: return .purple
+        
+        // Violis Outpost resources
+        case .researchData: return .blue
+        case .labEquipment: return .gray
+        case .samples: return .green
+        case .experiments: return .purple
+        case .prototypes: return .cyan
+        case .blueprints: return .blue
+        case .formulas: return .orange
+        case .algorithms: return .red
+        case .code: return .green
+        case .documentation: return .brown
+        
+        // Rogue Wanderer resources
+        case .frozenGases: return .cyan
+        case .iceCrystals: return .blue
+        case .preservedMatter: return .gray
+        case .ancientArtifacts: return .yellow
+        case .relics: return .brown
+        case .fossils: return .brown
+        case .rareElements: return .purple
+        case .crystallineStructures: return .purple
+        case .geologicalSamples: return .brown
         }
     }
 }
@@ -1003,6 +1185,97 @@ struct ResourcesPageView: View {
         case .magnetic: return "magnet"
         case .solar: return "sun.max.circle.fill"
         case .numins: return "star.fill"
+        
+        // TaraGam 3 resources
+        case .hydrogen: return "h.circle.fill"
+        case .methane: return "flame"
+        case .ammonia: return "drop.triangle"
+        case .ice: return "snowflake"
+        case .crystals: return "diamond"
+        case .minerals: return "cube"
+        
+        // Abandoned Star Ship resources
+        case .scrapMetal: return "wrench.and.screwdriver"
+        case .electronics: return "cpu"
+        case .fuelCells: return "battery.100"
+        case .dataCores: return "externaldrive"
+        case .circuits: return "circle.grid.cross"
+        case .alloys: return "rectangle.stack"
+        case .components: return "gearshape.2"
+        case .techParts: return "gear"
+        case .batteries: return "battery.50"
+        case .wiring: return "cable.connector"
+        
+        // Ernest's Homestead resources
+        case .food: return "leaf"
+        case .textiles: return "tshirt"
+        case .tools: return "hammer"
+        case .medicine: return "cross.case"
+        case .seeds: return "seedling"
+        case .livestock: return "pawprint"
+        case .grain: return "leaf.circle"
+        case .vegetables: return "carrot"
+        case .herbs: return "leaf.arrow.circlepath"
+        case .supplies: return "shippingbox"
+        
+        // Koraxon resources
+        case .heavyElements: return "atom"
+        case .denseMatter: return "circle.fill"
+        case .compressedGas: return "cloud.fill"
+        case .exoticMatter: return "sparkles"
+        case .gravitons: return "arrow.down.circle"
+        case .darkEnergy: return "moon.stars"
+        case .neutronium: return "n.circle"
+        case .quarkMatter: return "q.circle"
+        case .strangeMatter: return "s.circle"
+        case .antimatter: return "minus.circle"
+        
+        // Taragon Beta resources
+        case .redPlasma: return "flame.circle"
+        case .infraredEnergy: return "thermometer"
+        case .stellarWind: return "wind"
+        case .magneticFields: return "magnifyingglass"
+        case .cosmicRays: return "rays"
+        case .photons: return "lightbulb"
+        case .particles: return "circle.dotted"
+        case .solarFlares: return "sun.max"
+        case .corona: return "sun.haze"
+        case .chromosphere: return "circle.hexagongrid"
+        
+        // Violis Alpha resources
+        case .stellarDust: return "sparkle"
+        case .cosmicDebris: return "trash"
+        case .microParticles: return "circle.grid.3x3"
+        case .spaceGas: return "cloud"
+        case .ionStreams: return "arrow.right"
+        case .electronFlow: return "e.circle"
+        case .protonBeams: return "p.circle"
+        case .neutronFlux: return "n.circle.fill"
+        case .gammaRays: return "g.circle"
+        case .xRays: return "x.circle"
+        
+        // Violis Outpost resources
+        case .researchData: return "doc.text"
+        case .labEquipment: return "flask"
+        case .samples: return "testtube.2"
+        case .experiments: return "beaker"
+        case .prototypes: return "cube.transparent"
+        case .blueprints: return "doc.plaintext"
+        case .formulas: return "function"
+        case .algorithms: return "chevron.left.forwardslash.chevron.right"
+        case .code: return "curlybraces"
+        case .documentation: return "book"
+        
+        // Rogue Wanderer resources
+        case .frozenGases: return "snowflake.circle"
+        case .iceCrystals: return "diamond.fill"
+        case .preservedMatter: return "cube.box"
+        case .ancientArtifacts: return "crown"
+        case .relics: return "building.columns"
+        case .fossils: return "leaf.fill"
+        case .rareElements: return "r.circle"
+        case .crystallineStructures: return "diamond.circle"
+        case .geologicalSamples: return "mountain.2"
         }
     }
     
@@ -1037,6 +1310,97 @@ struct ResourcesPageView: View {
         case .magnetic: return .blue
         case .solar: return .orange
         case .numins: return .yellow
+        
+        // TaraGam 3 resources
+        case .hydrogen: return .cyan
+        case .methane: return .orange
+        case .ammonia: return .green
+        case .ice: return .blue
+        case .crystals: return .purple
+        case .minerals: return .brown
+        
+        // Abandoned Star Ship resources
+        case .scrapMetal: return .gray
+        case .electronics: return .blue
+        case .fuelCells: return .green
+        case .dataCores: return .purple
+        case .circuits: return .yellow
+        case .alloys: return .gray
+        case .components: return .orange
+        case .techParts: return .blue
+        case .batteries: return .green
+        case .wiring: return .red
+        
+        // Ernest's Homestead resources
+        case .food: return .green
+        case .textiles: return .blue
+        case .tools: return .gray
+        case .medicine: return .red
+        case .seeds: return .brown
+        case .livestock: return .orange
+        case .grain: return .yellow
+        case .vegetables: return .green
+        case .herbs: return .green
+        case .supplies: return .brown
+        
+        // Koraxon resources
+        case .heavyElements: return .purple
+        case .denseMatter: return .black
+        case .compressedGas: return .cyan
+        case .exoticMatter: return .purple
+        case .gravitons: return .blue
+        case .darkEnergy: return .black
+        case .neutronium: return .gray
+        case .quarkMatter: return .red
+        case .strangeMatter: return .purple
+        case .antimatter: return .white
+        
+        // Taragon Beta resources
+        case .redPlasma: return .red
+        case .infraredEnergy: return .red
+        case .stellarWind: return .cyan
+        case .magneticFields: return .blue
+        case .cosmicRays: return .purple
+        case .photons: return .yellow
+        case .particles: return .white
+        case .solarFlares: return .orange
+        case .corona: return .yellow
+        case .chromosphere: return .orange
+        
+        // Violis Alpha resources
+        case .stellarDust: return .gray
+        case .cosmicDebris: return .brown
+        case .microParticles: return .white
+        case .spaceGas: return .cyan
+        case .ionStreams: return .blue
+        case .electronFlow: return .yellow
+        case .protonBeams: return .red
+        case .neutronFlux: return .gray
+        case .gammaRays: return .green
+        case .xRays: return .purple
+        
+        // Violis Outpost resources
+        case .researchData: return .blue
+        case .labEquipment: return .gray
+        case .samples: return .green
+        case .experiments: return .purple
+        case .prototypes: return .cyan
+        case .blueprints: return .blue
+        case .formulas: return .orange
+        case .algorithms: return .red
+        case .code: return .green
+        case .documentation: return .brown
+        
+        // Rogue Wanderer resources
+        case .frozenGases: return .cyan
+        case .iceCrystals: return .blue
+        case .preservedMatter: return .gray
+        case .ancientArtifacts: return .yellow
+        case .relics: return .brown
+        case .fossils: return .brown
+        case .rareElements: return .purple
+        case .crystallineStructures: return .purple
+        case .geologicalSamples: return .brown
         }
     }
 }

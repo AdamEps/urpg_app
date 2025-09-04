@@ -75,9 +75,10 @@ class GameState: ObservableObject {
         // Initialize resources as empty - resources will be added when first collected
         self.resources = []
         
-        // Initialize available locations (Taragon Gamma system)
+        // Initialize all 11 available locations from TDD
         self.availableLocations = [
-            currentLocation,
+            // Taragon Gamma System (5 locations)
+            currentLocation, // Taragam-7
             Location(
                 id: "elcinto",
                 name: "Elcinto",
@@ -88,13 +89,89 @@ class GameState: ObservableObject {
                 unlockRequirements: ["Iron Ore: 100"]
             ),
             Location(
+                id: "taragam-3",
+                name: "TaraGam 3",
+                description: "Ice planet with rings",
+                system: "Taragon Gamma",
+                kind: .planet,
+                availableResources: ["Water", "Oxygen", "Nitrogen", "Carbon", "Hydrogen", "Methane", "Ammonia", "Ice", "Crystals", "Minerals"],
+                unlockRequirements: ["Water: 150", "Oxygen: 100"]
+            ),
+            Location(
+                id: "abandoned-star-ship",
+                name: "Abandoned Star Ship",
+                description: "Derelict vessel floating in space",
+                system: "Taragon Gamma",
+                kind: .ship,
+                availableResources: ["Scrap Metal", "Electronics", "Fuel Cells", "Data Cores", "Circuits", "Alloys", "Components", "Tech Parts", "Batteries", "Wiring"],
+                unlockRequirements: ["Silicon: 200", "Titanium: 75"]
+            ),
+            Location(
                 id: "taragon-gamma",
                 name: "Taragon Gamma",
                 description: "Class 3 star, main sequence, yellow",
                 system: "Taragon Gamma",
                 kind: .star,
                 availableResources: ["Plasma", "Element", "Isotope", "Energy", "Radiation", "Heat", "Light", "Gravity", "Magnetic", "Solar"],
-                unlockRequirements: ["Silicon: 200", "Helium-3: 50"]
+                unlockRequirements: ["Silicon: 300", "Helium-3: 100"]
+            ),
+            
+            // Taragon Beta System (3 locations)
+            Location(
+                id: "ernests-homestead",
+                name: "Ernest's Homestead",
+                description: "Remote moon settlement",
+                system: "Taragon Beta",
+                kind: .moon,
+                availableResources: ["Food", "Textiles", "Tools", "Medicine", "Seeds", "Livestock", "Grain", "Vegetables", "Herbs", "Supplies"],
+                unlockRequirements: ["Iron Ore: 500", "Water: 300"]
+            ),
+            Location(
+                id: "koraxon",
+                name: "Koraxon",
+                description: "Brown dwarf - supermassive planet",
+                system: "Taragon Beta",
+                kind: .dwarf,
+                availableResources: ["Heavy Elements", "Dense Matter", "Compressed Gas", "Exotic Matter", "Gravitons", "Dark Energy", "Neutronium", "Quark Matter", "Strange Matter", "Antimatter"],
+                unlockRequirements: ["Titanium: 200", "Energy: 150"]
+            ),
+            Location(
+                id: "taragon-beta",
+                name: "Taragon Beta",
+                description: "Class 5 star, main sequence, deep red",
+                system: "Taragon Beta",
+                kind: .star,
+                availableResources: ["Red Plasma", "Infrared Energy", "Stellar Wind", "Magnetic Fields", "Cosmic Rays", "Photons", "Particles", "Solar Flares", "Corona", "Chromosphere"],
+                unlockRequirements: ["Plasma: 100", "Energy: 200"]
+            ),
+            
+            // Violis Constellation (3 locations)
+            Location(
+                id: "violis-alpha",
+                name: "Violis Alpha",
+                description: "Dwarf star - class 2",
+                system: "Violis",
+                kind: .dwarf,
+                availableResources: ["Stellar Dust", "Cosmic Debris", "Micro Particles", "Space Gas", "Ion Streams", "Electron Flow", "Proton Beams", "Neutron Flux", "Gamma Rays", "X-Rays"],
+                unlockRequirements: ["Heavy Elements: 50", "Plasma: 150"]
+            ),
+            Location(
+                id: "violis-outpost",
+                name: "Violis Outpost",
+                description: "Remote research station",
+                system: "Violis",
+                kind: .anomaly,
+                availableResources: ["Research Data", "Lab Equipment", "Samples", "Experiments", "Prototypes", "Blueprints", "Formulas", "Algorithms", "Code", "Documentation"],
+                unlockRequirements: ["Data Cores: 25", "Electronics: 100"]
+            ),
+            Location(
+                id: "rogue-wanderer",
+                name: "Rogue Wanderer",
+                description: "Nomadic planet without a star",
+                system: "Violis",
+                kind: .rogue,
+                availableResources: ["Frozen Gases", "Ice Crystals", "Preserved Matter", "Ancient Artifacts", "Relics", "Fossils", "Minerals", "Rare Elements", "Crystalline Structures", "Geological Samples"],
+                unlockRequirements: ["Exotic Matter: 30", "Research Data: 50"]
             )
         ]
         
@@ -386,15 +463,45 @@ class GameState: ObservableObject {
         let percentages = [30.0, 20.0, 15.0, 10.0, 8.0, 6.0, 5.0, 3.0, 2.0, 1.0]
         
         switch currentLocation.id {
+        // Taragon Gamma System
         case "taragam-7":
             let resources: [ResourceType] = [.ironOre, .silicon, .water, .oxygen, .carbon, .nitrogen, .phosphorus, .sulfur, .calcium, .magnesium]
             return Array(zip(resources, percentages))
         case "elcinto":
             let resources: [ResourceType] = [.ironOre, .silicon, .helium3, .titanium, .aluminum, .nickel, .cobalt, .chromium, .vanadium, .manganese]
             return Array(zip(resources, percentages))
+        case "taragam-3":
+            let resources: [ResourceType] = [.water, .oxygen, .nitrogen, .carbon, .hydrogen, .methane, .ammonia, .ice, .crystals, .minerals]
+            return Array(zip(resources, percentages))
+        case "abandoned-star-ship":
+            let resources: [ResourceType] = [.scrapMetal, .electronics, .fuelCells, .dataCores, .circuits, .alloys, .components, .techParts, .batteries, .wiring]
+            return Array(zip(resources, percentages))
         case "taragon-gamma":
             let resources: [ResourceType] = [.plasma, .element, .isotope, .energy, .radiation, .heat, .light, .gravity, .magnetic, .solar]
             return Array(zip(resources, percentages))
+            
+        // Taragon Beta System
+        case "ernests-homestead":
+            let resources: [ResourceType] = [.food, .textiles, .tools, .medicine, .seeds, .livestock, .grain, .vegetables, .herbs, .supplies]
+            return Array(zip(resources, percentages))
+        case "koraxon":
+            let resources: [ResourceType] = [.heavyElements, .denseMatter, .compressedGas, .exoticMatter, .gravitons, .darkEnergy, .neutronium, .quarkMatter, .strangeMatter, .antimatter]
+            return Array(zip(resources, percentages))
+        case "taragon-beta":
+            let resources: [ResourceType] = [.redPlasma, .infraredEnergy, .stellarWind, .magneticFields, .cosmicRays, .photons, .particles, .solarFlares, .corona, .chromosphere]
+            return Array(zip(resources, percentages))
+            
+        // Violis Constellation
+        case "violis-alpha":
+            let resources: [ResourceType] = [.stellarDust, .cosmicDebris, .microParticles, .spaceGas, .ionStreams, .electronFlow, .protonBeams, .neutronFlux, .gammaRays, .xRays]
+            return Array(zip(resources, percentages))
+        case "violis-outpost":
+            let resources: [ResourceType] = [.researchData, .labEquipment, .samples, .experiments, .prototypes, .blueprints, .formulas, .algorithms, .code, .documentation]
+            return Array(zip(resources, percentages))
+        case "rogue-wanderer":
+            let resources: [ResourceType] = [.frozenGases, .iceCrystals, .preservedMatter, .ancientArtifacts, .relics, .fossils, .minerals, .rareElements, .crystallineStructures, .geologicalSamples]
+            return Array(zip(resources, percentages))
+            
         default:
             return []
         }
@@ -565,6 +672,97 @@ class GameState: ObservableObject {
         case .magnetic: return "magnet"
         case .solar: return "sun.max.circle.fill"
         case .numins: return "star.fill"
+        
+        // TaraGam 3 resources
+        case .hydrogen: return "h.circle.fill"
+        case .methane: return "flame"
+        case .ammonia: return "drop.triangle"
+        case .ice: return "snowflake"
+        case .crystals: return "diamond"
+        case .minerals: return "cube"
+        
+        // Abandoned Star Ship resources
+        case .scrapMetal: return "wrench.and.screwdriver"
+        case .electronics: return "cpu"
+        case .fuelCells: return "battery.100"
+        case .dataCores: return "externaldrive"
+        case .circuits: return "circle.grid.cross"
+        case .alloys: return "rectangle.stack"
+        case .components: return "gearshape.2"
+        case .techParts: return "gear"
+        case .batteries: return "battery.50"
+        case .wiring: return "cable.connector"
+        
+        // Ernest's Homestead resources
+        case .food: return "leaf"
+        case .textiles: return "tshirt"
+        case .tools: return "hammer"
+        case .medicine: return "cross.case"
+        case .seeds: return "seedling"
+        case .livestock: return "pawprint"
+        case .grain: return "leaf.circle"
+        case .vegetables: return "carrot"
+        case .herbs: return "leaf.arrow.circlepath"
+        case .supplies: return "shippingbox"
+        
+        // Koraxon resources
+        case .heavyElements: return "atom"
+        case .denseMatter: return "circle.fill"
+        case .compressedGas: return "cloud.fill"
+        case .exoticMatter: return "sparkles"
+        case .gravitons: return "arrow.down.circle"
+        case .darkEnergy: return "moon.stars"
+        case .neutronium: return "n.circle"
+        case .quarkMatter: return "q.circle"
+        case .strangeMatter: return "s.circle"
+        case .antimatter: return "minus.circle"
+        
+        // Taragon Beta resources
+        case .redPlasma: return "flame.circle"
+        case .infraredEnergy: return "thermometer"
+        case .stellarWind: return "wind"
+        case .magneticFields: return "magnifyingglass"
+        case .cosmicRays: return "rays"
+        case .photons: return "lightbulb"
+        case .particles: return "circle.dotted"
+        case .solarFlares: return "sun.max"
+        case .corona: return "sun.haze"
+        case .chromosphere: return "circle.hexagongrid"
+        
+        // Violis Alpha resources
+        case .stellarDust: return "sparkle"
+        case .cosmicDebris: return "trash"
+        case .microParticles: return "circle.grid.3x3"
+        case .spaceGas: return "cloud"
+        case .ionStreams: return "arrow.right"
+        case .electronFlow: return "e.circle"
+        case .protonBeams: return "p.circle"
+        case .neutronFlux: return "n.circle.fill"
+        case .gammaRays: return "g.circle"
+        case .xRays: return "x.circle"
+        
+        // Violis Outpost resources
+        case .researchData: return "doc.text"
+        case .labEquipment: return "flask"
+        case .samples: return "testtube.2"
+        case .experiments: return "beaker"
+        case .prototypes: return "cube.transparent"
+        case .blueprints: return "doc.plaintext"
+        case .formulas: return "function"
+        case .algorithms: return "chevron.left.forwardslash.chevron.right"
+        case .code: return "curlybraces"
+        case .documentation: return "book"
+        
+        // Rogue Wanderer resources
+        case .frozenGases: return "snowflake.circle"
+        case .iceCrystals: return "diamond.fill"
+        case .preservedMatter: return "cube.box"
+        case .ancientArtifacts: return "crown"
+        case .relics: return "building.columns"
+        case .fossils: return "leaf.fill"
+        case .rareElements: return "r.circle"
+        case .crystallineStructures: return "diamond.circle"
+        case .geologicalSamples: return "mountain.2"
         }
     }
     
@@ -599,6 +797,97 @@ class GameState: ObservableObject {
         case .magnetic: return .blue
         case .solar: return .orange
         case .numins: return .yellow
+        
+        // TaraGam 3 resources
+        case .hydrogen: return .cyan
+        case .methane: return .orange
+        case .ammonia: return .green
+        case .ice: return .blue
+        case .crystals: return .purple
+        case .minerals: return .brown
+        
+        // Abandoned Star Ship resources
+        case .scrapMetal: return .gray
+        case .electronics: return .blue
+        case .fuelCells: return .green
+        case .dataCores: return .purple
+        case .circuits: return .yellow
+        case .alloys: return .gray
+        case .components: return .orange
+        case .techParts: return .blue
+        case .batteries: return .green
+        case .wiring: return .red
+        
+        // Ernest's Homestead resources
+        case .food: return .green
+        case .textiles: return .blue
+        case .tools: return .gray
+        case .medicine: return .red
+        case .seeds: return .brown
+        case .livestock: return .orange
+        case .grain: return .yellow
+        case .vegetables: return .green
+        case .herbs: return .green
+        case .supplies: return .brown
+        
+        // Koraxon resources
+        case .heavyElements: return .purple
+        case .denseMatter: return .black
+        case .compressedGas: return .cyan
+        case .exoticMatter: return .purple
+        case .gravitons: return .blue
+        case .darkEnergy: return .black
+        case .neutronium: return .gray
+        case .quarkMatter: return .red
+        case .strangeMatter: return .purple
+        case .antimatter: return .white
+        
+        // Taragon Beta resources
+        case .redPlasma: return .red
+        case .infraredEnergy: return .red
+        case .stellarWind: return .cyan
+        case .magneticFields: return .blue
+        case .cosmicRays: return .purple
+        case .photons: return .yellow
+        case .particles: return .white
+        case .solarFlares: return .orange
+        case .corona: return .yellow
+        case .chromosphere: return .orange
+        
+        // Violis Alpha resources
+        case .stellarDust: return .gray
+        case .cosmicDebris: return .brown
+        case .microParticles: return .white
+        case .spaceGas: return .cyan
+        case .ionStreams: return .blue
+        case .electronFlow: return .yellow
+        case .protonBeams: return .red
+        case .neutronFlux: return .gray
+        case .gammaRays: return .green
+        case .xRays: return .purple
+        
+        // Violis Outpost resources
+        case .researchData: return .blue
+        case .labEquipment: return .gray
+        case .samples: return .green
+        case .experiments: return .purple
+        case .prototypes: return .cyan
+        case .blueprints: return .blue
+        case .formulas: return .orange
+        case .algorithms: return .red
+        case .code: return .green
+        case .documentation: return .brown
+        
+        // Rogue Wanderer resources
+        case .frozenGases: return .cyan
+        case .iceCrystals: return .blue
+        case .preservedMatter: return .gray
+        case .ancientArtifacts: return .yellow
+        case .relics: return .brown
+        case .fossils: return .brown
+        case .rareElements: return .purple
+        case .crystallineStructures: return .purple
+        case .geologicalSamples: return .brown
         }
     }
 }
@@ -662,6 +951,97 @@ enum ResourceType: String, CaseIterable {
     case magnetic = "Magnetic"
     case solar = "Solar"
     case numins = "Numins"
+    
+    // TaraGam 3 resources
+    case hydrogen = "Hydrogen"
+    case methane = "Methane"
+    case ammonia = "Ammonia"
+    case ice = "Ice"
+    case crystals = "Crystals"
+    case minerals = "Minerals"
+    
+    // Abandoned Star Ship resources
+    case scrapMetal = "Scrap Metal"
+    case electronics = "Electronics"
+    case fuelCells = "Fuel Cells"
+    case dataCores = "Data Cores"
+    case circuits = "Circuits"
+    case alloys = "Alloys"
+    case components = "Components"
+    case techParts = "Tech Parts"
+    case batteries = "Batteries"
+    case wiring = "Wiring"
+    
+    // Ernest's Homestead resources
+    case food = "Food"
+    case textiles = "Textiles"
+    case tools = "Tools"
+    case medicine = "Medicine"
+    case seeds = "Seeds"
+    case livestock = "Livestock"
+    case grain = "Grain"
+    case vegetables = "Vegetables"
+    case herbs = "Herbs"
+    case supplies = "Supplies"
+    
+    // Koraxon resources
+    case heavyElements = "Heavy Elements"
+    case denseMatter = "Dense Matter"
+    case compressedGas = "Compressed Gas"
+    case exoticMatter = "Exotic Matter"
+    case gravitons = "Gravitons"
+    case darkEnergy = "Dark Energy"
+    case neutronium = "Neutronium"
+    case quarkMatter = "Quark Matter"
+    case strangeMatter = "Strange Matter"
+    case antimatter = "Antimatter"
+    
+    // Taragon Beta resources
+    case redPlasma = "Red Plasma"
+    case infraredEnergy = "Infrared Energy"
+    case stellarWind = "Stellar Wind"
+    case magneticFields = "Magnetic Fields"
+    case cosmicRays = "Cosmic Rays"
+    case photons = "Photons"
+    case particles = "Particles"
+    case solarFlares = "Solar Flares"
+    case corona = "Corona"
+    case chromosphere = "Chromosphere"
+    
+    // Violis Alpha resources
+    case stellarDust = "Stellar Dust"
+    case cosmicDebris = "Cosmic Debris"
+    case microParticles = "Micro Particles"
+    case spaceGas = "Space Gas"
+    case ionStreams = "Ion Streams"
+    case electronFlow = "Electron Flow"
+    case protonBeams = "Proton Beams"
+    case neutronFlux = "Neutron Flux"
+    case gammaRays = "Gamma Rays"
+    case xRays = "X-Rays"
+    
+    // Violis Outpost resources
+    case researchData = "Research Data"
+    case labEquipment = "Lab Equipment"
+    case samples = "Samples"
+    case experiments = "Experiments"
+    case prototypes = "Prototypes"
+    case blueprints = "Blueprints"
+    case formulas = "Formulas"
+    case algorithms = "Algorithms"
+    case code = "Code"
+    case documentation = "Documentation"
+    
+    // Rogue Wanderer resources
+    case frozenGases = "Frozen Gases"
+    case iceCrystals = "Ice Crystals"
+    case preservedMatter = "Preserved Matter"
+    case ancientArtifacts = "Ancient Artifacts"
+    case relics = "Relics"
+    case fossils = "Fossils"
+    case rareElements = "Rare Elements"
+    case crystallineStructures = "Crystalline Structures"
+    case geologicalSamples = "Geological Samples"
 }
 
 struct ConstructionBay: Identifiable {
