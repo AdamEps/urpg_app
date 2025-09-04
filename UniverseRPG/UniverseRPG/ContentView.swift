@@ -1223,7 +1223,7 @@ struct ResourcesPageView: View {
                 .foregroundColor(.blue)
             }
             .padding(.horizontal)
-            .padding(.top)
+            .padding(.top, 8)
             
             // Sorting dropdown
             HStack {
@@ -1242,14 +1242,25 @@ struct ResourcesPageView: View {
                 Spacer()
             }
             .padding(.horizontal)
-            .padding(.vertical, 8)
+            .padding(.vertical, 4)
             .background(Color.black.opacity(0.2))
+            
+            // Resource Detail View
+            if let selectedResource = gameState.selectedResourceForDetail,
+               let resource = gameState.resources.first(where: { $0.type == selectedResource }) {
+                ResourceDetailView(resource: resource, gameState: gameState)
+            }
             
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
                     // Show sorted owned resources first
                     ForEach(sortedResources, id: \.type) { resource in
-                        ResourceCard(resource: resource)
+                        Button(action: {
+                            gameState.selectedResourceForDetail = resource.type
+                        }) {
+                            ResourceCard(resource: resource)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     
                     // Fill remaining slots with empty placeholders to maintain grid layout
@@ -1513,6 +1524,79 @@ struct ResourcesPageView: View {
     }
 }
 
+// MARK: - Resource Detail View
+struct ResourceDetailView: View {
+    let resource: Resource
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Larger resource icon
+            Image(systemName: resource.icon)
+                .font(.system(size: 40))
+                .foregroundColor(resource.color)
+                .frame(width: 60, height: 60)
+                .background(Color.black.opacity(0.3))
+                .cornerRadius(8)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                // Resource name and quantity
+                HStack {
+                    Text(resource.type.rawValue)
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Text("\(Int(resource.amount))")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(resource.color)
+                }
+                
+                // Lore text
+                Text(gameState.getResourceLore(for: resource.type))
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.8))
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+                
+                // Collection locations
+                HStack {
+                    Text("Found at:")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.6))
+                    
+                    Text(gameState.getResourceCollectionLocations(for: resource.type).joined(separator: ", "))
+                        .font(.caption2)
+                        .foregroundColor(.blue)
+                        .lineLimit(1)
+                }
+            }
+            
+            Spacer()
+            
+            // Close button
+            Button(action: {
+                gameState.selectedResourceForDetail = nil
+            }) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(.white.opacity(0.6))
+            }
+        }
+        .padding(12)
+        .background(Color.black.opacity(0.4))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray, lineWidth: 1)
+        )
+        .cornerRadius(8)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+    }
+}
 
 // MARK: - Placeholder Views
 struct StarMapView: View {

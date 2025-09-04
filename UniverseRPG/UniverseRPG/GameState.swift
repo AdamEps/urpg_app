@@ -28,6 +28,7 @@ class GameState: ObservableObject {
     @Published var showIdleCollectionDetails = false
     @Published var showTapDetails = false
     @Published var resourceSortOption: ResourceSortOption = .alphabetical
+    @Published var selectedResourceForDetail: ResourceType?
     
     // Player data
     @Published var playerName: String = "Commander"
@@ -620,6 +621,90 @@ class GameState: ObservableObject {
         let required = getXPRequiredForNextLevel()
         guard required != Int.max else { return 1.0 }
         return min(Double(playerXP) / Double(required), 1.0)
+    }
+    
+    // MARK: - Resource Detail Methods
+    func getResourceLore(for resourceType: ResourceType) -> String {
+        switch resourceType {
+        case .ironOre:
+            return "The backbone of civilization! This metallic ore has been forged into tools, weapons, and starships for millennia. Essential for any serious construction project."
+        case .silicon:
+            return "The digital heart of technology. Pure silicon crystals are the foundation of all advanced computing systems and energy storage devices."
+        case .water:
+            return "Life's most precious resource. In the vast emptiness of space, water becomes more valuable than gold. Essential for survival and advanced chemical processes."
+        case .oxygen:
+            return "The breath of life itself. Without oxygen, even the hardiest explorers would perish. Critical for life support systems and combustion processes."
+        case .carbon:
+            return "The building block of organic life. This versatile element forms the foundation of all living things and many advanced materials."
+        case .nitrogen:
+            return "The silent supporter of life. While oxygen gets all the glory, nitrogen makes up most of our atmosphere and is crucial for plant growth."
+        case .phosphorus:
+            return "The spark of life! This element is essential for DNA, RNA, and energy storage in living cells. Without it, life as we know it would be impossible."
+        case .sulfur:
+            return "The stinky but essential element. Despite its distinctive odor, sulfur is crucial for many biological processes and industrial applications."
+        case .calcium:
+            return "The strength of bones and shells. This mineral builds the structural framework of many life forms and is essential for healthy development."
+        case .magnesium:
+            return "The green machine! This element is at the heart of chlorophyll, making photosynthesis possible and keeping plants alive."
+        case .helium3:
+            return "The fuel of the future! This rare isotope could power fusion reactors and enable interstellar travel. Highly sought after by advanced civilizations."
+        case .titanium:
+            return "The aerospace champion! Lightweight yet incredibly strong, titanium is the material of choice for high-performance aircraft and spacecraft."
+        case .aluminum:
+            return "The everyday miracle metal. Lightweight, corrosion-resistant, and abundant - aluminum revolutionized transportation and packaging."
+        case .nickel:
+            return "The magnetic marvel! This metal's magnetic properties make it essential for motors, generators, and advanced electronic devices."
+        case .cobalt:
+            return "The blue beauty! This rare metal gives glass its beautiful blue color and is essential for high-performance batteries and superalloys."
+        case .chromium:
+            return "The stainless steel superstar! This metal makes steel rust-resistant and gives it that beautiful shiny finish we all love."
+        case .vanadium:
+            return "The spring steel secret! This metal makes steel incredibly strong and flexible, perfect for springs and high-stress applications."
+        case .manganese:
+            return "The steel strengthener! This metal makes steel harder and more durable, essential for construction and manufacturing."
+        case .plasma:
+            return "The fourth state of matter! This superheated gas conducts electricity and could be the key to unlimited clean energy."
+        case .element:
+            return "The fundamental building block! This represents the pure essence of matter itself, the foundation upon which all chemistry is built."
+        case .isotope:
+            return "The atomic variant! These are atoms with the same element but different numbers of neutrons, each with unique properties and uses."
+        case .energy:
+            return "The power that drives everything! Pure energy in its most concentrated form, ready to be harnessed for any purpose."
+        case .radiation:
+            return "The invisible force! This energy can be dangerous but also incredibly useful for power generation and medical applications."
+        case .heat:
+            return "The warmth of the universe! Thermal energy that can be converted into mechanical work or used for industrial processes."
+        case .light:
+            return "The illumination of knowledge! Photons carrying information and energy across the vast distances of space."
+        case .gravity:
+            return "The invisible hand that shapes the cosmos! This fundamental force holds planets in orbit and shapes the structure of the universe."
+        case .magnetic:
+            return "The invisible field! Magnetic forces guide compasses, power motors, and protect planets from harmful solar radiation."
+        case .solar:
+            return "The power of the stars! Energy harvested directly from stellar fusion, clean and abundant throughout the galaxy."
+        case .numins:
+            return "The currency of the cosmos! These mysterious particles are the universal medium of exchange, accepted by traders across the galaxy."
+        default:
+            return "A mysterious resource with unknown properties. Further study may reveal its true potential and value."
+        }
+    }
+    
+    func getResourceCollectionLocations(for resourceType: ResourceType) -> [String] {
+        // This would ideally be data-driven, but for now we'll use some examples
+        switch resourceType {
+        case .ironOre:
+            return ["Taragam-7", "Abandoned Star Ship", "Koraxon"]
+        case .silicon:
+            return ["Taragam-7", "Violis Outpost"]
+        case .water:
+            return ["Taragam-7", "Rogue Wanderer"]
+        case .oxygen:
+            return ["Taragam-7", "Taragon Beta"]
+        case .numins:
+            return ["All Locations (Rare Drop)"]
+        default:
+            return ["Various Locations"]
+        }
     }
     
     // MARK: - Currency Formatting
