@@ -12,9 +12,9 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                // Header with current location and resources
-                HeaderView(gameState: gameState)
+            VStack(spacing: 0) {
+                // Top Bar (always visible)
+                TopBarView(gameState: gameState)
                 
                 // Main game area
                 ScrollView {
@@ -34,8 +34,7 @@ struct ContentView: View {
                 // Bottom navigation
                 BottomNavigationView(gameState: gameState)
             }
-            .navigationTitle("Universe RPG")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarHidden(true)
         }
         .onAppear {
             gameState.startGame()
@@ -43,7 +42,64 @@ struct ContentView: View {
     }
 }
 
-// MARK: - Header View
+// MARK: - Top Bar View
+struct TopBarView: View {
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        HStack {
+            // Left - Settings
+            Button(action: {
+                // Settings action
+            }) {
+                Image(systemName: "gearshape.fill")
+                    .foregroundColor(.white)
+            }
+            
+            Spacer()
+            
+            // Center - Player Name, Level, Objectives
+            VStack(spacing: 2) {
+                Text(gameState.playerName)
+                    .font(.headline)
+                    .foregroundColor(.white)
+                
+                HStack(spacing: 8) {
+                    Text("Level \(gameState.playerLevel)")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                    
+                    // Level progress bar
+                    ProgressView(value: Double(gameState.playerXP), total: 100.0)
+                        .frame(width: 60)
+                        .tint(.green)
+                    
+                    Button(action: {
+                        // Objectives action
+                    }) {
+                        Image(systemName: "target")
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            
+            Spacer()
+            
+            // Right - Currency
+            HStack(spacing: 4) {
+                Image(systemName: "star.fill")
+                    .foregroundColor(.yellow)
+                Text("\(gameState.currency)")
+                    .font(.headline)
+                    .foregroundColor(.white)
+            }
+        }
+        .padding()
+        .background(Color.black.opacity(0.8))
+    }
+}
+
+// MARK: - Header View (for location info)
 struct HeaderView: View {
     @ObservedObject var gameState: GameState
     
@@ -53,8 +109,12 @@ struct HeaderView: View {
                 .font(.title2)
                 .fontWeight(.bold)
             
+            Text("\(gameState.currentLocation.system) • \(gameState.currentLocation.kind.rawValue)")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
             HStack {
-                ForEach(gameState.resources, id: \.type) { resource in
+                ForEach(gameState.resources.prefix(5), id: \.type) { resource in
                     ResourceBadge(resource: resource)
                 }
             }
@@ -108,53 +168,71 @@ struct ConstructionView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Constructions")
+            Text("Construction Bays")
                 .font(.headline)
             
-            if gameState.activeConstructions.isEmpty {
-                Text("No active constructions")
+            if gameState.constructionBays.isEmpty {
+                Text("No construction bays available")
                     .foregroundColor(.secondary)
                     .italic()
             } else {
-                ForEach(gameState.activeConstructions) { construction in
-                    ConstructionRow(construction: construction, gameState: gameState)
+                ForEach(gameState.constructionBays) { bay in
+                    ConstructionBayRow(bay: bay, gameState: gameState)
                 }
             }
-            
-            // Add new construction button
-            Button("Start New Construction") {
-                gameState.showConstructionMenu = true
-            }
-            .buttonStyle(.borderedProminent)
         }
         .padding()
         .background(Color.green.opacity(0.1))
         .cornerRadius(12)
-        .sheet(isPresented: $gameState.showConstructionMenu) {
-            ConstructionMenuView(gameState: gameState)
-        }
     }
 }
 
-// MARK: - Construction Row
-struct ConstructionRow: View {
-    let construction: Construction
+// MARK: - Construction Bay Row
+struct ConstructionBayRow: View {
+    let bay: ConstructionBay
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(construction.name)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("\(bay.size.rawValue) Bay")
                     .fontWeight(.medium)
-                Text("Time remaining: \(Int(construction.timeRemaining))s")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                if bay.currentConstruction != nil {
+                    Text("In Use")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                } else {
+                    Text("Empty")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                }
             }
             
-            Spacer()
-            
-            ProgressView(value: construction.progress)
-                .frame(width: 100)
+            if let construction = bay.currentConstruction {
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(construction.recipe.name)
+                            .fontWeight(.medium)
+                        Text("Time remaining: \(Int(construction.timeRemaining))s")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    ProgressView(value: construction.progress)
+                        .frame(width: 100)
+                }
+            } else {
+                Button("Start Construction") {
+                    gameState.showConstructionMenu = true
+                }
+                .buttonStyle(.bordered)
+                .disabled(!bay.isUnlocked)
+            }
         }
         .padding(.vertical, 4)
     }
@@ -232,15 +310,29 @@ struct BottomNavigationView: View {
     
     var body: some View {
         HStack {
-            Button("Locations") {
+            Button("Shop") {
+                gameState.showShop = true
+            }
+            .buttonStyle(.bordered)
+            
+            Spacer()
+            
+            Button("Construction") {
+                gameState.showConstructionMenu = true
+            }
+            .buttonStyle(.bordered)
+            
+            Spacer()
+            
+            Button("Star Map") {
                 gameState.showLocations = true
             }
             .buttonStyle(.bordered)
             
             Spacer()
             
-            Button("Shop") {
-                gameState.showShop = true
+            Button("Resources") {
+                // Resources are already shown in main view
             }
             .buttonStyle(.bordered)
             
@@ -254,7 +346,7 @@ struct BottomNavigationView: View {
         .padding()
         .background(Color.gray.opacity(0.1))
         .sheet(isPresented: $gameState.showLocations) {
-            LocationsView(gameState: gameState)
+            StarMapView(gameState: gameState)
         }
         .sheet(isPresented: $gameState.showShop) {
             ShopView(gameState: gameState)
@@ -273,29 +365,37 @@ struct ConstructionMenuView: View {
     var body: some View {
         NavigationView {
             List {
-                ForEach(ConstructionType.allCases, id: \.self) { type in
+                ForEach(ConstructionRecipe.allRecipes, id: \.id) { recipe in
                     Button(action: {
-                        gameState.startConstruction(type: type)
+                        gameState.startConstruction(recipe: recipe)
                         dismiss()
                     }) {
                         HStack {
                             VStack(alignment: .leading) {
-                                Text(type.name)
+                                Text(recipe.name)
                                     .fontWeight(.medium)
-                                Text("Cost: \(type.cost) Energy")
+                                Text(recipe.description)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
+                                Text("Required: \(recipe.requiredBaySize.rawValue) Bay")
+                                    .font(.caption2)
+                                    .foregroundColor(.blue)
                             }
                             Spacer()
-                            Text("\(type.duration)s")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            VStack(alignment: .trailing) {
+                                Text("\(Int(recipe.duration))s")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("Cost: \(recipe.cost.count) items")
+                                    .font(.caption2)
+                                    .foregroundColor(.orange)
+                            }
                         }
                     }
-                    .disabled(!gameState.canAffordConstruction(type: type))
+                    .disabled(!gameState.canAffordConstruction(recipe: recipe))
                 }
             }
-            .navigationTitle("Start Construction")
+            .navigationTitle("Construction Recipes")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -309,7 +409,7 @@ struct ConstructionMenuView: View {
 }
 
 // MARK: - Placeholder Views
-struct LocationsView: View {
+struct StarMapView: View {
     @ObservedObject var gameState: GameState
     @Environment(\.dismiss) private var dismiss
     
@@ -322,7 +422,13 @@ struct LocationsView: View {
                         dismiss()
                     }) {
                         HStack {
-                            Text(location.name)
+                            VStack(alignment: .leading) {
+                                Text(location.name)
+                                    .fontWeight(.medium)
+                                Text("\(location.system) • \(location.kind.rawValue)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
                             Spacer()
                             if location.id == gameState.currentLocation.id {
                                 Image(systemName: "checkmark")
@@ -332,7 +438,7 @@ struct LocationsView: View {
                     }
                 }
             }
-            .navigationTitle("Locations")
+            .navigationTitle("Star Map")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -388,3 +494,4 @@ struct CardsView: View {
 #Preview {
     ContentView()
 }
+

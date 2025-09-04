@@ -5,49 +5,77 @@ import SwiftUI
 class GameState: ObservableObject {
     @Published var currentLocation: Location
     @Published var resources: [Resource] = []
-    @Published var activeConstructions: [Construction] = []
+    @Published var constructionBays: [ConstructionBay] = []
     @Published var availableLocations: [Location] = []
     @Published var showConstructionMenu = false
     @Published var showLocations = false
     @Published var showShop = false
     @Published var showCards = false
     
+    // Player data
+    @Published var playerName: String = "Commander"
+    @Published var playerLevel: Int = 1
+    @Published var playerXP: Int = 0
+    @Published var currency: Int = 1000
+    
     private var gameTimer: Timer?
     
     init() {
-        // Initialize with starting location
+        // Initialize with starting location (Taragon Gamma system)
         self.currentLocation = Location(
-            id: "earth",
-            name: "Earth",
-            description: "Your home planet",
-            availableResources: ["Energy", "Metal", "Crystal"],
+            id: "taragam-7",
+            name: "Taragam-7",
+            description: "Habitable planet in Taragon Gamma system",
+            system: "Taragon Gamma",
+            kind: .planet,
+            availableResources: ["Iron Ore", "Silicon", "Water", "Oxygen", "Carbon", "Nitrogen", "Phosphorus", "Sulfur", "Calcium", "Magnesium"],
             unlockRequirements: []
         )
         
-        // Initialize resources
+        // Initialize resources (items with drop tables)
         self.resources = [
-            Resource(type: .energy, amount: 100, icon: "bolt.fill", color: .yellow),
-            Resource(type: .metal, amount: 50, icon: "cube.fill", color: .gray),
-            Resource(type: .crystal, amount: 25, icon: "diamond.fill", color: .purple),
-            Resource(type: .fuel, amount: 10, icon: "fuelpump.fill", color: .orange)
+            Resource(type: .ironOre, amount: 0, icon: "cube.fill", color: .gray),
+            Resource(type: .silicon, amount: 0, icon: "diamond.fill", color: .purple),
+            Resource(type: .water, amount: 0, icon: "drop.fill", color: .blue),
+            Resource(type: .oxygen, amount: 0, icon: "wind", color: .cyan),
+            Resource(type: .carbon, amount: 0, icon: "circle.fill", color: .black),
+            Resource(type: .nitrogen, amount: 0, icon: "n.circle.fill", color: .green),
+            Resource(type: .phosphorus, amount: 0, icon: "p.circle.fill", color: .orange),
+            Resource(type: .sulfur, amount: 0, icon: "s.circle.fill", color: .yellow),
+            Resource(type: .calcium, amount: 0, icon: "c.circle.fill", color: .white),
+            Resource(type: .magnesium, amount: 0, icon: "m.circle.fill", color: .pink)
         ]
         
-        // Initialize available locations
+        // Initialize available locations (Taragon Gamma system)
         self.availableLocations = [
             currentLocation,
             Location(
-                id: "moon",
-                name: "Moon",
-                description: "Earth's natural satellite",
-                availableResources: ["Energy", "Metal", "Helium"],
-                unlockRequirements: ["Energy: 200"]
+                id: "elcinto",
+                name: "Elcinto",
+                description: "Moon of Taragam-7",
+                system: "Taragon Gamma",
+                kind: .moon,
+                availableResources: ["Iron Ore", "Silicon", "Helium-3", "Titanium", "Aluminum", "Nickel", "Cobalt", "Chromium", "Vanadium", "Manganese"],
+                unlockRequirements: ["Iron Ore: 100"]
             ),
             Location(
-                id: "mars",
-                name: "Mars",
-                description: "The red planet",
-                availableResources: ["Metal", "Crystal", "Water"],
-                unlockRequirements: ["Energy: 500", "Fuel: 50"]
+                id: "taragon-gamma",
+                name: "Taragon Gamma",
+                description: "Class 3 star, main sequence, yellow",
+                system: "Taragon Gamma",
+                kind: .star,
+                availableResources: ["Plasma", "Element", "Isotope", "Energy", "Radiation", "Heat", "Light", "Gravity", "Magnetic", "Solar"],
+                unlockRequirements: ["Silicon: 200", "Helium-3: 50"]
+            )
+        ]
+        
+        // Initialize construction bays (start with 1 Small bay)
+        self.constructionBays = [
+            ConstructionBay(
+                id: "bay-1",
+                size: .small,
+                currentConstruction: nil,
+                isUnlocked: true
             )
         ]
     }
@@ -60,18 +88,20 @@ class GameState: ObservableObject {
     }
     
     private func updateGame() {
-        // Update constructions
-        for i in activeConstructions.indices {
-            activeConstructions[i].timeRemaining -= 1.0
-            
-            // Update progress
-            let totalDuration = activeConstructions[i].type.duration
-            let elapsed = totalDuration - activeConstructions[i].timeRemaining
-            activeConstructions[i].progress = min(elapsed / totalDuration, 1.0)
-            
-            if activeConstructions[i].timeRemaining <= 0 {
-                // Construction completed
-                completeConstruction(at: i)
+        // Update construction bays
+        for i in constructionBays.indices {
+            if let construction = constructionBays[i].currentConstruction {
+                constructionBays[i].currentConstruction?.timeRemaining -= 1.0
+                
+                // Update progress
+                let totalDuration = construction.recipe.duration
+                let elapsed = totalDuration - construction.timeRemaining
+                constructionBays[i].currentConstruction?.progress = min(elapsed / totalDuration, 1.0)
+                
+                if construction.timeRemaining <= 0 {
+                    // Construction completed
+                    completeConstruction(at: i)
+                }
             }
         }
         
@@ -89,16 +119,21 @@ class GameState: ObservableObject {
     }
     
     private func getResourceIdleRate(for type: ResourceType) -> Double {
-        // Different resources have different idle collection rates
+        // Idle collection: 1 item per minute (1/60 per second) with drop table odds
+        // For MVP, simplified to basic rates
         switch type {
-        case .energy:
-            return 0.1
-        case .metal:
-            return 0.05
-        case .crystal:
-            return 0.02
-        case .fuel:
-            return 0.01
+        case .ironOre, .silicon, .water, .oxygen, .carbon:
+            return 1.0/60.0 // 1 per minute
+        case .nitrogen, .phosphorus, .sulfur, .calcium, .magnesium:
+            return 0.5/60.0 // 0.5 per minute
+        case .helium3, .titanium, .aluminum, .nickel, .cobalt:
+            return 0.3/60.0 // 0.3 per minute
+        case .chromium, .vanadium, .manganese:
+            return 0.2/60.0 // 0.2 per minute
+        case .plasma, .element, .isotope, .energy, .radiation:
+            return 0.1/60.0 // 0.1 per minute
+        case .heat, .light, .gravity, .magnetic, .solar:
+            return 0.05/60.0 // 0.05 per minute
         }
     }
     
@@ -116,25 +151,32 @@ class GameState: ObservableObject {
     }
     
     private func getTapReward() -> [ResourceType: Double] {
-        // Tap rewards based on current location
+        // Tap rewards based on current location (1 item per tap with rarity bias)
         switch currentLocation.id {
-        case "earth":
-            return [.energy: 5, .metal: 2, .crystal: 1]
-        case "moon":
-            return [.energy: 8, .metal: 3, .crystal: 1]
-        case "mars":
-            return [.energy: 10, .metal: 5, .crystal: 3]
+        case "taragam-7":
+            return [.ironOre: 1, .silicon: 1, .water: 1, .oxygen: 1, .carbon: 1]
+        case "elcinto":
+            return [.ironOre: 1, .silicon: 1, .helium3: 1, .titanium: 1, .aluminum: 1]
+        case "taragon-gamma":
+            return [.plasma: 1, .element: 1, .isotope: 1, .energy: 1, .radiation: 1]
         default:
-            return [.energy: 3, .metal: 1, .crystal: 0.5]
+            return [.ironOre: 1]
         }
     }
     
-    func startConstruction(type: ConstructionType) {
-        guard canAffordConstruction(type: type) else { return }
+    func startConstruction(recipe: ConstructionRecipe) {
+        guard canAffordConstruction(recipe: recipe) else { return }
+        
+        // Find an empty bay of the right size
+        guard let bayIndex = constructionBays.firstIndex(where: { 
+            $0.currentConstruction == nil && 
+            $0.isUnlocked && 
+            $0.size == recipe.requiredBaySize 
+        }) else { return }
         
         // Deduct cost
         for i in resources.indices {
-            if let cost = type.cost[resources[i].type] {
+            if let cost = recipe.cost[resources[i].type] {
                 resources[i].amount -= cost
             }
         }
@@ -142,18 +184,17 @@ class GameState: ObservableObject {
         // Create construction
         let construction = Construction(
             id: UUID().uuidString,
-            name: type.name,
-            type: type,
-            timeRemaining: type.duration,
+            recipe: recipe,
+            timeRemaining: recipe.duration,
             progress: 0.0
         )
         
-        activeConstructions.append(construction)
+        constructionBays[bayIndex].currentConstruction = construction
     }
     
-    func canAffordConstruction(type: ConstructionType) -> Bool {
+    func canAffordConstruction(recipe: ConstructionRecipe) -> Bool {
         for resource in resources {
-            if let cost = type.cost[resource.type] {
+            if let cost = recipe.cost[resource.type] {
                 if resource.amount < cost {
                     return false
                 }
@@ -163,17 +204,17 @@ class GameState: ObservableObject {
     }
     
     private func completeConstruction(at index: Int) {
-        let construction = activeConstructions[index]
+        guard let construction = constructionBays[index].currentConstruction else { return }
         
-        // Give rewards based on construction type
+        // Give rewards based on construction recipe
         for i in resources.indices {
-            if let reward = construction.type.reward[resources[i].type] {
+            if let reward = construction.recipe.reward[resources[i].type] {
                 resources[i].amount += reward
             }
         }
         
-        // Remove completed construction
-        activeConstructions.remove(at: index)
+        // Clear the bay
+        constructionBays[index].currentConstruction = nil
         
         // Check for location unlocks
         checkLocationUnlocks()
@@ -228,8 +269,20 @@ struct Location: Identifiable {
     let id: String
     let name: String
     let description: String
+    let system: String
+    let kind: LocationKind
     let availableResources: [String]
     let unlockRequirements: [String]
+}
+
+enum LocationKind: String, CaseIterable {
+    case planet = "Planet"
+    case moon = "Moon"
+    case star = "Star"
+    case anomaly = "Anomaly"
+    case ship = "Ship"
+    case dwarf = "Dwarf"
+    case rogue = "Rogue"
 }
 
 struct Resource {
@@ -240,75 +293,112 @@ struct Resource {
 }
 
 enum ResourceType: String, CaseIterable {
+    case ironOre = "Iron Ore"
+    case silicon = "Silicon"
+    case water = "Water"
+    case oxygen = "Oxygen"
+    case carbon = "Carbon"
+    case nitrogen = "Nitrogen"
+    case phosphorus = "Phosphorus"
+    case sulfur = "Sulfur"
+    case calcium = "Calcium"
+    case magnesium = "Magnesium"
+    case helium3 = "Helium-3"
+    case titanium = "Titanium"
+    case aluminum = "Aluminum"
+    case nickel = "Nickel"
+    case cobalt = "Cobalt"
+    case chromium = "Chromium"
+    case vanadium = "Vanadium"
+    case manganese = "Manganese"
+    case plasma = "Plasma"
+    case element = "Element"
+    case isotope = "Isotope"
     case energy = "Energy"
-    case metal = "Metal"
-    case crystal = "Crystal"
-    case fuel = "Fuel"
+    case radiation = "Radiation"
+    case heat = "Heat"
+    case light = "Light"
+    case gravity = "Gravity"
+    case magnetic = "Magnetic"
+    case solar = "Solar"
+}
+
+struct ConstructionBay: Identifiable {
+    let id: String
+    let size: BaySize
+    var currentConstruction: Construction?
+    let isUnlocked: Bool
+}
+
+enum BaySize: String, CaseIterable {
+    case small = "Small"
+    case medium = "Medium"
+    case large = "Large"
 }
 
 struct Construction: Identifiable {
     let id: String
-    let name: String
-    let type: ConstructionType
+    let recipe: ConstructionRecipe
     var timeRemaining: Double
     var progress: Double
 }
 
-enum ConstructionType: CaseIterable {
-    case solarPanel
-    case miningDrill
-    case researchLab
-    case fuelRefinery
+struct ConstructionRecipe: Identifiable {
+    let id: String
+    let name: String
+    let description: String
+    let duration: Double
+    let cost: [ResourceType: Double]
+    let reward: [ResourceType: Double]
+    let requiredBaySize: BaySize
+}
+
+// Sample recipes for MVP
+extension ConstructionRecipe {
+    static let basicOreProcessor = ConstructionRecipe(
+        id: "basic-ore-processor",
+        name: "Basic Ore Processor",
+        description: "Processes raw ore into refined materials",
+        duration: 60.0,
+        cost: [.ironOre: 10, .silicon: 5],
+        reward: [.ironOre: 15, .silicon: 8],
+        requiredBaySize: .small
+    )
     
-    var name: String {
-        switch self {
-        case .solarPanel:
-            return "Solar Panel"
-        case .miningDrill:
-            return "Mining Drill"
-        case .researchLab:
-            return "Research Lab"
-        case .fuelRefinery:
-            return "Fuel Refinery"
-        }
-    }
+    static let waterExtractor = ConstructionRecipe(
+        id: "water-extractor",
+        name: "Water Extractor",
+        description: "Extracts water from planetary sources",
+        duration: 45.0,
+        cost: [.ironOre: 8, .silicon: 3],
+        reward: [.water: 20],
+        requiredBaySize: .small
+    )
     
-    var duration: Double {
-        switch self {
-        case .solarPanel:
-            return 30.0
-        case .miningDrill:
-            return 60.0
-        case .researchLab:
-            return 120.0
-        case .fuelRefinery:
-            return 90.0
-        }
-    }
+    static let oxygenGenerator = ConstructionRecipe(
+        id: "oxygen-generator",
+        name: "Oxygen Generator",
+        description: "Generates breathable oxygen",
+        duration: 90.0,
+        cost: [.water: 15, .silicon: 10, .ironOre: 5],
+        reward: [.oxygen: 25],
+        requiredBaySize: .medium
+    )
     
-    var cost: [ResourceType: Double] {
-        switch self {
-        case .solarPanel:
-            return [.energy: 50, .metal: 25]
-        case .miningDrill:
-            return [.energy: 100, .metal: 50, .crystal: 10]
-        case .researchLab:
-            return [.energy: 200, .metal: 100, .crystal: 25]
-        case .fuelRefinery:
-            return [.energy: 150, .metal: 75, .crystal: 15]
-        }
-    }
+    static let plasmaReactor = ConstructionRecipe(
+        id: "plasma-reactor",
+        name: "Plasma Reactor",
+        description: "Advanced energy generation system",
+        duration: 180.0,
+        cost: [.silicon: 20, .ironOre: 15, .helium3: 5],
+        reward: [.plasma: 30, .energy: 50],
+        requiredBaySize: .large
+    )
     
-    var reward: [ResourceType: Double] {
-        switch self {
-        case .solarPanel:
-            return [.energy: 100]
-        case .miningDrill:
-            return [.metal: 50, .crystal: 10]
-        case .researchLab:
-            return [.crystal: 25, .energy: 50]
-        case .fuelRefinery:
-            return [.fuel: 30, .energy: 25]
-        }
-    }
+    static let allRecipes: [ConstructionRecipe] = [
+        .basicOreProcessor,
+        .waterExtractor,
+        .oxygenGenerator,
+        .plasmaReactor
+    ]
 }
