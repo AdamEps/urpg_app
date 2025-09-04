@@ -36,6 +36,8 @@ struct ContentView: View {
                     
                     HStack {
                         if gameState.showLocationResources {
+                            Spacer()
+                            
                             // Toggle button on left side of resource box when open
                             Button(action: {
                                 gameState.showLocationResources.toggle()
@@ -67,7 +69,7 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .padding(.trailing, 16)
+                    .padding(.trailing, 0)
                     .padding(.bottom, 100) // Position above bottom navigation
                 }
             }
