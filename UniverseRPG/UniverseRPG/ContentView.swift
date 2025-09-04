@@ -1042,7 +1042,7 @@ struct BottomNavigationView: View {
                     gameState.showingLocationList.toggle()
                 } else {
                     gameState.currentPage = .starMap
-                    gameState.showingLocationList = true
+                    gameState.showingLocationList = false
                 }
             }) {
                 Image(systemName: "globe")
