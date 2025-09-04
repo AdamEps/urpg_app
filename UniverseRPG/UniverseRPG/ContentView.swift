@@ -1568,7 +1568,7 @@ struct CardSlotView: View {
                     // Card icon/art placeholder
                     RoundedRectangle(cornerRadius: 8)
                         .fill(cardClassColor.opacity(0.3))
-                        .frame(height: 60)
+                        .frame(height: 180)
                         .overlay(
                             VStack {
                                 Image(systemName: cardClassIcon)
@@ -1599,7 +1599,7 @@ struct CardSlotView: View {
                 VStack(spacing: 2) {
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(cardClassColor.opacity(0.3), lineWidth: 2)
-                        .frame(height: 60)
+                        .frame(height: 180)
                         .overlay(
                             Image(systemName: "plus")
                                 .font(.title2)
@@ -1612,7 +1612,7 @@ struct CardSlotView: View {
                 }
             }
         }
-        .frame(height: 100)
+        .frame(height: 220)
     }
     
     private var cardClassColor: Color {
