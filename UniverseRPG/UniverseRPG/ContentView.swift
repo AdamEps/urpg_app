@@ -63,7 +63,7 @@ struct ContentView: View {
                 VStack {
                     Spacer()
                     
-                    if gameState.showLocationResources {
+                    if gameState.showLocationResources && (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
                         HStack(alignment: .bottom, spacing: 0) {
                             Spacer()
                             
@@ -89,7 +89,7 @@ struct ContentView: View {
                         }
                         .padding(.trailing, 0)
                         .padding(.bottom, 100) // Position above bottom navigation
-                    } else {
+                    } else if (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
                         HStack {
                             Spacer()
                             
@@ -121,7 +121,7 @@ struct ContentView: View {
                         .fill(Color.clear)
                         .frame(height: 150) // Height to clear top bar + location name + more space
                     
-                    if gameState.showTapCounter {
+                    if gameState.showTapCounter && (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
                         HStack(alignment: .bottom, spacing: 0) {
                             Spacer()
                             
@@ -146,7 +146,7 @@ struct ContentView: View {
                                 .frame(width: UIScreen.main.bounds.width * 0.3)
                         }
                         .padding(.trailing, 0)
-                    } else {
+                    } else if (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
                         HStack {
                             Spacer()
                             
