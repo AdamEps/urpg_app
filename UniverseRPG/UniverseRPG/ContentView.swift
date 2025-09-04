@@ -254,7 +254,7 @@ struct LocationView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     
-                    // Collection feedback
+                    // Collection feedback (tap)
                     if gameState.showCollectionFeedback, let resource = gameState.lastCollectedResource {
                         VStack {
                             Text("+1")
@@ -273,6 +273,32 @@ struct LocationView: View {
                         .offset(y: -80)
                         .transition(.scale.combined(with: .opacity))
                         .animation(.easeInOut(duration: 0.3), value: gameState.showCollectionFeedback)
+                    }
+                    
+                    // Idle collection feedback
+                    if gameState.showIdleCollectionFeedback, let resource = gameState.lastIdleCollectedResource {
+                        VStack {
+                            Text("+1")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.blue)
+                            
+                            Text(resource.rawValue)
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                                .multilineTextAlignment(.center)
+                            
+                            Text("(Idle)")
+                                .font(.caption2)
+                                .foregroundColor(.blue)
+                                .fontWeight(.medium)
+                        }
+                        .padding(8)
+                        .background(Color.blue.opacity(0.2))
+                        .cornerRadius(8)
+                        .offset(y: -120)
+                        .transition(.scale.combined(with: .opacity))
+                        .animation(.easeInOut(duration: 0.3), value: gameState.showIdleCollectionFeedback)
                     }
                 }
                 
@@ -987,6 +1013,36 @@ struct ObjectivesView: View {
                             .padding(.vertical, 8)
                             .padding(.horizontal, 12)
                             .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
+                        }
+                    }
+                    
+                    // Idle Collection Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Idle Collection")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        ForEach(gameState.availableLocations, id: \.id) { location in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(location.name)
+                                        .font(.headline)
+                                    Text("\(location.system) • \(location.kind.rawValue)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Text("\(gameState.locationIdleCollectionCounts[location.id, default: 0])")
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.blue)
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.blue.opacity(0.1))
                             .cornerRadius(8)
                         }
                     }

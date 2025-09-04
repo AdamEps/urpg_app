@@ -26,9 +26,14 @@ class GameState: ObservableObject {
     @Published var currentLocationTapCount: Int = 0
     @Published var locationTapCounts: [String: Int] = [:]
     
+    // Idle collection tracking
+    @Published var locationIdleCollectionCounts: [String: Int] = [:]
+    
     // Visual feedback
     @Published var lastCollectedResource: ResourceType?
     @Published var showCollectionFeedback: Bool = false
+    @Published var lastIdleCollectedResource: ResourceType?
+    @Published var showIdleCollectionFeedback: Bool = false
     
     // Idle collection tracking
     private var idleCollectionTimer: Double = 0.0
@@ -138,6 +143,18 @@ class GameState: ObservableObject {
             )
             resources.append(newResource)
             print("Idle collected 1 \(selectedResource.rawValue) - First collection!")
+        }
+        
+        // Update idle collection counters
+        locationIdleCollectionCounts[currentLocation.id, default: 0] += 1
+        
+        // Show visual feedback for idle collection
+        lastIdleCollectedResource = selectedResource
+        showIdleCollectionFeedback = true
+        
+        // Hide feedback after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.showIdleCollectionFeedback = false
         }
     }
     
