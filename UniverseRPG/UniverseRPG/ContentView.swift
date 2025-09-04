@@ -28,6 +28,11 @@ struct ContentView: View {
                     
                     // Bottom navigation
                     BottomNavigationView(gameState: gameState)
+                    
+                    // Black area below navigation
+                    Rectangle()
+                        .fill(Color.black)
+                        .frame(height: 20)
                 }
                 
                 // Resource pop out positioned above bottom navigation
@@ -470,41 +475,57 @@ struct BottomNavigationView: View {
     
     var body: some View {
         HStack {
-            Button("Shop") {
+            Button(action: {
                 gameState.showShop = true
+            }) {
+                Image(systemName: "cart.fill")
+                    .font(.title2)
+                    .foregroundColor(.white)
             }
-            .buttonStyle(.bordered)
             
             Spacer()
             
-            Button("Construction") {
+            Button(action: {
                 gameState.showConstructionPage = true
+            }) {
+                Image(systemName: "hammer.fill")
+                    .font(.title2)
+                    .foregroundColor(.white)
             }
-            .buttonStyle(.bordered)
             
             Spacer()
             
-            Button("Star Map") {
+            Button(action: {
                 gameState.showLocations = true
+            }) {
+                Image(systemName: "map.fill")
+                    .font(.title2)
+                    .foregroundColor(.white)
             }
-            .buttonStyle(.bordered)
             
             Spacer()
             
-            Button("Resources") {
+            Button(action: {
                 gameState.showResourcesPage = true
+            }) {
+                Image(systemName: "cube.box.fill")
+                    .font(.title2)
+                    .foregroundColor(.white)
             }
-            .buttonStyle(.bordered)
             
             Spacer()
             
-            Button("Cards") {
+            Button(action: {
                 gameState.showCards = true
+            }) {
+                Image(systemName: "rectangle.stack.fill")
+                    .font(.title2)
+                    .foregroundColor(.white)
             }
-            .buttonStyle(.bordered)
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
+        .padding(.horizontal)
+        .padding(.vertical, 16) // Equal padding above and below icons
+        .background(Color.gray)
         .sheet(isPresented: $gameState.showLocations) {
             StarMapView(gameState: gameState)
         }
