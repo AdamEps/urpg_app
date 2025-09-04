@@ -1,6 +1,15 @@
 import Foundation
 import SwiftUI
 
+// MARK: - Resource Sort Option
+enum ResourceSortOption: String, CaseIterable {
+    case alphabetical = "A-Z"
+    case reverseAlphabetical = "Z-A"
+    case quantityAscending = "Quantity ↑"
+    case quantityDescending = "Quantity ↓"
+    case rarity = "Rarity"
+}
+
 // MARK: - Game State
 class GameState: ObservableObject {
     @Published var currentLocation: Location
@@ -18,6 +27,7 @@ class GameState: ObservableObject {
     @Published var showTapCounter = false
     @Published var showIdleCollectionDetails = false
     @Published var showTapDetails = false
+    @Published var resourceSortOption: ResourceSortOption = .alphabetical
     
     // Player data
     @Published var playerName: String = "Commander"

@@ -309,6 +309,8 @@ struct LocationView: View {
                 Spacer()
                 
                 // Centered clickable location (positioned based on tap counter visibility)
+                Spacer()
+                    .frame(height: 30)
                 ZStack {
                     Button(action: {
                         gameState.tapLocation()
@@ -1173,6 +1175,37 @@ struct ConstructionPageView: View {
 struct ResourcesPageView: View {
     @ObservedObject var gameState: GameState
     
+    private var sortedResources: [Resource] {
+        let ownedResources = gameState.resources.filter { $0.amount > 0 }
+        
+        // Separate Numins from other resources
+        let numinsResource = ownedResources.first { $0.type == .numins }
+        let otherResources = ownedResources.filter { $0.type != .numins }
+        
+        // Sort other resources based on selected option
+        let sortedOtherResources: [Resource]
+        switch gameState.resourceSortOption {
+        case .alphabetical:
+            sortedOtherResources = otherResources.sorted { $0.type.rawValue < $1.type.rawValue }
+        case .reverseAlphabetical:
+            sortedOtherResources = otherResources.sorted { $0.type.rawValue > $1.type.rawValue }
+        case .quantityAscending:
+            sortedOtherResources = otherResources.sorted { $0.amount < $1.amount }
+        case .quantityDescending:
+            sortedOtherResources = otherResources.sorted { $0.amount > $1.amount }
+        case .rarity:
+            // For now, just return alphabetical since rarity isn't implemented yet
+            sortedOtherResources = otherResources.sorted { $0.type.rawValue < $1.type.rawValue }
+        }
+        
+        // Always put Numins first, then other sorted resources
+        if let numins = numinsResource {
+            return [numins] + sortedOtherResources
+        } else {
+            return sortedOtherResources
+        }
+    }
+    
     var body: some View {
         VStack {
             // Page header
@@ -1192,24 +1225,36 @@ struct ResourcesPageView: View {
             .padding(.horizontal)
             .padding(.top)
             
+            // Sorting dropdown
+            HStack {
+                Text("Sort by:")
+                    .font(.subheadline)
+                    .foregroundColor(.white)
+                
+                Picker("Sort Option", selection: $gameState.resourceSortOption) {
+                    ForEach(ResourceSortOption.allCases, id: \.self) { option in
+                        Text(option.rawValue).tag(option)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+                .foregroundColor(.blue)
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(Color.black.opacity(0.2))
+            
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
-                    // Show 30 rows (150 total items) - existing resources + empty placeholders
-                    ForEach(0..<150, id: \.self) { index in
-                        if index < ResourceType.allCases.count {
-                            // Show existing resource types
-                            let resourceType = ResourceType.allCases[index]
-                            if let resource = gameState.resources.first(where: { $0.type == resourceType }), resource.amount > 0 {
-                                // Show resource card only if player has collected this resource
-                                ResourceCard(resource: resource)
-                            } else {
-                                // Show blank placeholder for uncollected resources
-                                BlankResourceCard()
-                            }
-                        } else {
-                            // Show empty placeholder for future resources
-                            EmptyResourceCard()
-                        }
+                    // Show sorted owned resources first
+                    ForEach(sortedResources, id: \.type) { resource in
+                        ResourceCard(resource: resource)
+                    }
+                    
+                    // Fill remaining slots with empty placeholders to maintain grid layout
+                    ForEach(sortedResources.count..<150, id: \.self) { _ in
+                        EmptyResourceCard()
                     }
                 }
                 .padding()
