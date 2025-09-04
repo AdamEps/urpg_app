@@ -52,11 +52,6 @@ struct ContentView: View {
                     
                     // Bottom navigation
                     BottomNavigationView(gameState: gameState)
-                    
-                    // Black area below navigation
-                    Rectangle()
-                        .fill(Color.black)
-                        .frame(height: 20)
                 }
                 
                 // Resource pop out positioned above bottom navigation
@@ -88,7 +83,7 @@ struct ContentView: View {
                                 .frame(width: UIScreen.main.bounds.width * 0.5)
                         }
                         .padding(.trailing, 0)
-                        .padding(.bottom, 100) // Position above bottom navigation
+                        .padding(.bottom, 80) // Position well above navigation bar
                     } else if (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
                         HStack {
                             Spacer()
@@ -110,7 +105,7 @@ struct ContentView: View {
                             }
                         }
                         .padding(.trailing, 0)
-                        .padding(.bottom, 100) // Position above bottom navigation
+                        .padding(.bottom, 80) // Position well above navigation bar
                     }
                 }
                 
@@ -436,7 +431,9 @@ struct LocationView: View {
                 Spacer()
                 
                 // Location Screen Slots (4 slots for cards/items)
+                Spacer()
                 LocationSlotsView(gameState: gameState)
+                    .padding(.bottom, 10) // Position just above navigation bar
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
