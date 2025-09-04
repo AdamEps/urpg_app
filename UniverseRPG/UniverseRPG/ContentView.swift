@@ -493,7 +493,8 @@ struct TapCounterView: View {
             
             Spacer()
         }
-        .padding(8)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 12)
         .background(Color.black)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
