@@ -1532,6 +1532,8 @@ struct ResourcesPageView: View {
 struct ResourceDetailView: View {
     let resource: Resource
     @ObservedObject var gameState: GameState
+    @State private var dragOffset = CGSize.zero
+    @State private var isDragging = false
 
     var body: some View {
         ZStack {
@@ -1544,7 +1546,7 @@ struct ResourceDetailView: View {
                 )
 
             VStack(alignment: .leading, spacing: 12) {
-                // Top row - Icon, Name, and Close button
+                // Top row - Icon and Name (no close button)
                 HStack(spacing: 12) {
                     // Icon and name side by side
                     HStack(spacing: 12) {
@@ -1573,15 +1575,10 @@ struct ResourceDetailView: View {
 
                     Spacer()
 
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            gameState.selectedResourceForDetail = nil
-                        }
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title3)
-                            .foregroundColor(.white.opacity(0.6))
-                    }
+                    // Swipe hint indicator
+                    Image(systemName: "chevron.up")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.4))
                 }
 
                 // Description - takes up remaining space
@@ -1621,7 +1618,31 @@ struct ResourceDetailView: View {
         .frame(height: 280)
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .transition(.opacity)
+        .offset(y: dragOffset.height)
+        .gesture(
+            DragGesture()
+                .onChanged { gesture in
+                    isDragging = true
+                    if gesture.translation.height < 0 { // Only allow upward swipes
+                        dragOffset = gesture.translation
+                    }
+                }
+                .onEnded { gesture in
+                    isDragging = false
+                    if gesture.translation.height < -50 { // Swipe up threshold
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            gameState.selectedResourceForDetail = nil
+                        }
+                    } else {
+                        // Return to original position
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            dragOffset = .zero
+                        }
+                    }
+                }
+        )
+        .transition(.move(edge: .bottom))
+        .opacity(isDragging ? 0.8 : 1.0)
     }
     
     private func getResourceCategory(for resourceType: ResourceType) -> String {
