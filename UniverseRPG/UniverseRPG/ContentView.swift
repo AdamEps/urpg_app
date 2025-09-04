@@ -146,10 +146,10 @@ struct LocationView: View {
             }
             .buttonStyle(PlainButtonStyle())
             
-            Spacer()
-            
             // Collapsible resource list at bottom
             VStack(spacing: 0) {
+                Spacer()
+                
                 // Resource list (shown when expanded) - positioned above button
                 if gameState.showLocationResources {
                     HStack {
