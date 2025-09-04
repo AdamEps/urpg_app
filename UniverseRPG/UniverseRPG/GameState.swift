@@ -16,12 +16,13 @@ class GameState: ObservableObject {
     @Published var showLocationResources = false
     @Published var showObjectives = false
     @Published var showTapCounter = false
+    @Published var showIdleCollectionDetails = false
     
     // Player data
     @Published var playerName: String = "Commander"
     @Published var playerLevel: Int = 1
     @Published var playerXP: Int = 0
-    @Published var currency: Int = 1000
+    @Published var currency: Int = 0
     
     // Tap tracking
     @Published var currentLocationTapCount: Int = 0
@@ -29,12 +30,16 @@ class GameState: ObservableObject {
     
     // Idle collection tracking
     @Published var locationIdleCollectionCounts: [String: Int] = [:]
+    @Published var totalIdleCollectionCount: Int = 0
+    @Published var totalNuminsCollected: Int = 0
     
     // Visual feedback
     @Published var lastCollectedResource: ResourceType?
     @Published var showCollectionFeedback: Bool = false
     @Published var lastIdleCollectedResource: ResourceType?
     @Published var showIdleCollectionFeedback: Bool = false
+    @Published var lastNuminsAmount: Int = 0
+    @Published var showNuminsFeedback: Bool = false
     
     // Idle collection tracking
     private var idleCollectionTimer: Double = 0.0
@@ -148,6 +153,7 @@ class GameState: ObservableObject {
         
         // Update idle collection counters
         locationIdleCollectionCounts[currentLocation.id, default: 0] += 1
+        totalIdleCollectionCount += 1
         
         // Show visual feedback for idle collection
         lastIdleCollectedResource = selectedResource
@@ -184,6 +190,39 @@ class GameState: ObservableObject {
         // Update tap counters
         currentLocationTapCount += 1
         locationTapCounts[currentLocation.id, default: 0] += 1
+        
+        // 10% chance for Numins bonus
+        if Double.random(in: 0...100) <= 10.0 {
+            let numinsAmount = Double.random(in: 1...100)
+            
+            // Add Numins to resources
+            if let existingIndex = resources.firstIndex(where: { $0.type == .numins }) {
+                resources[existingIndex].amount += numinsAmount
+            } else {
+                let newNumins = Resource(
+                    type: .numins,
+                    amount: numinsAmount,
+                    icon: getResourceIcon(for: .numins),
+                    color: getResourceColor(for: .numins)
+                )
+                resources.append(newNumins)
+            }
+            
+            // Update currency display and tracking
+            currency += Int(numinsAmount)
+            totalNuminsCollected += Int(numinsAmount)
+            
+            // Show Numins feedback
+            lastNuminsAmount = Int(numinsAmount)
+            showNuminsFeedback = true
+            
+            // Hide Numins feedback after 2 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                self.showNuminsFeedback = false
+            }
+            
+            print("Bonus! Collected \(Int(numinsAmount)) Numins!")
+        }
         
         // Show visual feedback
         lastCollectedResource = selectedResource
@@ -408,6 +447,7 @@ class GameState: ObservableObject {
         case .gravity: return "arrow.down.circle.fill"
         case .magnetic: return "magnet"
         case .solar: return "sun.max.circle.fill"
+        case .numins: return "star.fill"
         }
     }
     
@@ -441,6 +481,7 @@ class GameState: ObservableObject {
         case .gravity: return .gray
         case .magnetic: return .blue
         case .solar: return .orange
+        case .numins: return .yellow
         }
     }
 }
@@ -503,6 +544,7 @@ enum ResourceType: String, CaseIterable {
     case gravity = "Gravity"
     case magnetic = "Magnetic"
     case solar = "Solar"
+    case numins = "Numins"
 }
 
 struct ConstructionBay: Identifiable {

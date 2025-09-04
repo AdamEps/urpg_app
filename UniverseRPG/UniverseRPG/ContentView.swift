@@ -354,6 +354,32 @@ struct LocationView: View {
                         .transition(.scale.combined(with: .opacity))
                         .animation(.easeInOut(duration: 0.3), value: gameState.showIdleCollectionFeedback)
                     }
+                    
+                    // Numins collection feedback
+                    if gameState.showNuminsFeedback {
+                        VStack {
+                            Text("+\(gameState.lastNuminsAmount)")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.yellow)
+                            
+                            Text("Numins")
+                                .font(.caption)
+                                .foregroundColor(.yellow)
+                                .multilineTextAlignment(.center)
+                            
+                            Text("(Bonus!)")
+                                .font(.caption2)
+                                .foregroundColor(.yellow)
+                                .fontWeight(.medium)
+                        }
+                        .padding(8)
+                        .background(Color.yellow.opacity(0.2))
+                        .cornerRadius(8)
+                        .offset(y: -160)
+                        .transition(.scale.combined(with: .opacity))
+                        .animation(.easeInOut(duration: 0.3), value: gameState.showNuminsFeedback)
+                    }
                 }
                 
                 Spacer()
@@ -438,6 +464,7 @@ struct LocationResourceListView: View {
         case .gravity: return "arrow.down.circle.fill"
         case .magnetic: return "magnet"
         case .solar: return "sun.max.fill"
+        case .numins: return "star.fill"
         }
     }
     
@@ -471,6 +498,7 @@ struct LocationResourceListView: View {
         case .gravity: return .purple
         case .magnetic: return .blue
         case .solar: return .yellow
+        case .numins: return .yellow
         }
     }
 }
@@ -940,6 +968,7 @@ struct ResourcesPageView: View {
         case .gravity: return "arrow.down.circle.fill"
         case .magnetic: return "magnet"
         case .solar: return "sun.max.circle.fill"
+        case .numins: return "star.fill"
         }
     }
     
@@ -973,6 +1002,7 @@ struct ResourcesPageView: View {
         case .gravity: return .gray
         case .magnetic: return .blue
         case .solar: return .orange
+        case .numins: return .yellow
         }
     }
 }
@@ -1100,34 +1130,92 @@ struct ObjectivesView: View {
                         }
                     }
                     
-                    // Idle Collection Section
+                    // Resources Section
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Idle Collection")
+                        Text("Resources")
                             .font(.title2)
                             .fontWeight(.bold)
                         
-                        ForEach(gameState.availableLocations, id: \.id) { location in
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(location.name)
-                                        .font(.headline)
-                                    Text("\(location.system) • \(location.kind.rawValue)")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                        // Idle Collection Tracker (collapsible)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                gameState.showIdleCollectionDetails.toggle()
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Idle Collection")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("Resources collected while away")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(gameState.totalIdleCollectionCount)")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.blue)
+                                    
+                                    Image(systemName: gameState.showIdleCollectionDetails ? "chevron.up" : "chevron.down")
+                                        .foregroundColor(.blue)
                                 }
-                                
-                                Spacer()
-                                
-                                Text("\(gameState.locationIdleCollectionCounts[location.id, default: 0])")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.blue)
                             }
+                            .buttonStyle(PlainButtonStyle())
                             .padding(.vertical, 8)
                             .padding(.horizontal, 12)
                             .background(Color.blue.opacity(0.1))
                             .cornerRadius(8)
+                            
+                            // Expanded details
+                            if gameState.showIdleCollectionDetails {
+                                ForEach(gameState.availableLocations, id: \.id) { location in
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(location.name)
+                                                .font(.subheadline)
+                                            Text("\(location.system) • \(location.kind.rawValue)")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(gameState.locationIdleCollectionCounts[location.id, default: 0])")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.blue)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.blue.opacity(0.05))
+                                    .cornerRadius(6)
+                                }
+                            }
                         }
+                        
+                        // Numins Tracker
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Numins")
+                                    .font(.headline)
+                                Text("The currency of the cosmos!")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("\(gameState.totalNuminsCollected)")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.yellow)
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(Color.yellow.opacity(0.1))
+                        .cornerRadius(8)
                     }
                     
                     // Coming Soon Section
@@ -1143,7 +1231,7 @@ struct ObjectivesView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Objectives")
+            .navigationTitle("Statistics and Objectives")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
