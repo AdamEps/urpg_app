@@ -13,6 +13,7 @@ class GameState: ObservableObject {
     @Published var showShop = false
     @Published var showResourcesPage = false
     @Published var showCards = false
+    @Published var showLocationResources = false
     
     // Player data
     @Published var playerName: String = "Commander"
@@ -258,6 +259,26 @@ class GameState: ObservableObject {
     
     func changeLocation(to location: Location) {
         currentLocation = location
+    }
+    
+    func getLocationDropTable() -> [(ResourceType, Double)] {
+        // Return drop table percentages for current location
+        // Based on TDD: [30%, 20%, 15%, 10%, 8%, 6%, 5%, 3%, 2%, 1%]
+        let percentages = [30.0, 20.0, 15.0, 10.0, 8.0, 6.0, 5.0, 3.0, 2.0, 1.0]
+        
+        switch currentLocation.id {
+        case "taragam-7":
+            let resources: [ResourceType] = [.ironOre, .silicon, .water, .oxygen, .carbon, .nitrogen, .phosphorus, .sulfur, .calcium, .magnesium]
+            return Array(zip(resources, percentages))
+        case "elcinto":
+            let resources: [ResourceType] = [.ironOre, .silicon, .helium3, .titanium, .aluminum, .nickel, .cobalt, .chromium, .vanadium, .manganese]
+            return Array(zip(resources, percentages))
+        case "taragon-gamma":
+            let resources: [ResourceType] = [.plasma, .element, .isotope, .energy, .radiation, .heat, .light, .gravity, .magnetic, .solar]
+            return Array(zip(resources, percentages))
+        default:
+            return []
+        }
     }
     
     deinit {

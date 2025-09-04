@@ -146,13 +146,135 @@ struct LocationView: View {
             }
             .buttonStyle(PlainButtonStyle())
             
-            Text("Resources: \(gameState.currentLocation.availableResources)")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            // Collapsible resource list
+            VStack {
+                // Toggle arrow button
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        gameState.showLocationResources.toggle()
+                    }) {
+                        Image(systemName: gameState.showLocationResources ? "chevron.right" : "chevron.left")
+                            .font(.title2)
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.trailing)
+                }
+                
+                // Resource list (shown when expanded)
+                if gameState.showLocationResources {
+                    LocationResourceListView(gameState: gameState)
+                }
+            }
         }
         .padding()
         .background(Color.gray.opacity(0.1))
         .cornerRadius(12)
+    }
+}
+
+// MARK: - Location Resource List View
+struct LocationResourceListView: View {
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Available Resources")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .padding(.bottom, 4)
+            
+            ForEach(gameState.getLocationDropTable(), id: \.0) { resourceType, percentage in
+                HStack {
+                    // Resource icon
+                    Image(systemName: getResourceIcon(for: resourceType))
+                        .foregroundColor(getResourceColor(for: resourceType))
+                        .frame(width: 20)
+                    
+                    // Resource name
+                    Text(resourceType.rawValue)
+                        .font(.caption)
+                    
+                    Spacer()
+                    
+                    // Percentage
+                    Text("\(Int(percentage))%")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.blue)
+                }
+                .padding(.vertical, 2)
+            }
+        }
+        .padding()
+        .background(Color.white.opacity(0.8))
+        .cornerRadius(8)
+    }
+    
+    private func getResourceIcon(for type: ResourceType) -> String {
+        switch type {
+        case .ironOre: return "cube.fill"
+        case .silicon: return "diamond.fill"
+        case .water: return "drop.fill"
+        case .oxygen: return "wind"
+        case .carbon: return "circle.fill"
+        case .nitrogen: return "n.circle.fill"
+        case .phosphorus: return "p.circle.fill"
+        case .sulfur: return "s.circle.fill"
+        case .calcium: return "c.circle.fill"
+        case .magnesium: return "m.circle.fill"
+        case .helium3: return "h.circle.fill"
+        case .titanium: return "t.circle.fill"
+        case .aluminum: return "a.circle.fill"
+        case .nickel: return "n.circle.fill"
+        case .cobalt: return "c.circle.fill"
+        case .chromium: return "c.circle.fill"
+        case .vanadium: return "v.circle.fill"
+        case .manganese: return "m.circle.fill"
+        case .plasma: return "bolt.fill"
+        case .element: return "atom"
+        case .isotope: return "circle.dotted"
+        case .energy: return "bolt.fill"
+        case .radiation: return "waveform"
+        case .heat: return "flame.fill"
+        case .light: return "sun.max.fill"
+        case .gravity: return "arrow.down.circle.fill"
+        case .magnetic: return "magnet"
+        case .solar: return "sun.max.fill"
+        }
+    }
+    
+    private func getResourceColor(for type: ResourceType) -> Color {
+        switch type {
+        case .ironOre: return .gray
+        case .silicon: return .purple
+        case .water: return .blue
+        case .oxygen: return .cyan
+        case .carbon: return .black
+        case .nitrogen: return .green
+        case .phosphorus: return .orange
+        case .sulfur: return .yellow
+        case .calcium: return .white
+        case .magnesium: return .pink
+        case .helium3: return .blue
+        case .titanium: return .gray
+        case .aluminum: return .gray
+        case .nickel: return .gray
+        case .cobalt: return .blue
+        case .chromium: return .gray
+        case .vanadium: return .green
+        case .manganese: return .purple
+        case .plasma: return .red
+        case .element: return .blue
+        case .isotope: return .green
+        case .energy: return .yellow
+        case .radiation: return .orange
+        case .heat: return .red
+        case .light: return .yellow
+        case .gravity: return .purple
+        case .magnetic: return .blue
+        case .solar: return .yellow
+        }
     }
 }
 
