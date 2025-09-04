@@ -434,24 +434,33 @@ struct ResourceCard: View {
     let resource: Resource
     
     var body: some View {
-        VStack {
-            Image(systemName: resource.icon)
-                .font(.title2)
-                .foregroundColor(resource.color)
-            
-            Text(resource.type.rawValue)
-                .font(.caption)
-                .fontWeight(.medium)
-            
-            Text("\(resource.amount)")
-                .font(.caption2)
-                .foregroundColor(.secondary)
+        VStack(spacing: 4) {
+            if resource.amount > 0 {
+                Image(systemName: resource.icon)
+                    .font(.title2)
+                    .foregroundColor(resource.color)
+                
+                Text("\(Int(resource.amount))")
+                    .font(.caption)
+                    .foregroundColor(.white)
+            } else {
+                // Empty slot - show nothing or a placeholder
+                Image(systemName: "square")
+                    .font(.title2)
+                    .foregroundColor(.clear)
+                
+                Text("")
+                    .font(.caption)
+            }
         }
         .frame(height: 80)
         .frame(maxWidth: .infinity)
-        .background(Color.white)
+        .background(Color.black)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray, lineWidth: 1)
+        )
         .cornerRadius(8)
-        .shadow(radius: 2)
     }
 }
 
@@ -651,7 +660,11 @@ struct ResourcesPageView: View {
         NavigationView {
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
-                    ForEach(gameState.resources, id: \.type) { resource in
+                    // Show all resource types twice to fill 12 rows (60 total items)
+                    ForEach(0..<60, id: \.self) { index in
+                        let resourceType = ResourceType.allCases[index % ResourceType.allCases.count]
+                        let resource = gameState.resources.first { $0.type == resourceType } ?? 
+                                     Resource(type: resourceType, amount: 0, icon: getResourceIcon(for: resourceType), color: getResourceColor(for: resourceType))
                         ResourceCard(resource: resource)
                     }
                 }
@@ -666,6 +679,72 @@ struct ResourcesPageView: View {
                     }
                 }
             }
+        }
+    }
+    
+    private func getResourceIcon(for type: ResourceType) -> String {
+        switch type {
+        case .ironOre: return "cube.fill"
+        case .silicon: return "diamond.fill"
+        case .water: return "drop.fill"
+        case .oxygen: return "wind"
+        case .carbon: return "circle.fill"
+        case .nitrogen: return "n.circle.fill"
+        case .phosphorus: return "p.circle.fill"
+        case .sulfur: return "s.circle.fill"
+        case .calcium: return "c.circle.fill"
+        case .magnesium: return "m.circle.fill"
+        case .helium3: return "h.circle.fill"
+        case .titanium: return "t.circle.fill"
+        case .aluminum: return "a.circle.fill"
+        case .nickel: return "n.circle.fill"
+        case .cobalt: return "c.circle.fill"
+        case .chromium: return "c.circle.fill"
+        case .vanadium: return "v.circle.fill"
+        case .manganese: return "m.circle.fill"
+        case .plasma: return "bolt.fill"
+        case .element: return "atom"
+        case .isotope: return "circle.dotted"
+        case .energy: return "bolt.circle.fill"
+        case .radiation: return "waveform"
+        case .heat: return "flame.fill"
+        case .light: return "sun.max.fill"
+        case .gravity: return "arrow.down.circle.fill"
+        case .magnetic: return "magnet"
+        case .solar: return "sun.max.circle.fill"
+        }
+    }
+    
+    private func getResourceColor(for type: ResourceType) -> Color {
+        switch type {
+        case .ironOre: return .gray
+        case .silicon: return .purple
+        case .water: return .blue
+        case .oxygen: return .cyan
+        case .carbon: return .black
+        case .nitrogen: return .green
+        case .phosphorus: return .orange
+        case .sulfur: return .yellow
+        case .calcium: return .white
+        case .magnesium: return .pink
+        case .helium3: return .blue
+        case .titanium: return .gray
+        case .aluminum: return .gray
+        case .nickel: return .gray
+        case .cobalt: return .blue
+        case .chromium: return .gray
+        case .vanadium: return .green
+        case .manganese: return .purple
+        case .plasma: return .red
+        case .element: return .purple
+        case .isotope: return .blue
+        case .energy: return .yellow
+        case .radiation: return .green
+        case .heat: return .red
+        case .light: return .yellow
+        case .gravity: return .gray
+        case .magnetic: return .blue
+        case .solar: return .orange
         }
     }
 }
