@@ -96,6 +96,59 @@ struct ContentView: View {
                         .padding(.bottom, 100) // Position above bottom navigation
                     }
                 }
+                
+                // Tap counter pop out positioned under location name at top
+                VStack {
+                    if gameState.showTapCounter {
+                        HStack(alignment: .top, spacing: 0) {
+                            // Toggle button on left side of tap counter box when open
+                            Button(action: {
+                                gameState.showTapCounter.toggle()
+                            }) {
+                                Image(systemName: "chevron.up")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                                    .padding(8)
+                                    .background(Color.black)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.gray, lineWidth: 1)
+                                    )
+                                    .cornerRadius(6)
+                            }
+                            
+                            // Tap counter box
+                            TapCounterView(gameState: gameState)
+                                .frame(width: UIScreen.main.bounds.width * 0.4)
+                            
+                            Spacer()
+                        }
+                        .padding(.leading, 0)
+                        .padding(.top, 60) // Position under location name
+                    } else {
+                        HStack {
+                            // Toggle button on left side of screen when closed
+                            Button(action: {
+                                gameState.showTapCounter.toggle()
+                            }) {
+                                Image(systemName: "chevron.down")
+                                    .font(.title2)
+                                    .foregroundColor(.white)
+                                    .padding(8)
+                                    .background(Color.black)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(Color.gray, lineWidth: 1)
+                                    )
+                                    .cornerRadius(6)
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding(.leading, 0)
+                        .padding(.top, 60) // Position under location name
+                    }
+                }
             }
             .navigationBarHidden(true)
         }
@@ -176,17 +229,33 @@ struct HeaderView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
             
-            // Tap counter with reset button
-            HStack {
-                Text("Taps: \(gameState.currentLocationTapCount)")
+            // Tap counter with reset button (conditionally shown)
+            if gameState.showTapCounter {
+                HStack {
+                    Text("Taps: \(gameState.currentLocationTapCount)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Button("Reset") {
+                        gameState.resetCurrentLocationTapCount()
+                    }
                     .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Button("Reset") {
-                    gameState.resetCurrentLocationTapCount()
+                    .foregroundColor(.blue)
                 }
-                .font(.caption)
-                .foregroundColor(.blue)
+            }
+            
+            // Toggle button for tap counter
+            HStack {
+                Spacer()
+                Button(action: {
+                    gameState.showTapCounter.toggle()
+                }) {
+                    Image(systemName: gameState.showTapCounter ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                        .padding(4)
+                }
+                Spacer()
             }
             
             HStack {
@@ -211,30 +280,9 @@ struct LocationView: View {
             Color.clear
             
             VStack {
-                // Tap counter and reset button at top
-                HStack {
-                    Text("Taps: \(gameState.currentLocationTapCount)")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    Spacer()
-                    
-                    Button("Reset") {
-                        gameState.resetCurrentLocationTapCount()
-                    }
-                    .font(.subheadline)
-                    .foregroundColor(.blue)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(8)
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-                
                 Spacer()
                 
-                // Centered clickable location
+                // Centered clickable location (positioned based on tap counter visibility)
                 ZStack {
                     Button(action: {
                         gameState.tapLocation()
@@ -418,6 +466,45 @@ struct LocationResourceListView: View {
         case .magnetic: return .blue
         case .solar: return .yellow
         }
+    }
+}
+
+// MARK: - Tap Counter View
+struct TapCounterView: View {
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Tap Counter")
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .padding(.bottom, 2)
+            
+            HStack(spacing: 2) {
+                Text("Taps:")
+                    .font(.caption2)
+                    .foregroundColor(.blue)
+                    .onTapGesture {
+                        gameState.resetCurrentLocationTapCount()
+                    }
+                
+                Spacer()
+                
+                Text("\(gameState.currentLocationTapCount)")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            .padding(.vertical, 1)
+        }
+        .padding(8)
+        .background(Color.black)
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(Color.gray, lineWidth: 1)
+        )
+        .cornerRadius(6)
     }
 }
 
