@@ -1225,6 +1225,12 @@ struct ResourcesPageView: View {
             .padding(.horizontal)
             .padding(.top, 8)
             
+            // Resource Detail View
+            if let selectedResource = gameState.selectedResourceForDetail,
+               let resource = gameState.resources.first(where: { $0.type == selectedResource }) {
+                ResourceDetailView(resource: resource, gameState: gameState)
+            }
+            
             // Sorting dropdown
             HStack {
                 Text("Sort by:")
@@ -1244,12 +1250,6 @@ struct ResourcesPageView: View {
             .padding(.horizontal)
             .padding(.vertical, 4)
             .background(Color.black.opacity(0.2))
-            
-            // Resource Detail View
-            if let selectedResource = gameState.selectedResourceForDetail,
-               let resource = gameState.resources.first(where: { $0.type == selectedResource }) {
-                ResourceDetailView(resource: resource, gameState: gameState)
-            }
             
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
@@ -1530,16 +1530,16 @@ struct ResourceDetailView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
             // Larger resource icon
             Image(systemName: resource.icon)
-                .font(.system(size: 40))
+                .font(.system(size: 60))
                 .foregroundColor(resource.color)
-                .frame(width: 60, height: 60)
+                .frame(width: 100, height: 100)
                 .background(Color.black.opacity(0.3))
                 .cornerRadius(8)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 8) {
                 // Resource name and quantity
                 HStack {
                     Text(resource.type.rawValue)
@@ -1586,7 +1586,7 @@ struct ResourceDetailView: View {
                     .foregroundColor(.white.opacity(0.6))
             }
         }
-        .padding(12)
+        .padding(24)
         .background(Color.black.opacity(0.4))
         .overlay(
             RoundedRectangle(cornerRadius: 8)
@@ -1594,7 +1594,7 @@ struct ResourceDetailView: View {
         )
         .cornerRadius(8)
         .padding(.horizontal)
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
     }
 }
 
