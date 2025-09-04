@@ -17,19 +17,6 @@ struct ContentView: View {
                     // Top Bar (always visible)
                     TopBarView(gameState: gameState)
                     
-                    // Location name header
-                    HStack {
-                        Spacer()
-                        Text(gameState.currentLocation.name)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    .background(Color.black.opacity(0.3))
-                    
                     // Main game area - conditional based on current page
                     Group {
                         switch gameState.currentPage {
@@ -306,6 +293,19 @@ struct LocationView: View {
             Color.clear
             
             VStack {
+                // Location name header
+                HStack {
+                    Spacer()
+                    Text(gameState.currentLocation.name)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(Color.black.opacity(0.3))
+                
                 Spacer()
                 
                 // Centered clickable location (positioned based on tap counter visibility)
