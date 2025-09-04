@@ -68,7 +68,7 @@ struct ContentView: View {
                         }
                     }
                     .padding(.trailing, 16)
-                    .padding(.bottom, 80) // Position above bottom navigation
+                    .padding(.bottom, 100) // Position above bottom navigation
                 }
             }
             .navigationBarHidden(true)
