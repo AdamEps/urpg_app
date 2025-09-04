@@ -147,12 +147,16 @@ struct LocationView: View {
             .buttonStyle(PlainButtonStyle())
             
             Spacer()
+            Spacer()
+            Spacer()
             
             // Collapsible resource list at bottom
             VStack {
                 // Resource list (shown when expanded)
                 if gameState.showLocationResources {
                     LocationResourceListView(gameState: gameState)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 50)
                 }
                 
                 // Toggle arrow button
