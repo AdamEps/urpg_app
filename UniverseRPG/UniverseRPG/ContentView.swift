@@ -146,8 +146,15 @@ struct LocationView: View {
             }
             .buttonStyle(PlainButtonStyle())
             
-            // Collapsible resource list
+            Spacer()
+            
+            // Collapsible resource list at bottom
             VStack {
+                // Resource list (shown when expanded)
+                if gameState.showLocationResources {
+                    LocationResourceListView(gameState: gameState)
+                }
+                
                 // Toggle arrow button
                 HStack {
                     Spacer()
@@ -159,11 +166,6 @@ struct LocationView: View {
                             .foregroundColor(.blue)
                     }
                     .padding(.trailing)
-                }
-                
-                // Resource list (shown when expanded)
-                if gameState.showLocationResources {
-                    LocationResourceListView(gameState: gameState)
                 }
             }
         }
@@ -186,7 +188,7 @@ struct LocationResourceListView: View {
                 .padding(.bottom, 2)
             
             ForEach(gameState.getLocationDropTable(), id: \.0) { resourceType, percentage in
-                HStack(spacing: 4) {
+                HStack(spacing: 2) {
                     // Resource icon
                     Image(systemName: getResourceIcon(for: resourceType))
                         .foregroundColor(getResourceColor(for: resourceType))
