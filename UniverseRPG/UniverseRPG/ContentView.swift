@@ -35,7 +35,7 @@ struct ContentView: View {
                     Spacer()
                     
                     if gameState.showLocationResources {
-                        HStack(alignment: .bottom) {
+                        HStack(alignment: .bottom, spacing: 0) {
                             Spacer()
                             
                             // Toggle button on left side of resource box when open
