@@ -18,13 +18,7 @@ struct ContentView: View {
                     TopBarView(gameState: gameState)
                     
                     // Main game area
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            // Current location view
-                            LocationView(gameState: gameState)
-                        }
-                        .padding()
-                    }
+                    LocationView(gameState: gameState)
                     
                     // Bottom navigation
                     BottomNavigationView(gameState: gameState)
@@ -186,32 +180,37 @@ struct LocationView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        VStack(spacing: 12) {
-            Text("Current Location")
-                .font(.headline)
+        ZStack {
+            // Full screen background
+            Color.clear
             
-            // Tap to collect resources
-            Button(action: {
-                gameState.tapLocation()
-            }) {
-                VStack {
-                    Image(systemName: "globe")
-                        .font(.system(size: 60))
-                        .foregroundColor(.blue)
-                    
-                    Text("Tap to Collect")
-                        .font(.caption)
+            // Centered clickable location
+            VStack(spacing: 12) {
+                Text("Current Location")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                
+                // Tap to collect resources
+                Button(action: {
+                    gameState.tapLocation()
+                }) {
+                    VStack {
+                        Image(systemName: "globe")
+                            .font(.system(size: 60))
+                            .foregroundColor(.blue)
+                        
+                        Text("Tap to Collect")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                    }
+                    .frame(width: 120, height: 120)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(20)
                 }
-                .frame(width: 120, height: 120)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(20)
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
-            
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -498,7 +497,7 @@ struct BottomNavigationView: View {
             Button(action: {
                 gameState.showLocations = true
             }) {
-                Image(systemName: "map.fill")
+                Image(systemName: "globe")
                     .font(.title2)
                     .foregroundColor(.white)
             }
@@ -525,7 +524,7 @@ struct BottomNavigationView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 16) // Equal padding above and below icons
-        .background(Color.gray)
+        .background(Color.gray.opacity(0.3))
         .sheet(isPresented: $gameState.showLocations) {
             StarMapView(gameState: gameState)
         }
