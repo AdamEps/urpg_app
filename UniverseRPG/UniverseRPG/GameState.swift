@@ -54,6 +54,9 @@ class GameState: ObservableObject {
     @Published var lastXPAmount: Int = 0
     @Published var showXPFeedback: Bool = false
     
+    // Cards system
+    @Published var ownedCards: [UserCard] = []
+    
     // Idle collection tracking
     private var idleCollectionTimer: Double = 0.0
     private let idleCollectionInterval: Double = 10.0 // 10 seconds
@@ -74,6 +77,15 @@ class GameState: ObservableObject {
         
         // Initialize resources as empty - resources will be added when first collected
         self.resources = []
+        
+        // Initialize cards - add the 4 example cards for testing
+        self.ownedCards = [
+            UserCard(id: UUID().uuidString, cardId: "astro-prospector", copies: 1, tier: 1),
+            UserCard(id: UUID().uuidString, cardId: "deep-scan", copies: 3, tier: 1),
+            UserCard(id: UUID().uuidString, cardId: "bay-optimizer", copies: 1, tier: 1),
+            UserCard(id: UUID().uuidString, cardId: "bulk-storage", copies: 2, tier: 1),
+            UserCard(id: UUID().uuidString, cardId: "learned-hands", copies: 1, tier: 1)
+        ]
         
         // Initialize all 11 available locations from TDD
         self.availableLocations = [
@@ -890,6 +902,131 @@ class GameState: ObservableObject {
         case .geologicalSamples: return .brown
         }
     }
+    
+    // MARK: - Card System Functions
+    
+    func getAllCardDefinitions() -> [CardDef] {
+        return [
+            // Explorer Class
+            CardDef(
+                id: "astro-prospector",
+                name: "Astro Prospector",
+                cardClass: .explorer,
+                effectKey: "tapYieldMultiplier",
+                tiers: [
+                    CardTier(copies: 2, value: 0.02),   // +2%
+                    CardTier(copies: 5, value: 0.04),   // +4%
+                    CardTier(copies: 10, value: 0.07),  // +7%
+                    CardTier(copies: 25, value: 0.11),  // +11%
+                    CardTier(copies: 100, value: 0.16)  // +16%
+                ],
+                description: "Increases tap yield when slotted on Resources/Map screens"
+            ),
+            CardDef(
+                id: "deep-scan",
+                name: "Deep Scan",
+                cardClass: .explorer,
+                effectKey: "idleRareBias",
+                tiers: [
+                    CardTier(copies: 2, value: 0.03),   // +3%
+                    CardTier(copies: 5, value: 0.06),   // +6%
+                    CardTier(copies: 10, value: 0.10),  // +10%
+                    CardTier(copies: 25, value: 0.15),  // +15%
+                    CardTier(copies: 100, value: 0.22)  // +22%
+                ],
+                description: "Bias lower-probability slots upward for idle collection"
+            ),
+            
+            // Constructor Class
+            CardDef(
+                id: "bay-optimizer",
+                name: "Bay Optimizer",
+                cardClass: .constructor,
+                effectKey: "buildTimeMultiplier",
+                tiers: [
+                    CardTier(copies: 2, value: -0.02),  // -2%
+                    CardTier(copies: 5, value: -0.04),  // -4%
+                    CardTier(copies: 10, value: -0.07), // -7%
+                    CardTier(copies: 25, value: -0.11), // -11%
+                    CardTier(copies: 100, value: -0.16) // -16%
+                ],
+                description: "Faster builds on Construction screen"
+            ),
+            
+            // Collector Class
+            CardDef(
+                id: "bulk-storage",
+                name: "Bulk Storage",
+                cardClass: .collector,
+                effectKey: "storageCapBonus",
+                tiers: [
+                    CardTier(copies: 2, value: 100),    // +100
+                    CardTier(copies: 5, value: 250),    // +250
+                    CardTier(copies: 10, value: 500),   // +500
+                    CardTier(copies: 25, value: 900),   // +900
+                    CardTier(copies: 100, value: 1500)  // +1500
+                ],
+                description: "Increases per-resource storage caps"
+            ),
+            
+            // Progression Class
+            CardDef(
+                id: "learned-hands",
+                name: "Learned Hands",
+                cardClass: .progression,
+                effectKey: "xpGainMultiplier",
+                tiers: [
+                    CardTier(copies: 2, value: 0.02),   // +2%
+                    CardTier(copies: 5, value: 0.04),   // +4%
+                    CardTier(copies: 10, value: 0.06),  // +6%
+                    CardTier(copies: 25, value: 0.09),  // +9%
+                    CardTier(copies: 100, value: 0.13)  // +13%
+                ],
+                description: "Global XP boost when slotted on any screen"
+            )
+        ]
+    }
+    
+    func getCardsForClass(_ cardClass: CardClass) -> [CardDef] {
+        return getAllCardDefinitions().filter { $0.cardClass == cardClass }
+    }
+    
+    func getUserCard(for cardId: String) -> UserCard? {
+        return ownedCards.first { $0.cardId == cardId }
+    }
+    
+    func addCard(_ cardId: String, copies: Int = 1) {
+        if let existingIndex = ownedCards.firstIndex(where: { $0.cardId == cardId }) {
+            ownedCards[existingIndex].copies += copies
+            // Auto-upgrade if we have enough copies for next tier
+            checkAndUpgradeCard(at: existingIndex)
+        } else {
+            let newCard = UserCard(
+                id: UUID().uuidString,
+                cardId: cardId,
+                copies: copies,
+                tier: 1
+            )
+            ownedCards.append(newCard)
+        }
+    }
+    
+    private func checkAndUpgradeCard(at index: Int) {
+        let userCard = ownedCards[index]
+        guard let cardDef = getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) else { return }
+        
+        // Check if we can upgrade to next tier
+        if userCard.tier < 5 {
+            let nextTier = userCard.tier
+            let requiredCopies = cardDef.tiers[nextTier].copies
+            
+            if userCard.copies >= requiredCopies {
+                ownedCards[index].copies -= requiredCopies
+                ownedCards[index].tier += 1
+                print("Card \(cardDef.name) upgraded to tier \(ownedCards[index].tier)!")
+            }
+        }
+    }
 }
 
 // MARK: - Data Models
@@ -912,6 +1049,37 @@ enum LocationKind: String, CaseIterable {
     case ship = "Ship"
     case dwarf = "Dwarf"
     case rogue = "Rogue"
+}
+
+// MARK: - Card System
+
+enum CardClass: String, CaseIterable {
+    case explorer = "Explorer"
+    case constructor = "Constructor"
+    case collector = "Collector"
+    case progression = "Progression"
+}
+
+struct CardDef: Identifiable {
+    let id: String
+    let name: String
+    let cardClass: CardClass
+    let effectKey: String
+    let tiers: [CardTier]
+    let description: String
+}
+
+struct CardTier {
+    let copies: Int
+    let value: Double
+}
+
+struct UserCard: Identifiable {
+    let id: String
+    let cardId: String
+    var copies: Int
+    var tier: Int // 1-5
+    var slottedOn: [String] = [] // Screen IDs where this card is slotted
 }
 
 struct Resource {

@@ -1475,16 +1475,161 @@ struct CardsView: View {
     
     var body: some View {
         NavigationView {
-            Text("Cards Coming Soon!")
-                .navigationTitle("Cards")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Done") {
-                            dismiss()
-                        }
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Explorer Class Section
+                    CardClassSection(
+                        title: "Explorer Class",
+                        cardClass: .explorer,
+                        gameState: gameState
+                    )
+                    
+                    // Constructor Class Section
+                    CardClassSection(
+                        title: "Constructor Class",
+                        cardClass: .constructor,
+                        gameState: gameState
+                    )
+                    
+                    // Collector Class Section
+                    CardClassSection(
+                        title: "Collector Class",
+                        cardClass: .collector,
+                        gameState: gameState
+                    )
+                    
+                    // Progression Class Section
+                    CardClassSection(
+                        title: "Progression Class",
+                        cardClass: .progression,
+                        gameState: gameState
+                    )
+                }
+                .padding()
+            }
+            .navigationTitle("Cards")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
                     }
                 }
+            }
+        }
+    }
+}
+
+struct CardClassSection: View {
+    let title: String
+    let cardClass: CardClass
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
+            
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                ForEach(0..<8, id: \.self) { index in
+                    CardSlotView(
+                        cardClass: cardClass,
+                        slotIndex: index,
+                        gameState: gameState
+                    )
+                }
+            }
+        }
+    }
+}
+
+struct CardSlotView: View {
+    let cardClass: CardClass
+    let slotIndex: Int
+    @ObservedObject var gameState: GameState
+    
+    private var cardDef: CardDef? {
+        let cardsForClass = gameState.getCardsForClass(cardClass)
+        return slotIndex < cardsForClass.count ? cardsForClass[slotIndex] : nil
+    }
+    
+    private var userCard: UserCard? {
+        guard let cardDef = cardDef else { return nil }
+        return gameState.getUserCard(for: cardDef.id)
+    }
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            if let cardDef = cardDef, let userCard = userCard {
+                // Owned card
+                VStack(spacing: 2) {
+                    // Card icon/art placeholder
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(cardClassColor.opacity(0.3))
+                        .frame(height: 60)
+                        .overlay(
+                            VStack {
+                                Image(systemName: cardClassIcon)
+                                    .font(.title2)
+                                    .foregroundColor(cardClassColor)
+                                
+                                Text("T\(userCard.tier)")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(cardClassColor)
+                            }
+                        )
+                    
+                    // Card name
+                    Text(cardDef.name)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                    
+                    // Copies count
+                    Text("\(userCard.copies) copies")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                // Empty slot
+                VStack(spacing: 2) {
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(cardClassColor.opacity(0.3), lineWidth: 2)
+                        .frame(height: 60)
+                        .overlay(
+                            Image(systemName: "plus")
+                                .font(.title2)
+                                .foregroundColor(cardClassColor.opacity(0.5))
+                        )
+                    
+                    Text("Empty Slot")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .frame(height: 100)
+    }
+    
+    private var cardClassColor: Color {
+        switch cardClass {
+        case .explorer: return .blue
+        case .constructor: return .orange
+        case .collector: return .green
+        case .progression: return .purple
+        }
+    }
+    
+    private var cardClassIcon: String {
+        switch cardClass {
+        case .explorer: return "telescope"
+        case .constructor: return "hammer"
+        case .collector: return "shippingbox"
+        case .progression: return "chart.line.uptrend.xyaxis"
         }
     }
 }
