@@ -178,37 +178,44 @@ struct LocationResourceListView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 2) {
             Text("Available Resources")
-                .font(.subheadline)
+                .font(.caption)
                 .fontWeight(.medium)
-                .padding(.bottom, 4)
+                .foregroundColor(.white)
+                .padding(.bottom, 2)
             
             ForEach(gameState.getLocationDropTable(), id: \.0) { resourceType, percentage in
-                HStack {
+                HStack(spacing: 4) {
                     // Resource icon
                     Image(systemName: getResourceIcon(for: resourceType))
                         .foregroundColor(getResourceColor(for: resourceType))
-                        .frame(width: 20)
+                        .frame(width: 16)
+                        .font(.caption)
                     
                     // Resource name
                     Text(resourceType.rawValue)
-                        .font(.caption)
+                        .font(.caption2)
+                        .foregroundColor(.white)
                     
                     Spacer()
                     
                     // Percentage
                     Text("\(Int(percentage))%")
-                        .font(.caption)
+                        .font(.caption2)
                         .fontWeight(.medium)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.white)
                 }
-                .padding(.vertical, 2)
+                .padding(.vertical, 1)
             }
         }
-        .padding()
-        .background(Color.white.opacity(0.8))
-        .cornerRadius(8)
+        .padding(8)
+        .background(Color.black)
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(Color.gray, lineWidth: 1)
+        )
+        .cornerRadius(6)
     }
     
     private func getResourceIcon(for type: ResourceType) -> String {
