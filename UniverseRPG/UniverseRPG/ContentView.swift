@@ -30,8 +30,21 @@ struct ContentView: View {
                     .padding(.vertical, 8)
                     .background(Color.black.opacity(0.3))
                     
-                    // Main game area
-                    LocationView(gameState: gameState)
+                    // Main game area - conditional based on current page
+                    Group {
+                        switch gameState.currentPage {
+                        case .location:
+                            LocationView(gameState: gameState)
+                        case .construction:
+                            ConstructionPageView(gameState: gameState)
+                        case .starMap:
+                            StarMapView(gameState: gameState)
+                        case .resources:
+                            ResourcesPageView(gameState: gameState)
+                        case .cards:
+                            CardsView(gameState: gameState)
+                        }
+                    }
                     
                     // Bottom navigation
                     BottomNavigationView(gameState: gameState)
@@ -1011,60 +1024,48 @@ struct BottomNavigationView: View {
             Spacer()
             
             Button(action: {
-                gameState.showConstructionPage = true
+                gameState.currentPage = .construction
             }) {
                 Image(systemName: "hammer.fill")
                     .font(.title2)
-                    .foregroundColor(.white)
+                    .foregroundColor(gameState.currentPage == .construction ? .blue : .white)
             }
             
             Spacer()
             
             Button(action: {
-                gameState.showLocations = true
+                gameState.currentPage = .starMap
             }) {
                 Image(systemName: "globe")
                     .font(.title2)
-                    .foregroundColor(.white)
+                    .foregroundColor(gameState.currentPage == .starMap ? .blue : .white)
             }
             
             Spacer()
             
             Button(action: {
-                gameState.showResourcesPage = true
+                gameState.currentPage = .resources
             }) {
                 Image(systemName: "cube.box.fill")
                     .font(.title2)
-                    .foregroundColor(.white)
+                    .foregroundColor(gameState.currentPage == .resources ? .blue : .white)
             }
             
             Spacer()
             
             Button(action: {
-                gameState.showCards = true
+                gameState.currentPage = .cards
             }) {
                 Image(systemName: "rectangle.stack.fill")
                     .font(.title2)
-                    .foregroundColor(.white)
+                    .foregroundColor(gameState.currentPage == .cards ? .blue : .white)
             }
         }
         .padding(.horizontal)
         .padding(.vertical, 16) // Equal padding above and below icons
         .background(Color.gray.opacity(0.3))
-        .sheet(isPresented: $gameState.showLocations) {
-            StarMapView(gameState: gameState)
-        }
         .sheet(isPresented: $gameState.showShop) {
             ShopView(gameState: gameState)
-        }
-        .sheet(isPresented: $gameState.showConstructionPage) {
-            ConstructionPageView(gameState: gameState)
-        }
-        .sheet(isPresented: $gameState.showResourcesPage) {
-            ResourcesPageView(gameState: gameState)
-        }
-        .sheet(isPresented: $gameState.showCards) {
-            CardsView(gameState: gameState)
         }
         .sheet(isPresented: $gameState.showObjectives) {
             ObjectivesView(gameState: gameState)
@@ -1165,10 +1166,26 @@ struct ConstructionPageView: View {
 // MARK: - Resources Page View
 struct ResourcesPageView: View {
     @ObservedObject var gameState: GameState
-    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        VStack {
+            // Page header
+            HStack {
+                Text("Resources")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                Button("Test") {
+                    gameState.printDropTableTestResults(taps: 100)
+                }
+                .foregroundColor(.blue)
+            }
+            .padding(.horizontal)
+            .padding(.top)
+            
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
                     // Show 30 rows (150 total items) - existing resources + empty placeholders
@@ -1190,20 +1207,6 @@ struct ResourcesPageView: View {
                     }
                 }
                 .padding()
-            }
-            .navigationTitle("Resources")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Test") {
-                        gameState.printDropTableTestResults(taps: 100)
-                    }
-                }
             }
         }
     }

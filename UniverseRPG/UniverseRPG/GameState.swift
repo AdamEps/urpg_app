@@ -57,6 +57,9 @@ class GameState: ObservableObject {
     // Cards system
     @Published var ownedCards: [UserCard] = []
     
+    // Navigation state
+    @Published var currentPage: AppPage = .location
+    
     // Idle collection tracking
     private var idleCollectionTimer: Double = 0.0
     private let idleCollectionInterval: Double = 10.0 // 10 seconds
@@ -1049,6 +1052,16 @@ enum LocationKind: String, CaseIterable {
     case ship = "Ship"
     case dwarf = "Dwarf"
     case rogue = "Rogue"
+}
+
+// MARK: - App Navigation
+
+enum AppPage: String, CaseIterable {
+    case location = "Location"
+    case construction = "Construction"
+    case starMap = "Star Map"
+    case resources = "Resources"
+    case cards = "Cards"
 }
 
 // MARK: - Card System
