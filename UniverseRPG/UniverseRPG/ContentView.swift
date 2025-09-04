@@ -12,21 +12,64 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                // Top Bar (always visible)
-                TopBarView(gameState: gameState)
-                
-                // Main game area
-                ScrollView {
-                    VStack(spacing: 16) {
-                        // Current location view
-                        LocationView(gameState: gameState)
+            ZStack {
+                VStack(spacing: 0) {
+                    // Top Bar (always visible)
+                    TopBarView(gameState: gameState)
+                    
+                    // Main game area
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            // Current location view
+                            LocationView(gameState: gameState)
+                        }
+                        .padding()
                     }
-                    .padding()
+                    
+                    // Bottom navigation
+                    BottomNavigationView(gameState: gameState)
                 }
                 
-                // Bottom navigation
-                BottomNavigationView(gameState: gameState)
+                // Resource pop out positioned above bottom navigation
+                VStack {
+                    Spacer()
+                    
+                    HStack {
+                        if gameState.showLocationResources {
+                            // Toggle button on left side of resource box when open
+                            Button(action: {
+                                gameState.showLocationResources.toggle()
+                            }) {
+                                Image(systemName: "chevron.right")
+                                    .font(.title2)
+                                    .foregroundColor(.blue)
+                                    .padding(8)
+                                    .background(Color.white)
+                                    .cornerRadius(8)
+                            }
+                            
+                            // Resource box
+                            LocationResourceListView(gameState: gameState)
+                                .frame(width: UIScreen.main.bounds.width * 0.5)
+                        } else {
+                            Spacer()
+                            
+                            // Toggle button on right side of screen when closed
+                            Button(action: {
+                                gameState.showLocationResources.toggle()
+                            }) {
+                                Image(systemName: "chevron.left")
+                                    .font(.title2)
+                                    .foregroundColor(.blue)
+                                    .padding(8)
+                                    .background(Color.white)
+                                    .cornerRadius(8)
+                            }
+                        }
+                    }
+                    .padding(.trailing, 16)
+                    .padding(.bottom, 80) // Position above bottom navigation
+                }
             }
             .navigationBarHidden(true)
         }
@@ -146,33 +189,6 @@ struct LocationView: View {
             }
             .buttonStyle(PlainButtonStyle())
             
-            // Collapsible resource list at bottom
-            VStack(spacing: 0) {
-                Spacer()
-                
-                // Resource list (shown when expanded) - positioned above button
-                if gameState.showLocationResources {
-                    HStack {
-                        Spacer()
-                        LocationResourceListView(gameState: gameState)
-                            .frame(width: UIScreen.main.bounds.width * 0.5)
-                    }
-                    .padding(.trailing, 0)
-                }
-                
-                // Toggle arrow button - always at bottom
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        gameState.showLocationResources.toggle()
-                    }) {
-                        Image(systemName: gameState.showLocationResources ? "chevron.right" : "chevron.left")
-                            .font(.title2)
-                            .foregroundColor(.blue)
-                    }
-                    .padding(.trailing)
-                }
-            }
         }
         .padding()
         .background(Color.gray.opacity(0.1))
