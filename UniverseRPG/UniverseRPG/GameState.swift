@@ -37,6 +37,7 @@ class GameState: ObservableObject {
     @Published var currentLocationTapCount: Int = 0
     @Published var locationTapCounts: [String: Int] = [:]
     @Published var totalTapsCount: Int = 0
+    @Published var totalXPGained: Int = 0
     
     // Idle collection tracking
     @Published var locationIdleCollectionCounts: [String: Int] = [:]
@@ -442,6 +443,7 @@ class GameState: ObservableObject {
     
     func addXP(_ amount: Int) {
         playerXP += amount
+        totalXPGained += amount
         
         // Check for level ups
         while canLevelUp() {
@@ -485,6 +487,49 @@ class GameState: ObservableObject {
         let required = getXPRequiredForNextLevel()
         guard required != Int.max else { return 1.0 }
         return min(Double(playerXP) / Double(required), 1.0)
+    }
+    
+    // MARK: - Currency Formatting
+    
+    func getFormattedCurrency() -> String {
+        return formatLargeNumber(currency)
+    }
+    
+    func getFormattedNumins() -> String {
+        return formatLargeNumber(totalNuminsCollected)
+    }
+    
+    private func formatLargeNumber(_ number: Int) -> String {
+        let absNumber = abs(number)
+        
+        // Up to 5 digits (99,999) - show full number
+        if absNumber < 100000 {
+            return "\(number)"
+        }
+        // Thousands (K)
+        else if absNumber < 1000000 {
+            let thousands = Double(number) / 1000.0
+            if thousands >= 100 {
+                return "\(Int(thousands.rounded(.up)))K"
+            } else {
+                return String(format: "%.1fK", thousands)
+            }
+        }
+        // Millions (M)
+        else if absNumber < 1000000000 {
+            let millions = Double(number) / 1000000.0
+            return String(format: "%.2fM", millions)
+        }
+        // Billions (B)
+        else if absNumber < 1000000000000 {
+            let billions = Double(number) / 1000000000.0
+            return String(format: "%.2fB", billions)
+        }
+        // Trillions (T)
+        else {
+            let trillions = Double(number) / 1000000000000.0
+            return String(format: "%.2fT", trillions)
+        }
     }
     
     // MARK: - Helper Functions

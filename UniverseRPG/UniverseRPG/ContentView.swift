@@ -169,51 +169,59 @@ struct TopBarView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        HStack {
-            // Left - Settings
-            Button(action: {
-                // Settings action
-            }) {
-                Image(systemName: "gearshape.fill")
-                    .foregroundColor(.white)
-            }
-            
-            Spacer()
-            
-            // Center - Player Name, Level, Objectives
-            VStack(spacing: 2) {
+        VStack(spacing: 4) {
+            // Top row - Player name, gear, and currency
+            HStack {
+                // Left - Settings (moved up) - fixed width
+                Button(action: {
+                    // Settings action
+                }) {
+                    Image(systemName: "gearshape.fill")
+                        .foregroundColor(.white)
+                }
+                .frame(width: 44) // Fixed width to prevent shifting
+                
+                Spacer()
+                
+                // Center - Player Name (bigger font) - always centered
                 Text(gameState.playerName)
-                    .font(.headline)
+                    .font(.title3)
                     .foregroundColor(.white)
                 
-                HStack(spacing: 8) {
-                    Text("Level \(gameState.playerLevel)")
-                        .font(.caption)
+                Spacer()
+                
+                // Right - Currency (moved up) - fixed width
+                HStack(spacing: 4) {
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.yellow)
+                    Text(gameState.getFormattedCurrency())
+                        .font(.headline)
                         .foregroundColor(.white)
-                    
-                    // Level progress bar
-                    ProgressView(value: gameState.getXPProgressPercentage())
-                        .frame(width: 60)
-                        .tint(.green)
-                    
-                    Button(action: {
-                        gameState.showObjectives.toggle()
-                    }) {
-                        Image(systemName: "target")
-                            .foregroundColor(.white)
-                    }
                 }
+                .frame(width: 100, alignment: .trailing) // Fixed width to prevent shifting
             }
             
-            Spacer()
-            
-            // Right - Currency
-            HStack(spacing: 4) {
-                Image(systemName: "star.fill")
-                    .foregroundColor(.yellow)
-                Text("\(gameState.currency)")
-                    .font(.headline)
+            // Bottom row - Level, progress bar, and objectives (moved down)
+            HStack(spacing: 8) {
+                Spacer()
+                
+                Text("Level \(gameState.playerLevel)")
+                    .font(.caption)
                     .foregroundColor(.white)
+                
+                // Level progress bar
+                ProgressView(value: gameState.getXPProgressPercentage())
+                    .frame(width: 140, height: 12)
+                    .tint(.green)
+                
+                Button(action: {
+                    gameState.showObjectives.toggle()
+                }) {
+                    Image(systemName: "target")
+                        .foregroundColor(.white)
+                }
+                
+                Spacer()
             }
         }
         .padding()
@@ -1132,6 +1140,28 @@ struct ObjectivesView: View {
                             .font(.title2)
                             .fontWeight(.bold)
                         
+                        // Total Experience Gained Tracker
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Total Experience Gained")
+                                    .font(.headline)
+                                Text("All XP earned from gameplay")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("\(gameState.totalXPGained)")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.purple)
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(Color.purple.opacity(0.1))
+                        .cornerRadius(8)
+                        
                         // Total Taps Tracker (collapsible)
                         VStack(alignment: .leading, spacing: 8) {
                             Button(action: {
@@ -1269,7 +1299,7 @@ struct ObjectivesView: View {
                             
                             Spacer()
                             
-                            Text("\(gameState.totalNuminsCollected)")
+                            Text(gameState.getFormattedNumins())
                                 .font(.title3)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.yellow)
