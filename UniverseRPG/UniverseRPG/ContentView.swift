@@ -38,7 +38,11 @@ struct ContentView: View {
                         case .construction:
                             ConstructionPageView(gameState: gameState)
                         case .starMap:
-                            StarMapView(gameState: gameState)
+                            if gameState.showingLocationList {
+                                StarMapView(gameState: gameState)
+                            } else {
+                                LocationView(gameState: gameState)
+                            }
                         case .resources:
                             ResourcesPageView(gameState: gameState)
                         case .cards:
@@ -1024,16 +1028,6 @@ struct BottomNavigationView: View {
             Spacer()
             
             Button(action: {
-                gameState.currentPage = .location
-            }) {
-                Image(systemName: "house.fill")
-                    .font(.title2)
-                    .foregroundColor(gameState.currentPage == .location ? .blue : .white)
-            }
-            
-            Spacer()
-            
-            Button(action: {
                 gameState.currentPage = .construction
             }) {
                 Image(systemName: "hammer.fill")
@@ -1044,7 +1038,12 @@ struct BottomNavigationView: View {
             Spacer()
             
             Button(action: {
-                gameState.currentPage = .starMap
+                if gameState.currentPage == .starMap {
+                    gameState.showingLocationList.toggle()
+                } else {
+                    gameState.currentPage = .starMap
+                    gameState.showingLocationList = true
+                }
             }) {
                 Image(systemName: "globe")
                     .font(.title2)
@@ -1495,7 +1494,7 @@ struct StarMapView: View {
                 ForEach(gameState.availableLocations, id: \.id) { location in
                     Button(action: {
                         gameState.changeLocation(to: location)
-                        gameState.currentPage = .location
+                        gameState.showingLocationList = false
                     }) {
                         HStack {
                             VStack(alignment: .leading) {

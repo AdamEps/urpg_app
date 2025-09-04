@@ -59,6 +59,7 @@ class GameState: ObservableObject {
     
     // Navigation state
     @Published var currentPage: AppPage = .location
+    @Published var showingLocationList: Bool = false
     
     // Idle collection tracking
     private var idleCollectionTimer: Double = 0.0
