@@ -550,6 +550,24 @@ struct EmptyResourceCard: View {
     }
 }
 
+// MARK: - Blank Resource Card (for uncollected resources)
+struct BlankResourceCard: View {
+    var body: some View {
+        VStack(spacing: 4) {
+            // Completely blank - no icon or text
+            Spacer()
+        }
+        .frame(height: 80)
+        .frame(maxWidth: .infinity)
+        .background(Color.black.opacity(0.3))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+        )
+        .cornerRadius(8)
+    }
+}
+
 // MARK: - Resource Badge
 struct ResourceBadge: View {
     let resource: Resource
@@ -751,9 +769,13 @@ struct ResourcesPageView: View {
                         if index < ResourceType.allCases.count {
                             // Show existing resource types
                             let resourceType = ResourceType.allCases[index]
-                            let resource = gameState.resources.first { $0.type == resourceType } ?? 
-                                         Resource(type: resourceType, amount: 0, icon: getResourceIcon(for: resourceType), color: getResourceColor(for: resourceType))
-                            ResourceCard(resource: resource)
+                            if let resource = gameState.resources.first(where: { $0.type == resourceType }), resource.amount > 0 {
+                                // Show resource card only if player has collected this resource
+                                ResourceCard(resource: resource)
+                            } else {
+                                // Show blank placeholder for uncollected resources
+                                BlankResourceCard()
+                            }
                         } else {
                             // Show empty placeholder for future resources
                             EmptyResourceCard()

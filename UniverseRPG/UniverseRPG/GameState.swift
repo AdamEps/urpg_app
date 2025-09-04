@@ -44,19 +44,8 @@ class GameState: ObservableObject {
             unlockRequirements: []
         )
         
-        // Initialize resources (items with drop tables)
-        self.resources = [
-            Resource(type: .ironOre, amount: 0, icon: "cube.fill", color: .gray),
-            Resource(type: .silicon, amount: 0, icon: "diamond.fill", color: .purple),
-            Resource(type: .water, amount: 0, icon: "drop.fill", color: .blue),
-            Resource(type: .oxygen, amount: 0, icon: "wind", color: .cyan),
-            Resource(type: .carbon, amount: 0, icon: "circle.fill", color: .black),
-            Resource(type: .nitrogen, amount: 0, icon: "n.circle.fill", color: .green),
-            Resource(type: .phosphorus, amount: 0, icon: "p.circle.fill", color: .orange),
-            Resource(type: .sulfur, amount: 0, icon: "s.circle.fill", color: .yellow),
-            Resource(type: .calcium, amount: 0, icon: "c.circle.fill", color: .white),
-            Resource(type: .magnesium, amount: 0, icon: "m.circle.fill", color: .pink)
-        ]
+        // Initialize resources as empty - resources will be added when first collected
+        self.resources = []
         
         // Initialize available locations (Taragon Gamma system)
         self.availableLocations = [
@@ -155,12 +144,20 @@ class GameState: ObservableObject {
         let selectedResource = selectResourceFromDropTable(dropTable)
         
         // Add 1 of the selected resource
-        for i in resources.indices {
-            if resources[i].type == selectedResource {
-                resources[i].amount += 1
-                print("Collected 1 \(selectedResource.rawValue) - Total: \(resources[i].amount)")
-                break
-            }
+        if let existingIndex = resources.firstIndex(where: { $0.type == selectedResource }) {
+            // Resource already exists, increment amount
+            resources[existingIndex].amount += 1
+            print("Collected 1 \(selectedResource.rawValue) - Total: \(resources[existingIndex].amount)")
+        } else {
+            // Resource doesn't exist, create new entry
+            let newResource = Resource(
+                type: selectedResource,
+                amount: 1,
+                icon: getResourceIcon(for: selectedResource),
+                color: getResourceColor(for: selectedResource)
+            )
+            resources.append(newResource)
+            print("Collected 1 \(selectedResource.rawValue) - First collection!")
         }
         
         // Update tap counters
@@ -356,6 +353,74 @@ class GameState: ObservableObject {
     
     deinit {
         gameTimer?.invalidate()
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func getResourceIcon(for type: ResourceType) -> String {
+        switch type {
+        case .ironOre: return "cube.fill"
+        case .silicon: return "diamond.fill"
+        case .water: return "drop.fill"
+        case .oxygen: return "wind"
+        case .carbon: return "circle.fill"
+        case .nitrogen: return "n.circle.fill"
+        case .phosphorus: return "p.circle.fill"
+        case .sulfur: return "s.circle.fill"
+        case .calcium: return "c.circle.fill"
+        case .magnesium: return "m.circle.fill"
+        case .helium3: return "h.circle.fill"
+        case .titanium: return "t.circle.fill"
+        case .aluminum: return "a.circle.fill"
+        case .nickel: return "n.circle.fill"
+        case .cobalt: return "c.circle.fill"
+        case .chromium: return "c.circle.fill"
+        case .vanadium: return "v.circle.fill"
+        case .manganese: return "m.circle.fill"
+        case .plasma: return "bolt.fill"
+        case .element: return "atom"
+        case .isotope: return "circle.dotted"
+        case .energy: return "bolt.circle.fill"
+        case .radiation: return "waveform"
+        case .heat: return "flame.fill"
+        case .light: return "sun.max.fill"
+        case .gravity: return "arrow.down.circle.fill"
+        case .magnetic: return "magnet"
+        case .solar: return "sun.max.circle.fill"
+        }
+    }
+    
+    private func getResourceColor(for type: ResourceType) -> Color {
+        switch type {
+        case .ironOre: return .gray
+        case .silicon: return .purple
+        case .water: return .blue
+        case .oxygen: return .cyan
+        case .carbon: return .black
+        case .nitrogen: return .green
+        case .phosphorus: return .orange
+        case .sulfur: return .yellow
+        case .calcium: return .white
+        case .magnesium: return .pink
+        case .helium3: return .blue
+        case .titanium: return .gray
+        case .aluminum: return .gray
+        case .nickel: return .gray
+        case .cobalt: return .blue
+        case .chromium: return .gray
+        case .vanadium: return .green
+        case .manganese: return .purple
+        case .plasma: return .red
+        case .element: return .purple
+        case .isotope: return .blue
+        case .energy: return .yellow
+        case .radiation: return .green
+        case .heat: return .red
+        case .light: return .yellow
+        case .gravity: return .gray
+        case .magnetic: return .blue
+        case .solar: return .orange
+        }
     }
 }
 
