@@ -15,7 +15,7 @@ class GameState: ObservableObject {
     @Published var showCards = false
     @Published var showLocationResources = false
     @Published var showObjectives = false
-    @Published var showTapCounter = true
+    @Published var showTapCounter = false
     
     // Player data
     @Published var playerName: String = "Commander"

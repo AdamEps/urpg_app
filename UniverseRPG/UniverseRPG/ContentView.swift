@@ -97,8 +97,13 @@ struct ContentView: View {
                     }
                 }
                 
-                // Tap counter pop out positioned on right side under location name
+                // Tap counter pop out positioned below location name
                 VStack {
+                    // Push down to position below location name header
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(height: 150) // Height to clear top bar + location name + more space
+                    
                     if gameState.showTapCounter {
                         HStack(alignment: .top, spacing: 0) {
                             Spacer()
@@ -121,10 +126,9 @@ struct ContentView: View {
                             
                             // Tap counter box
                             TapCounterView(gameState: gameState)
-                                .frame(width: UIScreen.main.bounds.width * 0.4)
+                                .frame(width: UIScreen.main.bounds.width * 0.3)
                         }
                         .padding(.trailing, 0)
-                        .padding(.top, 60) // Position under location name
                     } else {
                         HStack {
                             Spacer()
@@ -146,9 +150,11 @@ struct ContentView: View {
                             }
                         }
                         .padding(.trailing, 0)
-                        .padding(.top, 60) // Position under location name
                     }
+                    
+                    Spacer()
                 }
+                
             }
             .navigationBarHidden(true)
         }
@@ -474,26 +480,16 @@ struct TapCounterView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("Tap Counter")
+        HStack(spacing: 4) {
+            Text("Tap Count:")
                 .font(.caption)
                 .fontWeight(.medium)
                 .foregroundColor(.white)
-                .padding(.bottom, 2)
             
-            HStack(spacing: 2) {
-                Text("Taps:")
-                    .font(.caption2)
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                Text("\(gameState.currentLocationTapCount)")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-            }
-            .padding(.vertical, 1)
+            Text("\(gameState.currentLocationTapCount)")
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
         }
         .padding(8)
         .background(Color.black)
