@@ -105,7 +105,7 @@ struct ContentView: View {
                         .frame(height: 150) // Height to clear top bar + location name + more space
                     
                     if gameState.showTapCounter {
-                        HStack(alignment: .top, spacing: 0) {
+                        HStack(alignment: .bottom, spacing: 0) {
                             Spacer()
                             
                             // Toggle button on left side of tap counter box when open
@@ -490,6 +490,8 @@ struct TapCounterView: View {
                 .font(.caption)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
+            
+            Spacer()
         }
         .padding(8)
         .background(Color.black)
