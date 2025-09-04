@@ -179,11 +179,11 @@ struct TopBarView: View {
                     Image(systemName: "gearshape.fill")
                         .foregroundColor(.white)
                 }
-                .frame(width: 44) // Fixed width to prevent shifting
+                .frame(width: 100, alignment: .leading) // Match right side width for perfect centering
                 
                 Spacer()
                 
-                // Center - Player Name (bigger font) - always centered
+                // Center - Player Name (bigger font) - perfectly centered
                 Text(gameState.playerName)
                     .font(.title3)
                     .foregroundColor(.white)
