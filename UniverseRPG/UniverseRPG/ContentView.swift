@@ -147,19 +147,20 @@ struct LocationView: View {
             .buttonStyle(PlainButtonStyle())
             
             Spacer()
-            Spacer()
-            Spacer()
             
             // Collapsible resource list at bottom
-            VStack {
-                // Resource list (shown when expanded)
+            VStack(spacing: 0) {
+                // Resource list (shown when expanded) - positioned above button
                 if gameState.showLocationResources {
-                    LocationResourceListView(gameState: gameState)
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 50)
+                    HStack {
+                        Spacer()
+                        LocationResourceListView(gameState: gameState)
+                            .frame(width: UIScreen.main.bounds.width * 0.5)
+                    }
+                    .padding(.trailing, 0)
                 }
                 
-                // Toggle arrow button
+                // Toggle arrow button - always at bottom
                 HStack {
                     Spacer()
                     Button(action: {
