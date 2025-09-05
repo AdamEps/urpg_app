@@ -27,6 +27,8 @@ class GameState: ObservableObject {
     @Published var showTapCounter = false
     @Published var showIdleCollectionDetails = false
     @Published var showTapDetails = false
+    @Published var showConstructionDetails = false
+    @Published var showCardsDetails = false
     @Published var resourceSortOption: ResourceSortOption = .alphabetical
     @Published var selectedResourceForDetail: ResourceType?
     
@@ -54,6 +56,12 @@ class GameState: ObservableObject {
     @Published var locationIdleCollectionCounts: [String: Int] = [:]
     @Published var totalIdleCollectionCount: Int = 0
     @Published var totalNuminsCollected: Int = 0
+    
+    // Construction tracking
+    @Published var totalConstructionsCompleted: Int = 0
+    @Published var smallConstructionsCompleted: Int = 0
+    @Published var mediumConstructionsCompleted: Int = 0
+    @Published var largeConstructionsCompleted: Int = 0
     
     // Visual feedback
     @Published var lastCollectedResource: ResourceType?
@@ -457,6 +465,17 @@ class GameState: ObservableObject {
             if let reward = construction.recipe.reward[resources[i].type] {
                 resources[i].amount += reward
             }
+        }
+        
+        // Track construction statistics
+        totalConstructionsCompleted += 1
+        switch construction.recipe.requiredBaySize {
+        case .small:
+            smallConstructionsCompleted += 1
+        case .medium:
+            mediumConstructionsCompleted += 1
+        case .large:
+            largeConstructionsCompleted += 1
         }
         
         // Clear the bay
@@ -1161,6 +1180,20 @@ class GameState: ObservableObject {
                 print("Card \(cardDef.name) upgraded to tier \(ownedCards[index].tier)!")
             }
         }
+    }
+    
+    // MARK: - Card Statistics Functions
+    
+    func getTotalCardsCollected() -> Int {
+        return ownedCards.reduce(0) { $0 + $1.copies }
+    }
+    
+    func getCardsCollectedForClass(_ cardClass: CardClass) -> Int {
+        return ownedCards
+            .filter { userCard in
+                getAllCardDefinitions().first { $0.id == userCard.cardId }?.cardClass == cardClass
+            }
+            .reduce(0) { $0 + $1.copies }
     }
 }
 

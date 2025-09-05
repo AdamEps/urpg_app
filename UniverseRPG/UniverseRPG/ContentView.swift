@@ -219,13 +219,11 @@ struct TopBarView: View {
                     
                     // Tap area for gesture - made slightly larger for easier tapping
                     Rectangle()
-                        .fill(Color.blue.opacity(0.1)) // Temporary visual feedback for testing
+                        .fill(Color.clear)
                         .frame(width: 150, height: 20) // Slightly larger tap area
                         .contentShape(Rectangle()) // Ensure the entire area is tappable
                         .onTapGesture {
-                            print("Level bar tapped! showXPInfo was: \(showXPInfo)")
                             showXPInfo.toggle()
-                            print("showXPInfo is now: \(showXPInfo)")
                         }
                 }
                 .overlay(
@@ -2559,6 +2557,154 @@ struct ObjectivesView: View {
                         .padding(.horizontal, 12)
                         .background(Color.yellow.opacity(0.1))
                         .cornerRadius(8)
+                    }
+                    
+                    // Construction Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Construction")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        // Total Constructions Tracker (collapsible)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                gameState.showConstructionDetails.toggle()
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Total Constructions")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("All constructions completed")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(gameState.totalConstructionsCompleted)")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.orange)
+                                    
+                                    Image(systemName: gameState.showConstructionDetails ? "chevron.up" : "chevron.down")
+                                        .foregroundColor(.orange)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(8)
+                            
+                            // Expanded details
+                            if gameState.showConstructionDetails {
+                                VStack(spacing: 8) {
+                                    HStack {
+                                        Text("Small Constructions")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text("\(gameState.smallConstructionsCompleted)")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.orange)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.orange.opacity(0.05))
+                                    .cornerRadius(6)
+                                    
+                                    HStack {
+                                        Text("Medium Constructions")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text("\(gameState.mediumConstructionsCompleted)")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.orange)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.orange.opacity(0.05))
+                                    .cornerRadius(6)
+                                    
+                                    HStack {
+                                        Text("Large Constructions")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text("\(gameState.largeConstructionsCompleted)")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.orange)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.orange.opacity(0.05))
+                                    .cornerRadius(6)
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Cards Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Cards")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        // Total Cards Tracker (collapsible)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                gameState.showCardsDetails.toggle()
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Total Cards Collected")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("All card copies collected")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(gameState.getTotalCardsCollected())")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.purple)
+                                    
+                                    Image(systemName: gameState.showCardsDetails ? "chevron.up" : "chevron.down")
+                                        .foregroundColor(.purple)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.purple.opacity(0.1))
+                            .cornerRadius(8)
+                            
+                            // Expanded details
+                            if gameState.showCardsDetails {
+                                VStack(spacing: 8) {
+                                    ForEach(CardClass.allCases, id: \.self) { cardClass in
+                                        HStack {
+                                            Text("\(cardClass.rawValue) Cards")
+                                                .font(.subheadline)
+                                            Spacer()
+                                            Text("\(gameState.getCardsCollectedForClass(cardClass))")
+                                                .font(.callout)
+                                                .fontWeight(.medium)
+                                                .foregroundColor(.purple)
+                                        }
+                                        .padding(.vertical, 6)
+                                        .padding(.horizontal, 16)
+                                        .background(Color.purple.opacity(0.05))
+                                        .cornerRadius(6)
+                                    }
+                                }
+                            }
+                        }
                     }
                     
                     // Coming Soon Section
