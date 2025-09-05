@@ -9,13 +9,14 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var gameState = GameState()
+    @State private var showXPInfo = false
     
     var body: some View {
         NavigationView {
             ZStack {
                 VStack(spacing: 0) {
                     // Top Bar (always visible)
-                    TopBarView(gameState: gameState)
+                    TopBarView(gameState: gameState, showXPInfo: $showXPInfo)
                     
                     // Main game area - conditional based on current page
                     Group {
@@ -160,12 +161,18 @@ struct ContentView: View {
         .onAppear {
             gameState.startGame()
         }
+        .alert("XP Information", isPresented: $showXPInfo) {
+            Button("OK") { }
+        } message: {
+            Text("Current XP: \(gameState.playerXP)\nXP needed for next level: \(gameState.getXPRequiredForNextLevel())")
+        }
     }
 }
 
 // MARK: - Top Bar View
 struct TopBarView: View {
     @ObservedObject var gameState: GameState
+    @Binding var showXPInfo: Bool
     
     var body: some View {
         VStack(spacing: 4) {
@@ -208,11 +215,21 @@ struct TopBarView: View {
                     .font(.caption)
                     .foregroundColor(.white)
                 
-                // Level progress bar
-                ProgressView(value: gameState.getXPProgressPercentage())
-                    .frame(width: 140, height: 12)
-                    .tint(.green)
-                    .help("\(gameState.playerXP)/\(gameState.getXPRequiredForNextLevel())")
+                // Level progress bar with tooltip
+                ZStack {
+                    ProgressView(value: gameState.getXPProgressPercentage())
+                        .frame(width: 140, height: 12)
+                        .tint(.green)
+                    
+                    // Invisible overlay for tap gesture
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(width: 140, height: 12)
+                        .onTapGesture {
+                            // Show XP info in a simple alert or overlay
+                            showXPInfo = true
+                        }
+                }
                 
                 Button(action: {
                     gameState.showObjectives.toggle()
