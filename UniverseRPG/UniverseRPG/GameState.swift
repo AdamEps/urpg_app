@@ -86,7 +86,7 @@ class GameState: ObservableObject {
             description: "Habitable planet in Taragon Gamma system",
             system: "Taragon Gamma",
             kind: .planet,
-            availableResources: ["Iron Ore", "Silicon", "Water", "Oxygen", "Carbon", "Nitrogen", "Phosphorus", "Sulfur", "Calcium", "Magnesium"],
+            availableResources: ["Iron Ore", "Silicon", "Water", "Oxygen", "Graphite", "Nitrogen", "Phosphorus", "Sulfur", "Calcium", "Magnesium"],
             unlockRequirements: []
         )
         
@@ -392,12 +392,15 @@ class GameState: ObservableObject {
             $0.size == recipe.requiredBaySize 
         }) else { return }
         
-        // Deduct cost
+        // Deduct resource cost
         for i in resources.indices {
             if let cost = recipe.cost[resources[i].type] {
                 resources[i].amount -= cost
             }
         }
+        
+        // Deduct currency cost
+        currency -= recipe.currencyCost
         
         // Create construction
         let construction = Construction(
@@ -411,6 +414,7 @@ class GameState: ObservableObject {
     }
     
     func canAffordConstruction(recipe: ConstructionRecipe) -> Bool {
+        // Check resource costs
         for resource in resources {
             if let cost = recipe.cost[resource.type] {
                 if resource.amount < cost {
@@ -418,6 +422,12 @@ class GameState: ObservableObject {
                 }
             }
         }
+        
+        // Check currency cost
+        if currency < recipe.currencyCost {
+            return false
+        }
+        
         return true
     }
     
@@ -492,13 +502,13 @@ class GameState: ObservableObject {
         switch currentLocation.id {
         // Taragon Gamma System
         case "taragam-7":
-            let resources: [ResourceType] = [.ironOre, .silicon, .water, .oxygen, .carbon, .nitrogen, .phosphorus, .sulfur, .calcium, .magnesium]
+            let resources: [ResourceType] = [.ironOre, .silicon, .water, .oxygen, .graphite, .nitrogen, .phosphorus, .sulfur, .calcium, .magnesium]
             return Array(zip(resources, percentages))
         case "elcinto":
             let resources: [ResourceType] = [.ironOre, .silicon, .helium3, .titanium, .aluminum, .nickel, .cobalt, .chromium, .vanadium, .manganese]
             return Array(zip(resources, percentages))
         case "taragam-3":
-            let resources: [ResourceType] = [.water, .oxygen, .nitrogen, .carbon, .hydrogen, .methane, .ammonia, .ice, .crystals, .minerals]
+            let resources: [ResourceType] = [.water, .oxygen, .nitrogen, .graphite, .hydrogen, .methane, .ammonia, .ice, .crystals, .minerals]
             return Array(zip(resources, percentages))
         case "abandoned-star-ship":
             let resources: [ResourceType] = [.scrapMetal, .electronics, .fuelCells, .dataCores, .circuits, .alloys, .components, .techParts, .batteries, .wiring]
@@ -634,8 +644,8 @@ class GameState: ObservableObject {
             return "Life's most precious resource. In the vast emptiness of space, water becomes more valuable than gold. Essential for survival and advanced chemical processes."
         case .oxygen:
             return "The breath of life itself. Without oxygen, even the hardiest explorers would perish. Critical for life support systems and combustion processes."
-        case .carbon:
-            return "The building block of organic life. This versatile element forms the foundation of all living things and many advanced materials."
+        case .graphite:
+            return "The crystalline form of carbon! This versatile material conducts electricity and is essential for advanced construction and energy systems."
         case .nitrogen:
             return "The silent supporter of life. While oxygen gets all the glory, nitrogen makes up most of our atmosphere and is crucial for plant growth."
         case .phosphorus:
@@ -684,6 +694,8 @@ class GameState: ObservableObject {
             return "The power of the stars! Energy harvested directly from stellar fusion, clean and abundant throughout the galaxy."
         case .numins:
             return "The currency of the cosmos! These mysterious particles are the universal medium of exchange, accepted by traders across the galaxy."
+        case .steelPylons:
+            return "Essential construction components! These sturdy steel pylons form the backbone of any serious building project, providing structural support and stability for advanced constructions."
         default:
             return "A mysterious resource with unknown properties. Further study may reveal its true potential and value."
         }
@@ -758,7 +770,7 @@ class GameState: ObservableObject {
         case .silicon: return "diamond.fill"
         case .water: return "drop.fill"
         case .oxygen: return "wind"
-        case .carbon: return "circle.fill"
+        case .graphite: return "diamond.fill"
         case .nitrogen: return "n.circle.fill"
         case .phosphorus: return "p.circle.fill"
         case .sulfur: return "s.circle.fill"
@@ -874,6 +886,9 @@ class GameState: ObservableObject {
         case .rareElements: return "r.circle"
         case .crystallineStructures: return "diamond.circle"
         case .geologicalSamples: return "mountain.2"
+        
+        // Constructable items
+        case .steelPylons: return "building.2"
         }
     }
     
@@ -883,7 +898,7 @@ class GameState: ObservableObject {
         case .silicon: return .purple
         case .water: return .blue
         case .oxygen: return .cyan
-        case .carbon: return .black
+        case .graphite: return .gray
         case .nitrogen: return .green
         case .phosphorus: return .orange
         case .sulfur: return .yellow
@@ -999,6 +1014,9 @@ class GameState: ObservableObject {
         case .rareElements: return .purple
         case .crystallineStructures: return .purple
         case .geologicalSamples: return .brown
+        
+        // Constructable items
+        case .steelPylons: return .orange
         }
     }
     
@@ -1203,7 +1221,7 @@ enum ResourceType: String, CaseIterable {
     case silicon = "Silicon"
     case water = "Water"
     case oxygen = "Oxygen"
-    case carbon = "Carbon"
+    case graphite = "Graphite"
     case nitrogen = "Nitrogen"
     case phosphorus = "Phosphorus"
     case sulfur = "Sulfur"
@@ -1319,6 +1337,9 @@ enum ResourceType: String, CaseIterable {
     case rareElements = "Rare Elements"
     case crystallineStructures = "Crystalline Structures"
     case geologicalSamples = "Geological Samples"
+    
+    // Constructable items
+    case steelPylons = "Steel Pylons"
 }
 
 struct ConstructionBay: Identifiable {
@@ -1347,56 +1368,25 @@ struct ConstructionRecipe: Identifiable {
     let description: String
     let duration: Double
     let cost: [ResourceType: Double]
+    let currencyCost: Int
     let reward: [ResourceType: Double]
     let requiredBaySize: BaySize
 }
 
 // Sample recipes for MVP
 extension ConstructionRecipe {
-    static let basicOreProcessor = ConstructionRecipe(
-        id: "basic-ore-processor",
-        name: "Basic Ore Processor",
-        description: "Processes raw ore into refined materials",
-        duration: 60.0,
-        cost: [.ironOre: 10, .silicon: 5],
-        reward: [.ironOre: 15, .silicon: 8],
+    static let steelPylons = ConstructionRecipe(
+        id: "steel-pylons",
+        name: "Steel Pylons",
+        description: "Essential for building almost anything!",
+        duration: 30.0,
+        cost: [.ironOre: 50, .graphite: 1],
+        currencyCost: 25,
+        reward: [.steelPylons: 1], // Give 1 Steel Pylons when complete
         requiredBaySize: .small
-    )
-    
-    static let waterExtractor = ConstructionRecipe(
-        id: "water-extractor",
-        name: "Water Extractor",
-        description: "Extracts water from planetary sources",
-        duration: 45.0,
-        cost: [.ironOre: 8, .silicon: 3],
-        reward: [.water: 20],
-        requiredBaySize: .small
-    )
-    
-    static let oxygenGenerator = ConstructionRecipe(
-        id: "oxygen-generator",
-        name: "Oxygen Generator",
-        description: "Generates breathable oxygen",
-        duration: 90.0,
-        cost: [.water: 15, .silicon: 10, .ironOre: 5],
-        reward: [.oxygen: 25],
-        requiredBaySize: .medium
-    )
-    
-    static let plasmaReactor = ConstructionRecipe(
-        id: "plasma-reactor",
-        name: "Plasma Reactor",
-        description: "Advanced energy generation system",
-        duration: 180.0,
-        cost: [.silicon: 20, .ironOre: 15, .helium3: 5],
-        reward: [.plasma: 30, .energy: 50],
-        requiredBaySize: .large
     )
     
     static let allRecipes: [ConstructionRecipe] = [
-        .basicOreProcessor,
-        .waterExtractor,
-        .oxygenGenerator,
-        .plasmaReactor
+        .steelPylons
     ]
 }

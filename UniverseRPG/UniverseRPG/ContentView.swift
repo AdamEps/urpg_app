@@ -544,7 +544,7 @@ struct LocationResourceListView: View {
         case .silicon: return "diamond.fill"
         case .water: return "drop.fill"
         case .oxygen: return "wind"
-        case .carbon: return "circle.fill"
+        case .graphite: return "diamond.fill"
         case .nitrogen: return "n.circle.fill"
         case .phosphorus: return "p.circle.fill"
         case .sulfur: return "s.circle.fill"
@@ -660,6 +660,9 @@ struct LocationResourceListView: View {
         case .rareElements: return "r.circle"
         case .crystallineStructures: return "diamond.circle"
         case .geologicalSamples: return "mountain.2"
+        
+        // Constructable items
+        case .steelPylons: return "building.2"
         }
     }
     
@@ -669,7 +672,7 @@ struct LocationResourceListView: View {
         case .silicon: return .purple
         case .water: return .blue
         case .oxygen: return .cyan
-        case .carbon: return .black
+        case .graphite: return .gray
         case .nitrogen: return .green
         case .phosphorus: return .orange
         case .sulfur: return .yellow
@@ -785,6 +788,9 @@ struct LocationResourceListView: View {
         case .rareElements: return .purple
         case .crystallineStructures: return .purple
         case .geologicalSamples: return .brown
+        
+        // Constructable items
+        case .steelPylons: return .orange
         }
     }
 }
@@ -1094,25 +1100,58 @@ struct ConstructionMenuView: View {
                         gameState.startConstruction(recipe: recipe)
                         dismiss()
                     }) {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(recipe.name)
-                                    .fontWeight(.medium)
-                                Text(recipe.description)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text("Required: \(recipe.requiredBaySize.rawValue) Bay")
-                                    .font(.caption2)
-                                    .foregroundColor(.blue)
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(recipe.name)
+                                        .fontWeight(.medium)
+                                    Text(recipe.description)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("Required: \(recipe.requiredBaySize.rawValue) Bay")
+                                        .font(.caption2)
+                                        .foregroundColor(.blue)
+                                }
+                                Spacer()
+                                VStack(alignment: .trailing) {
+                                    Text("\(Int(recipe.duration))s")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
                             }
-                            Spacer()
-                            VStack(alignment: .trailing) {
-                                Text("\(Int(recipe.duration))s")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text("Cost: \(recipe.cost.count) items")
-                                    .font(.caption2)
-                                    .foregroundColor(.orange)
+                            
+                            // Resource requirements with color coding
+                            VStack(alignment: .leading, spacing: 4) {
+                                ForEach(Array(recipe.cost.keys.sorted(by: { $0.rawValue < $1.rawValue })), id: \.self) { resourceType in
+                                    if let requiredAmount = recipe.cost[resourceType] {
+                                        HStack {
+                                            Image(systemName: getResourceIcon(for: resourceType))
+                                                .foregroundColor(getResourceColor(for: resourceType))
+                                                .frame(width: 16)
+                                            Text(resourceType.rawValue)
+                                                .font(.caption)
+                                            Spacer()
+                                            Text("(\(Int(getPlayerResourceAmount(resourceType)))/\(Int(requiredAmount)))")
+                                                .font(.caption)
+                                                .fontWeight(.medium)
+                                                .foregroundColor(hasEnoughResource(resourceType, requiredAmount) ? .green : .red)
+                                        }
+                                    }
+                                }
+                                
+                                // Currency requirement with color coding
+                                HStack {
+                                    Image(systemName: "star.fill")
+                                        .foregroundColor(.yellow)
+                                        .frame(width: 16)
+                                    Text("Numins")
+                                        .font(.caption)
+                                    Spacer()
+                                    Text("(\(recipe.currencyCost))")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(gameState.currency >= recipe.currencyCost ? .green : .red)
+                                }
                             }
                         }
                     }
@@ -1128,6 +1167,90 @@ struct ConstructionMenuView: View {
                     }
                 }
             }
+        }
+    }
+    
+    private func hasEnoughResource(_ resourceType: ResourceType, _ requiredAmount: Double) -> Bool {
+        if let resource = gameState.resources.first(where: { $0.type == resourceType }) {
+            return resource.amount >= requiredAmount
+        }
+        return false
+    }
+    
+    private func getPlayerResourceAmount(_ resourceType: ResourceType) -> Double {
+        if let resource = gameState.resources.first(where: { $0.type == resourceType }) {
+            return resource.amount
+        }
+        return 0
+    }
+    
+    private func getResourceIcon(for type: ResourceType) -> String {
+        switch type {
+        case .ironOre: return "cube.fill"
+        case .silicon: return "diamond.fill"
+        case .water: return "drop.fill"
+        case .oxygen: return "wind"
+        case .graphite: return "diamond.fill"
+        case .nitrogen: return "n.circle.fill"
+        case .phosphorus: return "p.circle.fill"
+        case .sulfur: return "s.circle.fill"
+        case .calcium: return "c.circle.fill"
+        case .magnesium: return "m.circle.fill"
+        case .helium3: return "h.circle.fill"
+        case .titanium: return "t.circle.fill"
+        case .aluminum: return "a.circle.fill"
+        case .nickel: return "n.circle.fill"
+        case .cobalt: return "c.circle.fill"
+        case .chromium: return "c.circle.fill"
+        case .vanadium: return "v.circle.fill"
+        case .manganese: return "m.circle.fill"
+        case .plasma: return "bolt.fill"
+        case .element: return "atom"
+        case .isotope: return "circle.dotted"
+        case .energy: return "bolt.circle.fill"
+        case .radiation: return "waveform"
+        case .heat: return "flame.fill"
+        case .light: return "sun.max.fill"
+        case .gravity: return "arrow.down.circle.fill"
+        case .magnetic: return "magnet"
+        case .solar: return "sun.max.circle.fill"
+        case .numins: return "star.fill"
+        default: return "questionmark.circle"
+        }
+    }
+    
+    private func getResourceColor(for type: ResourceType) -> Color {
+        switch type {
+        case .ironOre: return .gray
+        case .silicon: return .purple
+        case .water: return .blue
+        case .oxygen: return .cyan
+        case .graphite: return .gray
+        case .nitrogen: return .green
+        case .phosphorus: return .orange
+        case .sulfur: return .yellow
+        case .calcium: return .white
+        case .magnesium: return .pink
+        case .helium3: return .blue
+        case .titanium: return .gray
+        case .aluminum: return .gray
+        case .nickel: return .gray
+        case .cobalt: return .blue
+        case .chromium: return .gray
+        case .vanadium: return .green
+        case .manganese: return .purple
+        case .plasma: return .red
+        case .element: return .purple
+        case .isotope: return .blue
+        case .energy: return .yellow
+        case .radiation: return .green
+        case .heat: return .red
+        case .light: return .yellow
+        case .gravity: return .gray
+        case .magnetic: return .blue
+        case .solar: return .orange
+        case .numins: return .yellow
+        default: return .gray
         }
     }
 }
@@ -1222,20 +1345,123 @@ struct SmallBaySlotView: View {
     let slotIndex: Int
     @ObservedObject var gameState: GameState
     
+    private var bay: ConstructionBay? {
+        gameState.constructionBays.first { $0.size == .small }
+    }
+    
+    private var isUnderConstruction: Bool {
+        bay?.currentConstruction != nil
+    }
+    
+    private var isCompleted: Bool {
+        guard let construction = bay?.currentConstruction else { return false }
+        return construction.timeRemaining <= 0
+    }
+    
     var body: some View {
         Button(action: {
-            gameState.showConstructionMenu = true
+            if slotIndex == 0 {
+                if isCompleted {
+                    // Collect completed item
+                    collectCompletedItem()
+                } else if !isUnderConstruction {
+                    // Start construction
+                    gameState.showConstructionMenu = true
+                }
+            }
         }) {
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .stroke(isCompleted ? Color.yellow : Color.gray.opacity(0.5), lineWidth: 2)
                 .frame(width: (UIScreen.main.bounds.width - 60) / 4, height: (UIScreen.main.bounds.width - 60) / 4)
+                .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
                 .overlay(
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.gray.opacity(0.6))
+                    Group {
+                        if isUnderConstruction {
+                            VStack(spacing: 4) {
+                                // Construction name
+                                Text(bay?.currentConstruction?.recipe.name ?? "")
+                                    .font(.caption2)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                                
+                                // Construction icon
+                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                    .font(.caption)
+                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                
+                                // Progress bar
+                                ProgressView(value: bay?.currentConstruction?.progress ?? 0)
+                                    .frame(width: 40, height: 4)
+                                    .tint(.blue)
+                                
+                                // Countdown timer
+                                Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
+                                    .font(.caption2)
+                                    .foregroundColor(.white)
+                            }
+                        } else if slotIndex == 0 {
+                            Image(systemName: "plus")
+                                .font(.title2)
+                                .foregroundColor(.gray.opacity(0.6))
+                        } else {
+                            Image(systemName: "star.fill")
+                                .font(.title2)
+                                .foregroundColor(.yellow)
+                        }
+                    }
                 )
         }
         .buttonStyle(PlainButtonStyle())
+        .disabled(slotIndex != 0 && !isCompleted)
+    }
+    
+    private func collectCompletedItem() {
+        guard let bay = bay, let construction = bay.currentConstruction else { return }
+        
+        // Add rewards to player resources
+        for (resourceType, amount) in construction.recipe.reward {
+            if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
+                gameState.resources[existingIndex].amount += amount
+            } else {
+                let newResource = Resource(
+                    type: resourceType,
+                    amount: amount,
+                    icon: getResourceIcon(for: resourceType),
+                    color: getResourceColor(for: resourceType)
+                )
+                gameState.resources.append(newResource)
+            }
+        }
+        
+        // Clear the construction
+        if let bayIndex = gameState.constructionBays.firstIndex(where: { $0.id == bay.id }) {
+            gameState.constructionBays[bayIndex].currentConstruction = nil
+        }
+    }
+    
+    private func getResourceIcon(for type: ResourceType) -> String {
+        switch type {
+        case .ironOre: return "cube.fill"
+        case .silicon: return "diamond.fill"
+        case .water: return "drop.fill"
+        case .oxygen: return "wind"
+        case .graphite: return "diamond.fill"
+        case .steelPylons: return "building.2"
+        default: return "questionmark.circle"
+        }
+    }
+    
+    private func getResourceColor(for type: ResourceType) -> Color {
+        switch type {
+        case .ironOre: return .gray
+        case .silicon: return .purple
+        case .water: return .blue
+        case .oxygen: return .cyan
+        case .graphite: return .gray
+        case .steelPylons: return .orange
+        default: return .gray
+        }
     }
 }
 
@@ -1245,18 +1471,19 @@ struct MediumBaySlotView: View {
     
     var body: some View {
         Button(action: {
-            gameState.showConstructionMenu = true
+            // No action - bays are not active
         }) {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.gray.opacity(0.5), lineWidth: 2)
                 .frame(width: (UIScreen.main.bounds.width - 48) / 3, height: (UIScreen.main.bounds.width - 48) / 3)
                 .overlay(
-                    Image(systemName: "plus")
+                    Image(systemName: "star.fill")
                         .font(.title2)
-                        .foregroundColor(.gray.opacity(0.6))
+                        .foregroundColor(.yellow)
                 )
         }
         .buttonStyle(PlainButtonStyle())
+        .disabled(true)
     }
 }
 
@@ -1266,18 +1493,19 @@ struct LargeBaySlotView: View {
     
     var body: some View {
         Button(action: {
-            gameState.showConstructionMenu = true
+            // No action - bays are not active
         }) {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.gray.opacity(0.5), lineWidth: 2)
                 .frame(width: (UIScreen.main.bounds.width - 36) / 2, height: (UIScreen.main.bounds.width - 36) / 2)
                 .overlay(
-                    Image(systemName: "plus")
+                    Image(systemName: "star.fill")
                         .font(.title2)
-                        .foregroundColor(.gray.opacity(0.6))
+                        .foregroundColor(.yellow)
                 )
         }
         .buttonStyle(PlainButtonStyle())
+        .disabled(true)
     }
 }
 
@@ -1395,7 +1623,7 @@ struct ResourcesPageView: View {
         case .silicon: return "diamond.fill"
         case .water: return "drop.fill"
         case .oxygen: return "wind"
-        case .carbon: return "circle.fill"
+        case .graphite: return "diamond.fill"
         case .nitrogen: return "n.circle.fill"
         case .phosphorus: return "p.circle.fill"
         case .sulfur: return "s.circle.fill"
@@ -1511,6 +1739,9 @@ struct ResourcesPageView: View {
         case .rareElements: return "r.circle"
         case .crystallineStructures: return "diamond.circle"
         case .geologicalSamples: return "mountain.2"
+        
+        // Constructable items
+        case .steelPylons: return "building.2"
         }
     }
     
@@ -1520,7 +1751,7 @@ struct ResourcesPageView: View {
         case .silicon: return .purple
         case .water: return .blue
         case .oxygen: return .cyan
-        case .carbon: return .black
+        case .graphite: return .gray
         case .nitrogen: return .green
         case .phosphorus: return .orange
         case .sulfur: return .yellow
@@ -1636,6 +1867,9 @@ struct ResourcesPageView: View {
         case .rareElements: return .purple
         case .crystallineStructures: return .purple
         case .geologicalSamples: return .brown
+        
+        // Constructable items
+        case .steelPylons: return .orange
         }
     }
 }
@@ -1761,7 +1995,7 @@ struct ResourceDetailView: View {
         switch resourceType {
         case .ironOre, .titanium, .aluminum, .nickel, .cobalt, .chromium, .vanadium, .manganese:
             return "Metals"
-        case .silicon, .carbon, .nitrogen, .phosphorus, .sulfur, .calcium, .magnesium, .helium3:
+        case .silicon, .graphite, .nitrogen, .phosphorus, .sulfur, .calcium, .magnesium, .helium3:
             return "Elements"
         case .water, .oxygen:
             return "Life Support"
@@ -1785,6 +2019,8 @@ struct ResourceDetailView: View {
             return "Research"
         case .frozenGases, .iceCrystals, .preservedMatter, .ancientArtifacts, .relics, .fossils, .rareElements, .crystallineStructures, .geologicalSamples:
             return "Ancient"
+        case .steelPylons:
+            return "Constructed"
         }
     }
 }
