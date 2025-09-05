@@ -1389,6 +1389,7 @@ struct ConstructionRecipe: Identifiable {
     let currencyCost: Int
     let reward: [ResourceType: Double]
     let requiredBaySize: BaySize
+    let xpReward: Int
 }
 
 // Sample recipes for MVP
@@ -1401,7 +1402,8 @@ extension ConstructionRecipe {
         cost: [.ironOre: 50, .graphite: 1],
         currencyCost: 25,
         reward: [.steelPylons: 1], // Give 1 Steel Pylons when complete
-        requiredBaySize: .small
+        requiredBaySize: .small,
+        xpReward: 2
     )
     
     static let allRecipes: [ConstructionRecipe] = [

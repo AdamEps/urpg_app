@@ -212,6 +212,7 @@ struct TopBarView: View {
                 ProgressView(value: gameState.getXPProgressPercentage())
                     .frame(width: 140, height: 12)
                     .tint(.green)
+                    .help("\(gameState.playerXP)/\(gameState.getXPRequiredForNextLevel())")
                 
                 Button(action: {
                     gameState.showObjectives.toggle()
@@ -1143,22 +1144,23 @@ struct ConstructionMenuView: View {
                     }) {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                VStack(alignment: .leading) {
-                                    Text(recipe.name)
-                                        .fontWeight(.medium)
-                                    Text(recipe.description)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Text("Required: \(recipe.requiredBaySize.rawValue) Bay")
-                                        .font(.caption2)
-                                        .foregroundColor(.blue)
-                                }
+                                Text(recipe.name)
+                                    .fontWeight(.medium)
                                 Spacer()
-                                VStack(alignment: .trailing) {
-                                    Text("\(Int(recipe.duration))s")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
+                                Text("\(recipe.xpReward) XP")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.purple)
+                            }
+                            
+                            HStack {
+                                Text(recipe.description)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("\(Int(recipe.duration))s")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
                             
                             // Resource requirements with color coding
@@ -1385,6 +1387,7 @@ struct ConstructionPageView: View {
 struct SmallBaySlotView: View {
     let slotIndex: Int
     @ObservedObject var gameState: GameState
+    @State private var isCollecting = false
     
     private var bay: ConstructionBay? {
         let bayId = "small-bay-\(slotIndex + 1)"
@@ -1432,15 +1435,23 @@ struct SmallBaySlotView: View {
                                     .font(.caption)
                                     .foregroundColor(getResourceColor(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
                                 
-                                // Progress bar
-                                ProgressView(value: bay?.currentConstruction?.progress ?? 0)
-                                    .frame(width: 40, height: 4)
-                                    .tint(.blue)
-                                
-                                // Countdown timer
-                                Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
-                                    .font(.caption2)
-                                    .foregroundColor(.white)
+                                if isCompleted {
+                                    // Complete text
+                                    Text("Complete")
+                                        .font(.caption2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.green)
+                                } else {
+                                    // Progress bar
+                                    ProgressView(value: bay?.currentConstruction?.progress ?? 0)
+                                        .frame(width: 40, height: 4)
+                                        .tint(.blue)
+                                    
+                                    // Countdown timer
+                                    Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
+                                        .font(.caption2)
+                                        .foregroundColor(.white)
+                                }
                             }
                         } else if let bay = bay, bay.isUnlocked {
                             Image(systemName: "plus")
@@ -1456,33 +1467,49 @@ struct SmallBaySlotView: View {
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(bay?.isUnlocked != true && !isCompleted)
+        .scaleEffect(isCollecting ? 0.8 : 1.0)
+        .opacity(isCollecting ? 0.5 : 1.0)
     }
     
     private func collectCompletedItem() {
         guard let bay = bay, let construction = bay.currentConstruction else { return }
         
-        // Add rewards to player resources
-        for (resourceType, amount) in construction.recipe.reward {
-            if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
-                gameState.resources[existingIndex].amount += amount
-            } else {
-                let newResource = Resource(
-                    type: resourceType,
-                    amount: amount,
-                    icon: getResourceIcon(for: resourceType),
-                    color: getResourceColor(for: resourceType)
-                )
-                gameState.resources.append(newResource)
+        // Start collection animation
+        withAnimation(.easeInOut(duration: 0.5)) {
+            isCollecting = true
+        }
+        
+        // Delay the actual collection to allow animation to play
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            // Add rewards to player resources
+            for (resourceType, amount) in construction.recipe.reward {
+                if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
+                    gameState.resources[existingIndex].amount += amount
+                } else {
+                    let newResource = Resource(
+                        type: resourceType,
+                        amount: amount,
+                        icon: getResourceIcon(for: resourceType),
+                        color: getResourceColor(for: resourceType)
+                    )
+                    gameState.resources.append(newResource)
+                }
             }
+            
+            // Clear the construction
+            if let bayIndex = gameState.constructionBays.firstIndex(where: { $0.id == bay.id }) {
+                gameState.constructionBays[bayIndex].currentConstruction = nil
+            }
+            
+            // Award XP
+            gameState.addXP(construction.recipe.xpReward)
+            
+            // Check for location unlocks
+            gameState.checkLocationUnlocks()
+            
+            // Reset animation state
+            isCollecting = false
         }
-        
-        // Clear the construction
-        if let bayIndex = gameState.constructionBays.firstIndex(where: { $0.id == bay.id }) {
-            gameState.constructionBays[bayIndex].currentConstruction = nil
-        }
-        
-        // Check for location unlocks
-        gameState.checkLocationUnlocks()
     }
     
     private func getResourceIcon(for type: ResourceType) -> String {
