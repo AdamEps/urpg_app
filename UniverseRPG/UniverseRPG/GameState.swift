@@ -202,13 +202,31 @@ class GameState: ObservableObject {
             )
         ]
         
-        // Initialize construction bays (start with 1 Small bay)
+        // Initialize construction bays (start with 4 Small bays)
         self.constructionBays = [
             ConstructionBay(
-                id: "bay-1",
+                id: "small-bay-1",
                 size: .small,
                 currentConstruction: nil,
                 isUnlocked: true
+            ),
+            ConstructionBay(
+                id: "small-bay-2",
+                size: .small,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            ConstructionBay(
+                id: "small-bay-3",
+                size: .small,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            ConstructionBay(
+                id: "small-bay-4",
+                size: .small,
+                currentConstruction: nil,
+                isUnlocked: false
             )
         ]
     }
@@ -232,8 +250,8 @@ class GameState: ObservableObject {
                 constructionBays[i].currentConstruction?.progress = min(elapsed / totalDuration, 1.0)
                 
                 if construction.timeRemaining <= 0 {
-                    // Construction completed
-                    completeConstruction(at: i)
+                    // Construction completed - just mark as ready for collection
+                    constructionBays[i].currentConstruction?.timeRemaining = 0
                 }
             }
         }
@@ -448,7 +466,7 @@ class GameState: ObservableObject {
         checkLocationUnlocks()
     }
     
-    private func checkLocationUnlocks() {
+    func checkLocationUnlocks() {
         // Simple unlock logic - could be more complex
         for location in availableLocations {
             if !isLocationUnlocked(location) && canUnlockLocation(location) {
@@ -764,7 +782,7 @@ class GameState: ObservableObject {
     
     // MARK: - Helper Functions
     
-    private func getResourceIcon(for type: ResourceType) -> String {
+    func getResourceIcon(for type: ResourceType) -> String {
         switch type {
         case .ironOre: return "cube.fill"
         case .silicon: return "diamond.fill"
@@ -892,7 +910,7 @@ class GameState: ObservableObject {
         }
     }
     
-    private func getResourceColor(for type: ResourceType) -> Color {
+    func getResourceColor(for type: ResourceType) -> Color {
         switch type {
         case .ironOre: return .gray
         case .silicon: return .purple

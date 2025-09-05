@@ -295,12 +295,31 @@ struct LocationView: View {
             VStack {
                 // Location name header
                 HStack {
+                    // Developer button
+                    Button(action: {
+                        addDeveloperResources()
+                    }) {
+                        Text("DEV")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.red.opacity(0.8))
+                            .cornerRadius(4)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
                     Spacer()
                     Text(gameState.currentLocation.name)
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                     Spacer()
+                    
+                    // Invisible spacer to balance the layout
+                    Color.clear
+                        .frame(width: 40, height: 20)
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 8)
@@ -439,6 +458,28 @@ struct LocationView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private func addDeveloperResources() {
+        // Add 100 of each resource available in the current location
+        for resourceName in gameState.currentLocation.availableResources {
+            if let resourceType = ResourceType.allCases.first(where: { $0.rawValue == resourceName }) {
+                if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
+                    gameState.resources[existingIndex].amount += 100
+                } else {
+                    let newResource = Resource(
+                        type: resourceType,
+                        amount: 100,
+                        icon: gameState.getResourceIcon(for: resourceType),
+                        color: gameState.getResourceColor(for: resourceType)
+                    )
+                    gameState.resources.append(newResource)
+                }
+            }
+        }
+        
+        // Also add some Numins for construction testing
+        gameState.currency += 1000
     }
 }
 
@@ -1346,7 +1387,8 @@ struct SmallBaySlotView: View {
     @ObservedObject var gameState: GameState
     
     private var bay: ConstructionBay? {
-        gameState.constructionBays.first { $0.size == .small }
+        let bayId = "small-bay-\(slotIndex + 1)"
+        return gameState.constructionBays.first { $0.id == bayId }
     }
     
     private var isUnderConstruction: Bool {
@@ -1360,7 +1402,7 @@ struct SmallBaySlotView: View {
     
     var body: some View {
         Button(action: {
-            if slotIndex == 0 {
+            if let bay = bay, bay.isUnlocked {
                 if isCompleted {
                     // Collect completed item
                     collectCompletedItem()
@@ -1400,7 +1442,7 @@ struct SmallBaySlotView: View {
                                     .font(.caption2)
                                     .foregroundColor(.white)
                             }
-                        } else if slotIndex == 0 {
+                        } else if let bay = bay, bay.isUnlocked {
                             Image(systemName: "plus")
                                 .font(.title2)
                                 .foregroundColor(.gray.opacity(0.6))
@@ -1413,7 +1455,7 @@ struct SmallBaySlotView: View {
                 )
         }
         .buttonStyle(PlainButtonStyle())
-        .disabled(slotIndex != 0 && !isCompleted)
+        .disabled(bay?.isUnlocked != true && !isCompleted)
     }
     
     private func collectCompletedItem() {
@@ -1438,6 +1480,9 @@ struct SmallBaySlotView: View {
         if let bayIndex = gameState.constructionBays.firstIndex(where: { $0.id == bay.id }) {
             gameState.constructionBays[bayIndex].currentConstruction = nil
         }
+        
+        // Check for location unlocks
+        gameState.checkLocationUnlocks()
     }
     
     private func getResourceIcon(for type: ResourceType) -> String {
