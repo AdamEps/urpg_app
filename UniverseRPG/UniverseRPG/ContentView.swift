@@ -1135,39 +1135,149 @@ struct ConstructionMenuView: View {
 // MARK: - Construction Page View
 struct ConstructionPageView: View {
     @ObservedObject var gameState: GameState
-    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        VStack(spacing: 20) {
+            // Construction Bays Header
+            HStack {
+                Text("Construction Bays")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            
             ScrollView {
-                VStack(spacing: 16) {
-                    // Construction Bays
-                    ForEach(gameState.constructionBays) { bay in
-                        ConstructionBayRow(bay: bay, gameState: gameState)
+                VStack(spacing: 24) {
+                    // Small Bays Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Small Bays")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                        
+                        HStack(spacing: 12) {
+                            ForEach(0..<4, id: \.self) { index in
+                                SmallBaySlotView(slotIndex: index, gameState: gameState)
+                            }
+                        }
+                        .padding(.horizontal)
                     }
                     
-                    // Add new bay button (placeholder)
-                    Button("Unlock New Bay") {
-                        // TODO: Implement bay unlocking
+                    // Medium Bays Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Medium Bays")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                        
+                        HStack(spacing: 12) {
+                            ForEach(0..<3, id: \.self) { index in
+                                MediumBaySlotView(slotIndex: index, gameState: gameState)
+                            }
+                        }
+                        .padding(.horizontal)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(true) // Disabled for now
-                }
-                .padding()
-            }
-            .navigationTitle("Construction Bays")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
+                    
+                    // Large Bays Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Large Bays")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                        
+                        HStack(spacing: 12) {
+                            ForEach(0..<2, id: \.self) { index in
+                                LargeBaySlotView(slotIndex: index, gameState: gameState)
+                            }
+                        }
+                        .padding(.horizontal)
                     }
                 }
+                .padding(.bottom, 20)
             }
         }
         .sheet(isPresented: $gameState.showConstructionMenu) {
             ConstructionMenuView(gameState: gameState)
         }
+    }
+}
+
+// MARK: - Bay Slot Views
+struct SmallBaySlotView: View {
+    let slotIndex: Int
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        Button(action: {
+            gameState.showConstructionMenu = true
+        }) {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .frame(width: (UIScreen.main.bounds.width - 60) / 4, height: (UIScreen.main.bounds.width - 60) / 4)
+                .overlay(
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.gray.opacity(0.6))
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct MediumBaySlotView: View {
+    let slotIndex: Int
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        Button(action: {
+            gameState.showConstructionMenu = true
+        }) {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .frame(width: (UIScreen.main.bounds.width - 84) / 3, height: (UIScreen.main.bounds.width - 84) / 3)
+                .overlay(
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.gray.opacity(0.6))
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct LargeBaySlotView: View {
+    let slotIndex: Int
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        Button(action: {
+            gameState.showConstructionMenu = true
+        }) {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .frame(width: (UIScreen.main.bounds.width - 72) / 2, height: (UIScreen.main.bounds.width - 72) / 2)
+                .overlay(
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.gray.opacity(0.6))
+                )
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
@@ -1225,12 +1335,6 @@ struct ResourcesPageView: View {
             .padding(.horizontal)
             .padding(.top, 8)
             
-            // Resource Detail View
-            if let selectedResource = gameState.selectedResourceForDetail,
-               let resource = gameState.resources.first(where: { $0.type == selectedResource }) {
-                ResourceDetailView(resource: resource, gameState: gameState)
-            }
-            
             // Sorting dropdown
             HStack {
                 Text("Sort by:")
@@ -1252,7 +1356,14 @@ struct ResourcesPageView: View {
             .background(Color.black.opacity(0.2))
             
             ScrollView {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
+                VStack(spacing: 0) {
+                    // Resource Detail View - now appears right above the resource grid
+                    if let selectedResource = gameState.selectedResourceForDetail,
+                       let resource = gameState.resources.first(where: { $0.type == selectedResource }) {
+                        ResourceDetailView(resource: resource, gameState: gameState)
+                    }
+                    
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
                     // Show sorted owned resources first
                     ForEach(sortedResources, id: \.type) { resource in
                         Button(action: {
@@ -1267,12 +1378,13 @@ struct ResourcesPageView: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                     
-                    // Fill remaining slots with empty placeholders to maintain grid layout
-                    ForEach(sortedResources.count..<150, id: \.self) { _ in
-                        EmptyResourceCard()
+                        // Fill remaining slots with empty placeholders to maintain grid layout
+                        ForEach(sortedResources.count..<150, id: \.self) { _ in
+                            EmptyResourceCard()
+                        }
                     }
+                    .padding()
                 }
-                .padding()
             }
         }
     }
