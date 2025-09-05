@@ -1249,7 +1249,7 @@ struct MediumBaySlotView: View {
         }) {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.gray.opacity(0.5), lineWidth: 2)
-                .frame(width: (UIScreen.main.bounds.width - 84) / 3, height: (UIScreen.main.bounds.width - 84) / 3)
+                .frame(width: (UIScreen.main.bounds.width - 48) / 3, height: (UIScreen.main.bounds.width - 48) / 3)
                 .overlay(
                     Image(systemName: "plus")
                         .font(.title2)
@@ -1270,7 +1270,7 @@ struct LargeBaySlotView: View {
         }) {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.gray.opacity(0.5), lineWidth: 2)
-                .frame(width: (UIScreen.main.bounds.width - 72) / 2, height: (UIScreen.main.bounds.width - 72) / 2)
+                .frame(width: (UIScreen.main.bounds.width - 36) / 2, height: (UIScreen.main.bounds.width - 36) / 2)
                 .overlay(
                     Image(systemName: "plus")
                         .font(.title2)
