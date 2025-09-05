@@ -161,11 +161,6 @@ struct ContentView: View {
         .onAppear {
             gameState.startGame()
         }
-        .alert("XP Information", isPresented: $showXPInfo) {
-            Button("OK") { }
-        } message: {
-            Text("Current XP: \(gameState.playerXP)\nXP needed for next level: \(gameState.getXPRequiredForNextLevel())")
-        }
     }
 }
 
@@ -215,21 +210,56 @@ struct TopBarView: View {
                     .font(.caption)
                     .foregroundColor(.white)
                 
-                // Level progress bar with tooltip
+                // Level progress bar with tap tooltip
                 ZStack {
                     ProgressView(value: gameState.getXPProgressPercentage())
                         .frame(width: 140, height: 12)
                         .tint(.green)
+                        .allowsHitTesting(false) // Disable hit testing on ProgressView
                     
-                    // Invisible overlay for tap gesture
+                    // Tap area for gesture - made slightly larger for easier tapping
                     Rectangle()
-                        .fill(Color.clear)
-                        .frame(width: 140, height: 12)
+                        .fill(Color.blue.opacity(0.1)) // Temporary visual feedback for testing
+                        .frame(width: 150, height: 20) // Slightly larger tap area
+                        .contentShape(Rectangle()) // Ensure the entire area is tappable
                         .onTapGesture {
-                            // Show XP info in a simple alert or overlay
-                            showXPInfo = true
+                            print("Level bar tapped! showXPInfo was: \(showXPInfo)")
+                            showXPInfo.toggle()
+                            print("showXPInfo is now: \(showXPInfo)")
                         }
                 }
+                .overlay(
+                    // Tap tooltip
+                    Group {
+                        if showXPInfo {
+                            VStack(spacing: 4) {
+                                Text("Level \(gameState.playerLevel)")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                
+                                Text("\(gameState.playerXP) / \(gameState.getXPRequiredForNextLevel()) XP")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                                
+                                Text("\(Int(gameState.getXPProgressPercentage() * 100))% to next level")
+                                    .font(.caption2)
+                                    .foregroundColor(.green)
+                                
+                                // Tap to dismiss hint
+                                Text("Tap to close")
+                                    .font(.caption2)
+                                    .foregroundColor(.blue)
+                            }
+                            .padding(8)
+                            .background(Color.black.opacity(0.9))
+                            .cornerRadius(8)
+                            .offset(y: -60)
+                            .animation(.easeInOut(duration: 0.2), value: showXPInfo)
+                        }
+                    },
+                    alignment: .top
+                )
                 
                 Button(action: {
                     gameState.showObjectives.toggle()
