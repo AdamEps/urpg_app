@@ -35,6 +35,8 @@ struct ContentView: View {
                             ResourcesPageView(gameState: gameState)
                         case .cards:
                             CardsView(gameState: gameState)
+                        case .shop:
+                            ShopView(gameState: gameState)
                         }
                     }
                     
@@ -1110,11 +1112,11 @@ struct BottomNavigationView: View {
     var body: some View {
         HStack {
             Button(action: {
-                gameState.showShop = true
+                gameState.currentPage = .shop
             }) {
                 Image(systemName: "cart.fill")
                     .font(.title2)
-                    .foregroundColor(.white)
+                    .foregroundColor(gameState.currentPage == .shop ? .blue : .white)
             }
             
             Spacer()
@@ -1165,9 +1167,6 @@ struct BottomNavigationView: View {
         .padding(.horizontal)
         .padding(.vertical, 16) // Equal padding above and below icons
         .background(Color.gray.opacity(0.3))
-        .sheet(isPresented: $gameState.showShop) {
-            ShopView(gameState: gameState)
-        }
         .sheet(isPresented: $gameState.showObjectives) {
             ObjectivesView(gameState: gameState)
         }
@@ -2191,21 +2190,24 @@ struct StarMapView: View {
 
 struct ShopView: View {
     @ObservedObject var gameState: GameState
-    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
-            Text("Shop Coming Soon!")
-                .navigationTitle("Shop")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Done") {
-                            dismiss()
-                        }
-                    }
-                }
+        ScrollView {
+            VStack(spacing: 20) {
+                Text("Shop Coming Soon!")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                
+                Text("The shop will be available in a future update!")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
         }
+        .navigationTitle("Shop")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

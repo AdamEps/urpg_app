@@ -19,7 +19,6 @@ class GameState: ObservableObject {
     @Published var showConstructionMenu = false
     @Published var showConstructionPage = false
     @Published var showLocations = false
-    @Published var showShop = false
     @Published var showResourcesPage = false
     @Published var showCards = false
     @Published var showLocationResources = false
@@ -1227,6 +1226,7 @@ enum AppPage: String, CaseIterable {
     case starMap = "Star Map"
     case resources = "Resources"
     case cards = "Cards"
+    case shop = "Shop"
 }
 
 // MARK: - Card System
