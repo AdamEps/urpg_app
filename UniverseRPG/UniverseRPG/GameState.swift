@@ -28,6 +28,7 @@ class GameState: ObservableObject {
     @Published var showTapDetails = false
     @Published var showConstructionDetails = false
     @Published var showCardsDetails = false
+    @Published var showLocationSlots = false
     @Published var resourceSortOption: ResourceSortOption = .alphabetical
     @Published var selectedResourceForDetail: ResourceType?
     

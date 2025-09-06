@@ -498,11 +498,37 @@ struct LocationView: View {
                 }
                 
                 Spacer()
-                
-                // Location Screen Slots (4 slots for cards/items)
+            }
+            
+            // Enhancement slots overlay - positioned at bottom without affecting layout
+            VStack {
                 Spacer()
-                LocationSlotsView(gameState: gameState)
-                    .padding(.bottom, 10) // Position just above navigation bar
+                
+                // Enhancement button - always visible
+                Button(action: {
+                    gameState.showLocationSlots.toggle()
+                }) {
+                    HStack {
+                        Text("Enhancements")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Enhancement slots - shown conditionally
+                if gameState.showLocationSlots {
+                    LocationSlotsView(gameState: gameState)
+                        .padding(.bottom, 10) // Position just above navigation bar
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -537,12 +563,6 @@ struct LocationSlotsView: View {
     
     var body: some View {
         VStack(spacing: 8) {
-            Text("Location Enhancements")
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundColor(.white)
-                .padding(.bottom, 4)
-            
             HStack(spacing: 12) {
                 ForEach(0..<4, id: \.self) { index in
                     LocationSlotView(slotIndex: index, gameState: gameState)
@@ -1347,80 +1367,92 @@ struct ConstructionPageView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        VStack(spacing: 20) {
-            // Construction Bays Header
-            HStack {
-                Text("Construction Bays")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                Spacer()
-            }
-            .padding(.horizontal)
-            .padding(.top, 8)
-            
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Small Bays Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text("Small Bays")
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                            Spacer()
-                        }
-                        .padding(.horizontal)
-                        
-                        HStack(spacing: 12) {
-                            ForEach(0..<4, id: \.self) { index in
-                                SmallBaySlotView(slotIndex: index, gameState: gameState)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                    
-                    // Medium Bays Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text("Medium Bays")
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                            Spacer()
-                        }
-                        .padding(.horizontal)
-                        
-                        HStack(spacing: 12) {
-                            ForEach(0..<3, id: \.self) { index in
-                                MediumBaySlotView(slotIndex: index, gameState: gameState)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                    
-                    // Large Bays Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text("Large Bays")
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                            Spacer()
-                        }
-                        .padding(.horizontal)
-                        
-                        HStack(spacing: 12) {
-                            ForEach(0..<2, id: \.self) { index in
-                                LargeBaySlotView(slotIndex: index, gameState: gameState)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
+        ZStack {
+            VStack(spacing: 20) {
+                // Construction Bays Header
+                HStack {
+                    Text("Construction Bays")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    Spacer()
                 }
-                .padding(.bottom, 20)
+                .padding(.horizontal)
+                .padding(.top, 8)
+                
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Small Bays Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("Small Bays")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                Spacer()
+                            }
+                            .padding(.horizontal)
+                            
+                            HStack(spacing: 12) {
+                                ForEach(0..<4, id: \.self) { index in
+                                    SmallBaySlotView(slotIndex: index, gameState: gameState)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        // Medium Bays Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("Medium Bays")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                Spacer()
+                            }
+                            .padding(.horizontal)
+                            
+                            HStack(spacing: 12) {
+                                ForEach(0..<3, id: \.self) { index in
+                                    MediumBaySlotView(slotIndex: index, gameState: gameState)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        // Large Bays Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("Large Bays")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                Spacer()
+                            }
+                            .padding(.horizontal)
+                            
+                            HStack(spacing: 12) {
+                                ForEach(0..<2, id: \.self) { index in
+                                    LargeBaySlotView(slotIndex: index, gameState: gameState)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
+                    .padding(.bottom, 100) // Add space for slots
+                }
+            }
+            
+            VStack {
+                Spacer()
+                
+                // Construction Screen Slots (4 slots for cards/items)
+                Spacer()
+                LocationSlotsView(gameState: gameState)
+                    .padding(.bottom, 10) // Position just above navigation bar
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $gameState.showConstructionMenu) {
             ConstructionMenuView(gameState: gameState)
         }
@@ -1661,76 +1693,89 @@ struct ResourcesPageView: View {
     }
     
     var body: some View {
-        VStack {
-            // Page header
-            HStack {
-                Text("Resources")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                Button("Test") {
-                    gameState.printDropTableTestResults(taps: 100)
-                }
-                .foregroundColor(.blue)
-            }
-            .padding(.horizontal)
-            .padding(.top, 8)
-            
-            // Sorting dropdown
-            HStack {
-                Text("Sort by:")
-                    .font(.subheadline)
-                    .foregroundColor(.white)
-                
-                Picker("Sort Option", selection: $gameState.resourceSortOption) {
-                    ForEach(ResourceSortOption.allCases, id: \.self) { option in
-                        Text(option.rawValue).tag(option)
-                    }
-                }
-                .pickerStyle(MenuPickerStyle())
-                .foregroundColor(.blue)
-                
-                Spacer()
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 4)
-            .background(Color.black.opacity(0.2))
-            
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Resource Detail View - now appears right above the resource grid
-                    if let selectedResource = gameState.selectedResourceForDetail,
-                       let resource = gameState.resources.first(where: { $0.type == selectedResource }) {
-                        ResourceDetailView(resource: resource, gameState: gameState)
-                    }
+        ZStack {
+            VStack {
+                // Page header
+                HStack {
+                    Text("Resources")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
                     
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
-                    // Show sorted owned resources first
-                    ForEach(sortedResources, id: \.type) { resource in
-                        Button(action: {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                gameState.selectedResourceForDetail = resource.type
+                    Spacer()
+                    
+                    Button("Test") {
+                        gameState.printDropTableTestResults(taps: 100)
+                    }
+                    .foregroundColor(.blue)
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                
+                // Sorting dropdown
+                HStack {
+                    Text("Sort by:")
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                    
+                    Picker("Sort Option", selection: $gameState.resourceSortOption) {
+                        ForEach(ResourceSortOption.allCases, id: \.self) { option in
+                            Text(option.rawValue).tag(option)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    .foregroundColor(.blue)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 4)
+                .background(Color.black.opacity(0.2))
+                
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Resource Detail View - now appears right above the resource grid
+                        if let selectedResource = gameState.selectedResourceForDetail,
+                           let resource = gameState.resources.first(where: { $0.type == selectedResource }) {
+                            ResourceDetailView(resource: resource, gameState: gameState)
+                        }
+                        
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
+                        // Show sorted owned resources first
+                        ForEach(sortedResources, id: \.type) { resource in
+                            Button(action: {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    gameState.selectedResourceForDetail = resource.type
+                                }
+                            }) {
+                                ResourceCard(resource: resource)
+                                    .scaleEffect(gameState.selectedResourceForDetail == resource.type ? 0.95 : 1.0)
+                                    .animation(.spring(response: 0.2, dampingFraction: 0.8), value: gameState.selectedResourceForDetail)
                             }
-                        }) {
-                            ResourceCard(resource: resource)
-                                .scaleEffect(gameState.selectedResourceForDetail == resource.type ? 0.95 : 1.0)
-                                .animation(.spring(response: 0.2, dampingFraction: 0.8), value: gameState.selectedResourceForDetail)
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    
-                        // Fill remaining slots with empty placeholders to maintain grid layout
-                        ForEach(sortedResources.count..<150, id: \.self) { _ in
-                            EmptyResourceCard()
+                        
+                            // Fill remaining slots with empty placeholders to maintain grid layout
+                            ForEach(sortedResources.count..<150, id: \.self) { _ in
+                                EmptyResourceCard()
+                            }
                         }
+                        .padding()
+                        .padding(.bottom, 100) // Add space for slots
                     }
-                    .padding()
                 }
+            }
+            
+            VStack {
+                Spacer()
+                
+                // Resources Screen Slots (4 slots for cards/items)
+                Spacer()
+                LocationSlotsView(gameState: gameState)
+                    .padding(.bottom, 10) // Position just above navigation bar
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private func getResourceIcon(for type: ResourceType) -> String {
@@ -2192,20 +2237,33 @@ struct ShopView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                Text("Shop Coming Soon!")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                
-                Text("The shop will be available in a future update!")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
+        ZStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Shop Coming Soon!")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    Text("The shop will be available in a future update!")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding()
+                .padding(.bottom, 100) // Add space for slots
             }
-            .padding()
+            
+            VStack {
+                Spacer()
+                
+                // Shop Screen Slots (4 slots for cards/items)
+                Spacer()
+                LocationSlotsView(gameState: gameState)
+                    .padding(.bottom, 10) // Position just above navigation bar
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Shop")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -2213,10 +2271,9 @@ struct ShopView: View {
 
 struct CardsView: View {
     @ObservedObject var gameState: GameState
-    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        ZStack {
             ScrollView {
                 VStack(spacing: 24) {
                     // Explorer Class Section
@@ -2248,17 +2305,21 @@ struct CardsView: View {
                     )
                 }
                 .padding()
+                .padding(.bottom, 100) // Add space for slots
             }
-            .navigationTitle("Cards")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
+            
+            VStack {
+                Spacer()
+                
+                // Cards Screen Slots (4 slots for cards/items)
+                Spacer()
+                LocationSlotsView(gameState: gameState)
+                    .padding(.bottom, 10) // Position just above navigation bar
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .navigationTitle("Cards")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
