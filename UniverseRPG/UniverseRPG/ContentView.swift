@@ -506,7 +506,9 @@ struct LocationView: View {
                 
                 // Enhancement button - always visible
                 Button(action: {
-                    gameState.showLocationSlots.toggle()
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        gameState.showLocationSlots.toggle()
+                    }
                 }) {
                     HStack {
                         Text("Enhancements")
@@ -518,16 +520,17 @@ struct LocationView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.gray.opacity(0.1))
+                    .background(Color.black.opacity(0.8))
                     .cornerRadius(8)
                     .padding(.horizontal, 16)
                 }
                 .buttonStyle(PlainButtonStyle())
                 
-                // Enhancement slots - shown conditionally
+                // Enhancement slots - shown conditionally with animation
                 if gameState.showLocationSlots {
                     LocationSlotsView(gameState: gameState)
                         .padding(.bottom, 10) // Position just above navigation bar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
         }
@@ -1443,14 +1446,35 @@ struct ConstructionPageView: View {
                 }
             }
             
-            VStack {
-                Spacer()
-                
-                // Construction Screen Slots (4 slots for cards/items)
-                Spacer()
-                LocationSlotsView(gameState: gameState)
-                    .padding(.bottom, 10) // Position just above navigation bar
-            }
+                    VStack {
+                        Spacer()
+                        
+                        // Enhancement button - always visible
+                        Button(action: {
+                            gameState.showLocationSlots.toggle()
+                        }) {
+                            HStack {
+                                Text("Enhancements")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
+                            .padding(.horizontal, 16)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Enhancement slots - shown conditionally
+                        if gameState.showLocationSlots {
+                            LocationSlotsView(gameState: gameState)
+                                .padding(.bottom, 10) // Position just above navigation bar
+                        }
+                    }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $gameState.showConstructionMenu) {
@@ -1766,14 +1790,35 @@ struct ResourcesPageView: View {
                 }
             }
             
-            VStack {
-                Spacer()
-                
-                // Resources Screen Slots (4 slots for cards/items)
-                Spacer()
-                LocationSlotsView(gameState: gameState)
-                    .padding(.bottom, 10) // Position just above navigation bar
-            }
+                    VStack {
+                        Spacer()
+                        
+                        // Enhancement button - always visible
+                        Button(action: {
+                            gameState.showLocationSlots.toggle()
+                        }) {
+                            HStack {
+                                Text("Enhancements")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
+                            .padding(.horizontal, 16)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Enhancement slots - shown conditionally
+                        if gameState.showLocationSlots {
+                            LocationSlotsView(gameState: gameState)
+                                .padding(.bottom, 10) // Position just above navigation bar
+                        }
+                    }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -2254,14 +2299,35 @@ struct ShopView: View {
                 .padding(.bottom, 100) // Add space for slots
             }
             
-            VStack {
-                Spacer()
-                
-                // Shop Screen Slots (4 slots for cards/items)
-                Spacer()
-                LocationSlotsView(gameState: gameState)
-                    .padding(.bottom, 10) // Position just above navigation bar
-            }
+                    VStack {
+                        Spacer()
+                        
+                        // Enhancement button - always visible
+                        Button(action: {
+                            gameState.showLocationSlots.toggle()
+                        }) {
+                            HStack {
+                                Text("Enhancements")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
+                            .padding(.horizontal, 16)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Enhancement slots - shown conditionally
+                        if gameState.showLocationSlots {
+                            LocationSlotsView(gameState: gameState)
+                                .padding(.bottom, 10) // Position just above navigation bar
+                        }
+                    }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Shop")
@@ -2308,14 +2374,35 @@ struct CardsView: View {
                 .padding(.bottom, 100) // Add space for slots
             }
             
-            VStack {
-                Spacer()
-                
-                // Cards Screen Slots (4 slots for cards/items)
-                Spacer()
-                LocationSlotsView(gameState: gameState)
-                    .padding(.bottom, 10) // Position just above navigation bar
-            }
+                    VStack {
+                        Spacer()
+                        
+                        // Enhancement button - always visible
+                        Button(action: {
+                            gameState.showLocationSlots.toggle()
+                        }) {
+                            HStack {
+                                Text("Enhancements")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
+                            .padding(.horizontal, 16)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Enhancement slots - shown conditionally
+                        if gameState.showLocationSlots {
+                            LocationSlotsView(gameState: gameState)
+                                .padding(.bottom, 10) // Position just above navigation bar
+                        }
+                    }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Cards")
