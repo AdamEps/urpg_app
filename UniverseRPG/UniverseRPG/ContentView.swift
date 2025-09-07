@@ -2967,6 +2967,9 @@ struct CardClassSection: View {
     
     // Helper function to check if a card is in a specific row
     private func isCardInRow(_ cardId: String, rowIndex: Int) -> Bool {
+        // Quick bounds check
+        guard rowIndex >= 0 && rowIndex < 3 else { return false }
+        
         let startIndex = rowIndex * 3
         let endIndex = min(startIndex + 3, cardsForClass.count)
         
@@ -2990,29 +2993,32 @@ struct CardClassSection: View {
                 .foregroundColor(.primary)
             
             VStack(spacing: 8) {
-                // Show detail view at the top if any card is selected
-                if let selectedCardId = gameState.selectedCardForDetail {
-                    CardDetailView(cardId: selectedCardId, gameState: gameState)
-                        .padding(.bottom, 8)
-                }
-                
                 // Create rows of 3 cards each
                 ForEach(0..<3, id: \.self) { rowIndex in
-                    // Card row
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                        ForEach(0..<3, id: \.self) { colIndex in
-                            let cardIndex = rowIndex * 3 + colIndex
-                            
-                            if cardIndex < 8 {
-                                CardSlotView(
-                                    cardClass: cardClass,
-                                    slotIndex: cardIndex,
-                                    gameState: gameState
-                                )
-                            } else {
-                                // Empty slot for incomplete rows
-                                Color.clear
-                                    .frame(height: 120)
+                    VStack(spacing: 0) {
+                        // Show detail view above this row if any card in this row is selected
+                        if let selectedCardId = gameState.selectedCardForDetail,
+                           isCardInRow(selectedCardId, rowIndex: rowIndex) {
+                            CardDetailView(cardId: selectedCardId, gameState: gameState)
+                                .padding(.bottom, 8)
+                        }
+                        
+                        // Card row
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                            ForEach(0..<3, id: \.self) { colIndex in
+                                let cardIndex = rowIndex * 3 + colIndex
+                                
+                                if cardIndex < 8 {
+                                    CardSlotView(
+                                        cardClass: cardClass,
+                                        slotIndex: cardIndex,
+                                        gameState: gameState
+                                    )
+                                } else {
+                                    // Empty slot for incomplete rows
+                                    Color.clear
+                                        .frame(height: 120)
+                                }
                             }
                         }
                     }
