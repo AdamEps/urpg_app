@@ -68,6 +68,7 @@ class GameState: ObservableObject {
     @Published var resourceSortOption: ResourceSortOption = .alphabetical
     @Published var resourceSortAscending: Bool = true
     @Published var selectedResourceForDetail: ResourceType?
+    @Published var selectedCardForDetail: String?
     @Published var maxStorageCapacity: Int = 1000
     
     // Player data

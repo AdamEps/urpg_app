@@ -2657,6 +2657,68 @@ struct ResourceDetailView: View {
     }
 }
 
+// MARK: - Card Detail View
+struct CardDetailView: View {
+    let cardId: String
+    @ObservedObject var gameState: GameState
+    @State private var dragOffset = CGSize.zero
+    @State private var isDragging = false
+
+    var body: some View {
+        ZStack {
+            // Clean background
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.black.opacity(0.8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                )
+
+            VStack(alignment: .center, spacing: 20) {
+                // Coming Soon text
+                VStack(spacing: 12) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 48))
+                        .foregroundColor(.blue)
+                    
+                    Text("Coming Soon")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Text("Card details and interactions will be available in a future update.")
+                        .font(.callout)
+                        .foregroundColor(.white.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+                }
+            }
+            .padding(40)
+        }
+        .frame(height: 200)
+        .padding(.vertical, 8)
+        .offset(y: dragOffset.height)
+        .gesture(
+            DragGesture()
+                .onChanged { gesture in
+                    isDragging = true
+                    dragOffset = gesture.translation
+                }
+                .onEnded { gesture in
+                    isDragging = false
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        if gesture.translation.height > 100 {
+                            gameState.selectedCardForDetail = nil
+                        }
+                        dragOffset = .zero
+                    }
+                }
+        )
+        .transition(.move(edge: .bottom))
+        .opacity(isDragging ? 0.8 : 1.0)
+    }
+}
+
 // MARK: - Placeholder Views
 struct StarMapView: View {
     @ObservedObject var gameState: GameState
@@ -2898,6 +2960,14 @@ struct CardClassSection: View {
     let cardClass: CardClass
     @ObservedObject var gameState: GameState
     
+    // Helper function to check if a card is in a specific row
+    func isCardInRow(_ cardId: String, rowIndex: Int) -> Bool {
+        let cardsForClass = gameState.getCardsForClass(cardClass)
+        let startIndex = rowIndex * 3
+        let endIndex = min(startIndex + 3, cardsForClass.count)
+        return (startIndex..<endIndex).contains { cardsForClass[$0].id == cardId }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
@@ -2905,13 +2975,36 @@ struct CardClassSection: View {
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
             
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                ForEach(0..<8, id: \.self) { index in
-                    CardSlotView(
-                        cardClass: cardClass,
-                        slotIndex: index,
-                        gameState: gameState
-                    )
+            VStack(spacing: 8) {
+                // Create rows of 3 cards each
+                ForEach(0..<3, id: \.self) { rowIndex in
+                    VStack(spacing: 0) {
+                        // Show detail view above this row if any card in this row is selected
+                        if let selectedCardId = gameState.selectedCardForDetail,
+                           isCardInRow(selectedCardId, rowIndex: rowIndex) {
+                            CardDetailView(cardId: selectedCardId, gameState: gameState)
+                                .padding(.bottom, 8)
+                        }
+                        
+                        // Card row
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                            ForEach(0..<3, id: \.self) { colIndex in
+                                let cardIndex = rowIndex * 3 + colIndex
+                                
+                                if cardIndex < 8 {
+                                    CardSlotView(
+                                        cardClass: cardClass,
+                                        slotIndex: cardIndex,
+                                        gameState: gameState
+                                    )
+                                } else {
+                                    // Empty slot for incomplete rows
+                                    Color.clear
+                                        .frame(height: 120)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -2937,7 +3030,12 @@ struct CardSlotView: View {
         VStack(spacing: 0) {
             if let cardDef = cardDef, let userCard = userCard {
                 // Owned card
-                VStack(spacing: 0) {
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        gameState.selectedCardForDetail = cardDef.id
+                    }
+                }) {
+                    VStack(spacing: 0) {
                     // Card name at the top
                     Text(cardDef.name)
                         .font(.caption)
@@ -2987,15 +3085,19 @@ struct CardSlotView: View {
                     }
                     .padding(.horizontal, 4)
                     .padding(.bottom, 4)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(cardClassColor.opacity(0.1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(cardClassColor, lineWidth: 1)
+                            )
+                    )
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(cardClassColor.opacity(0.1))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(cardClassColor, lineWidth: 1)
-                        )
-                )
+                .scaleEffect(gameState.selectedCardForDetail == cardDef.id ? 0.95 : 1.0)
+                .animation(.spring(response: 0.2, dampingFraction: 0.8), value: gameState.selectedCardForDetail)
+                .buttonStyle(PlainButtonStyle())
             } else {
                 // Empty slot
                 VStack(spacing: 0) {
