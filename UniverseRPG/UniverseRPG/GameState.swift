@@ -3,11 +3,43 @@ import SwiftUI
 
 // MARK: - Resource Sort Option
 enum ResourceSortOption: String, CaseIterable {
-    case alphabetical = "A-Z"
-    case reverseAlphabetical = "Z-A"
-    case quantityAscending = "Quantity ↑"
-    case quantityDescending = "Quantity ↓"
+    case alphabetical = "Alphabetical"
+    case quantity = "Quantity"
     case rarity = "Rarity"
+    
+    var displayName: String {
+        switch self {
+        case .alphabetical:
+            return "Alphabetical"
+        case .quantity:
+            return "Quantity"
+        case .rarity:
+            return "Rarity"
+        }
+    }
+}
+
+// MARK: - Resource Rarity
+enum ResourceRarity: String, CaseIterable {
+    case common = "Common"
+    case uncommon = "Uncommon"
+    case rare = "Rare"
+    
+    var color: Color {
+        switch self {
+        case .common: return .gray
+        case .uncommon: return .green
+        case .rare: return .purple
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .common: return "circle.fill"
+        case .uncommon: return "diamond.fill"
+        case .rare: return "star.fill"
+        }
+    }
 }
 
 // MARK: - Game State
@@ -34,6 +66,7 @@ class GameState: ObservableObject {
     @Published var showShopSlots = false
     @Published var showCardsSlots = false
     @Published var resourceSortOption: ResourceSortOption = .alphabetical
+    @Published var resourceSortAscending: Bool = true
     @Published var selectedResourceForDetail: ResourceType?
     
     // Player data
@@ -272,7 +305,7 @@ class GameState: ObservableObject {
     
     private func performIdleCollection() {
         // Idle collection: collect one resource every 10 seconds based on current location's drop table
-        let dropTable = getLocationDropTable()
+        let dropTable = getModifiedDropTable()
         let selectedResource = selectResourceFromDropTable(dropTable)
         
         // Add 1 of the selected resource (same logic as tapLocation)
@@ -1055,6 +1088,101 @@ class GameState: ObservableObject {
         }
     }
     
+    // MARK: - Resource Rarity System
+    
+    func getResourceRarity(for resourceType: ResourceType) -> ResourceRarity {
+        let dropTable = getLocationDropTable()
+        
+        // Find the resource in the drop table
+        guard dropTable.contains(where: { $0.0 == resourceType }) else {
+            return .common // Default to common if not found
+        }
+        
+        // Sort resources by percentage (highest first) to determine rarity
+        let sortedResources = dropTable.sorted { $0.1 > $1.1 }
+        
+        // Find the position of this resource in the sorted list
+        guard let position = sortedResources.firstIndex(where: { $0.0 == resourceType }) else {
+            return .common
+        }
+        
+        // Categorize based on position:
+        // Top 4 (0-3) = Common
+        // Next 3 (4-6) = Uncommon  
+        // Last 3 (7-9) = Rare
+        if position < 4 {
+            return .common
+        } else if position < 7 {
+            return .uncommon
+        } else {
+            return .rare
+        }
+    }
+    
+    func getResourcesByRarity(_ rarity: ResourceRarity) -> [ResourceType] {
+        let dropTable = getLocationDropTable()
+        let sortedResources = dropTable.sorted { $0.1 > $1.1 }
+        
+        switch rarity {
+        case .common:
+            return Array(sortedResources.prefix(4).map { $0.0 })
+        case .uncommon:
+            return Array(sortedResources.dropFirst(4).prefix(3).map { $0.0 })
+        case .rare:
+            return Array(sortedResources.dropFirst(7).map { $0.0 })
+        }
+    }
+    
+    func getModifiedDropTable() -> [(ResourceType, Double)] {
+        let baseDropTable = getLocationDropTable()
+        
+        // Check if Deep Scan card is active and get its level
+        guard let deepScanCard = getUserCard(for: "deep-scan"),
+              let cardDef = getAllCardDefinitions().first(where: { $0.id == "deep-scan" }) else {
+            return baseDropTable
+        }
+        
+        let tierIndex = deepScanCard.tier - 1
+        let rareBiasPerLevel = cardDef.tiers[tierIndex].value
+        
+        // Get resources by rarity
+        let commonResources = getResourcesByRarity(.common)
+        let rareResources = getResourcesByRarity(.rare)
+        
+        // Calculate total rare bias (3 rare resources × bias per level)
+        let totalRareBias = rareBiasPerLevel * 3.0
+        
+        // Redistribute probabilities
+        var modifiedTable: [(ResourceType, Double)] = []
+        
+        for (resourceType, basePercentage) in baseDropTable {
+            var newPercentage = basePercentage
+            
+            if rareResources.contains(resourceType) {
+                // Add rare bias to rare resources
+                newPercentage += rareBiasPerLevel
+            } else if commonResources.contains(resourceType) {
+                // Reduce common resources proportionally
+                // Distribute the reduction across the 4 common resources
+                let reductionPerCommon = totalRareBias / 4.0
+                newPercentage = max(0, newPercentage - reductionPerCommon)
+            }
+            
+            modifiedTable.append((resourceType, newPercentage))
+        }
+        
+        // Normalize to ensure total is 100%
+        let totalPercentage = modifiedTable.reduce(0) { $0 + $1.1 }
+        if totalPercentage > 0 {
+            let normalizationFactor = 100.0 / totalPercentage
+            modifiedTable = modifiedTable.map { (resource, percentage) in
+                (resource, percentage * normalizationFactor)
+            }
+        }
+        
+        return modifiedTable
+    }
+    
     // MARK: - Card System Functions
     
     func getAllCardDefinitions() -> [CardDef] {
@@ -1080,13 +1208,13 @@ class GameState: ObservableObject {
                 cardClass: .explorer,
                 effectKey: "idleRareBias",
                 tiers: [
-                    CardTier(copies: 2, value: 0.03),   // +3%
-                    CardTier(copies: 5, value: 0.06),   // +6%
-                    CardTier(copies: 10, value: 0.10),  // +10%
-                    CardTier(copies: 25, value: 0.15),  // +15%
-                    CardTier(copies: 100, value: 0.22)  // +22%
+                    CardTier(copies: 2, value: 0.01),   // +1% per level
+                    CardTier(copies: 5, value: 0.02),   // +2% per level
+                    CardTier(copies: 10, value: 0.03),  // +3% per level
+                    CardTier(copies: 25, value: 0.04),  // +4% per level
+                    CardTier(copies: 100, value: 0.05)  // +5% per level
                 ],
-                description: "Bias lower-probability slots upward for idle collection"
+                description: "Improves chances of getting the 3 'Rare' resources during idle collection"
             ),
             
             // Constructor Class

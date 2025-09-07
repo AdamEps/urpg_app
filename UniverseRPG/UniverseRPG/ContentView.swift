@@ -1179,7 +1179,7 @@ struct ResourcesView: View {
             
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
                 ForEach(gameState.resources, id: \.type) { resource in
-                    ResourceCard(resource: resource)
+                    ResourceCard(resource: resource, gameState: gameState)
                 }
             }
         }
@@ -1192,35 +1192,54 @@ struct ResourcesView: View {
 // MARK: - Resource Card
 struct ResourceCard: View {
     let resource: Resource
+    @ObservedObject var gameState: GameState
     
     var body: some View {
-        VStack(spacing: 4) {
+        ZStack {
+            VStack(spacing: 4) {
+                if resource.amount > 0 {
+                    Image(systemName: resource.icon)
+                        .font(.title2)
+                        .foregroundColor(resource.color)
+                
+                    Text("\(Int(resource.amount))")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                } else {
+                    // Empty slot - show nothing or a placeholder
+                    Image(systemName: "square")
+                        .font(.title2)
+                        .foregroundColor(.clear)
+                    
+                    Text("")
+                        .font(.caption)
+                }
+            }
+            .frame(height: 80)
+            .frame(maxWidth: .infinity)
+            .background(Color.black)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.gray, lineWidth: 1)
+            )
+            .cornerRadius(8)
+            
+            // Rarity indicator overlay in top right corner
             if resource.amount > 0 {
-                Image(systemName: resource.icon)
-                    .font(.title2)
-                    .foregroundColor(resource.color)
-                
-                Text("\(Int(resource.amount))")
-                    .font(.caption)
-                    .foregroundColor(.white)
-            } else {
-                // Empty slot - show nothing or a placeholder
-                Image(systemName: "square")
-                    .font(.title2)
-                    .foregroundColor(.clear)
-                
-                Text("")
-                    .font(.caption)
+                let rarity = gameState.getResourceRarity(for: resource.type)
+                VStack {
+                    HStack {
+                        Spacer()
+                        Image(systemName: rarity.icon)
+                            .font(.caption2)
+                            .foregroundColor(rarity.color)
+                            .padding(.top, 4)
+                            .padding(.trailing, 4)
+                    }
+                    Spacer()
+                }
             }
         }
-        .frame(height: 80)
-        .frame(maxWidth: .infinity)
-        .background(Color.black)
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.gray, lineWidth: 1)
-        )
-        .cornerRadius(8)
     }
 }
 
@@ -1856,20 +1875,37 @@ struct ResourcesPageView: View {
         let numinsResource = ownedResources.first { $0.type == .numins }
         let otherResources = ownedResources.filter { $0.type != .numins }
         
-        // Sort other resources based on selected option
+        // Sort other resources based on selected option and direction
         let sortedOtherResources: [Resource]
+        let isAscending = gameState.resourceSortAscending
+        
         switch gameState.resourceSortOption {
         case .alphabetical:
-            sortedOtherResources = otherResources.sorted { $0.type.rawValue < $1.type.rawValue }
-        case .reverseAlphabetical:
-            sortedOtherResources = otherResources.sorted { $0.type.rawValue > $1.type.rawValue }
-        case .quantityAscending:
-            sortedOtherResources = otherResources.sorted { $0.amount < $1.amount }
-        case .quantityDescending:
-            sortedOtherResources = otherResources.sorted { $0.amount > $1.amount }
+            sortedOtherResources = otherResources.sorted { 
+                isAscending ? $0.type.rawValue < $1.type.rawValue : $0.type.rawValue > $1.type.rawValue
+            }
+        case .quantity:
+            sortedOtherResources = otherResources.sorted { 
+                isAscending ? $0.amount < $1.amount : $0.amount > $1.amount
+            }
         case .rarity:
-            // For now, just return alphabetical since rarity isn't implemented yet
-            sortedOtherResources = otherResources.sorted { $0.type.rawValue < $1.type.rawValue }
+            // Sort by rarity: Common -> Uncommon -> Rare, then alphabetically within each rarity
+            sortedOtherResources = otherResources.sorted { resource1, resource2 in
+                let rarity1 = gameState.getResourceRarity(for: resource1.type)
+                let rarity2 = gameState.getResourceRarity(for: resource2.type)
+                
+                // Define rarity order: Common (0), Uncommon (1), Rare (2)
+                let rarityOrder: [ResourceRarity: Int] = [.common: 0, .uncommon: 1, .rare: 2]
+                let order1 = rarityOrder[rarity1] ?? 0
+                let order2 = rarityOrder[rarity2] ?? 0
+                
+                if order1 != order2 {
+                    return isAscending ? order1 < order2 : order1 > order2
+                } else {
+                    // Same rarity, sort alphabetically
+                    return isAscending ? resource1.type.rawValue < resource2.type.rawValue : resource1.type.rawValue > resource2.type.rawValue
+                }
+            }
         }
         
         // Always put Numins first, then other sorted resources
@@ -1906,13 +1942,57 @@ struct ResourcesPageView: View {
                         .font(.subheadline)
                         .foregroundColor(.white)
                     
-                    Picker("Sort Option", selection: $gameState.resourceSortOption) {
-                        ForEach(ResourceSortOption.allCases, id: \.self) { option in
-                            Text(option.rawValue).tag(option)
+                    Button(action: {
+                        // Toggle sort direction if same option, otherwise set new option
+                        if gameState.resourceSortOption == .alphabetical {
+                            gameState.resourceSortAscending.toggle()
+                        } else {
+                            gameState.resourceSortOption = .alphabetical
+                            gameState.resourceSortAscending = true
+                        }
+                    }) {
+                        HStack {
+                            Text("Alphabetical")
+                            Image(systemName: gameState.resourceSortOption == .alphabetical ? 
+                                  (gameState.resourceSortAscending ? "arrow.up" : "arrow.down") : "arrow.up.down")
+                                .font(.caption)
                         }
                     }
-                    .pickerStyle(MenuPickerStyle())
-                    .foregroundColor(.blue)
+                    .foregroundColor(gameState.resourceSortOption == .alphabetical ? .blue : .white)
+                    
+                    Button(action: {
+                        if gameState.resourceSortOption == .quantity {
+                            gameState.resourceSortAscending.toggle()
+                        } else {
+                            gameState.resourceSortOption = .quantity
+                            gameState.resourceSortAscending = true
+                        }
+                    }) {
+                        HStack {
+                            Text("Quantity")
+                            Image(systemName: gameState.resourceSortOption == .quantity ? 
+                                  (gameState.resourceSortAscending ? "arrow.up" : "arrow.down") : "arrow.up.down")
+                                .font(.caption)
+                        }
+                    }
+                    .foregroundColor(gameState.resourceSortOption == .quantity ? .blue : .white)
+                    
+                    Button(action: {
+                        if gameState.resourceSortOption == .rarity {
+                            gameState.resourceSortAscending.toggle()
+                        } else {
+                            gameState.resourceSortOption = .rarity
+                            gameState.resourceSortAscending = true
+                        }
+                    }) {
+                        HStack {
+                            Text("Rarity")
+                            Image(systemName: gameState.resourceSortOption == .rarity ? 
+                                  (gameState.resourceSortAscending ? "arrow.up" : "arrow.down") : "arrow.up.down")
+                                .font(.caption)
+                        }
+                    }
+                    .foregroundColor(gameState.resourceSortOption == .rarity ? .blue : .white)
                     
                     Spacer()
                 }
@@ -1936,7 +2016,7 @@ struct ResourcesPageView: View {
                                     gameState.selectedResourceForDetail = resource.type
                                 }
                             }) {
-                                ResourceCard(resource: resource)
+                                ResourceCard(resource: resource, gameState: gameState)
                                     .scaleEffect(gameState.selectedResourceForDetail == resource.type ? 0.95 : 1.0)
                                     .animation(.spring(response: 0.2, dampingFraction: 0.8), value: gameState.selectedResourceForDetail)
                             }
@@ -2271,7 +2351,7 @@ struct ResourceDetailView: View {
                 )
 
             VStack(alignment: .leading, spacing: 12) {
-                // Top row - Icon and Name (no close button)
+                // Top row - Icon and Name with Rarity symbol
                 HStack(spacing: 12) {
                     // Icon and name side by side
                     HStack(spacing: 12) {
@@ -2300,10 +2380,13 @@ struct ResourceDetailView: View {
 
                     Spacer()
 
-                    // Swipe hint indicator
-                    Image(systemName: "chevron.up")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.4))
+                    // Rarity indicator in top right corner
+                    let rarity = gameState.getResourceRarity(for: resource.type)
+                    Image(systemName: rarity.icon)
+                        .font(.title3)
+                        .foregroundColor(rarity.color)
+                        .padding(.top, 4)
+                        .padding(.trailing, 4)
                 }
 
                 // Description - takes up remaining space
@@ -2812,7 +2895,7 @@ struct CardSlotView: View {
         case "tapYieldMultiplier":
             return "[+\(percentage)%] Tap Yield"
         case "idleRareBias":
-            return "[+\(percentage)%] Rare Bias"
+            return "[+\(percentage)%] to rare items"
         default:
             return cardDef.description
         }
