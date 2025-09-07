@@ -825,7 +825,9 @@ struct LocationResourceListView: View {
                     Spacer()
                     
                     let numinsRange = gameState.getCurrentTapNuminsRange()
-                    Text("\(Int(gameState.getCurrentTapNuminsChance()))% (\(numinsRange.min)-\(numinsRange.max))")
+                    let numinsChance = gameState.getCurrentTapNuminsChance()
+                    let numinsChanceText = numinsChance < 1.0 ? String(format: "%.1f", numinsChance) : "\(Int(numinsChance))"
+                    Text("\(numinsChanceText)% (\(numinsRange.min)-\(numinsRange.max))")
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
@@ -845,7 +847,9 @@ struct LocationResourceListView: View {
                     
                     Spacer()
                     
-                    Text("\(Int(gameState.getCurrentTapXPChance()))% (\(gameState.getCurrentTapXPAmount()))")
+                    let xpChance = gameState.getCurrentTapXPChance()
+                    let xpChanceText = xpChance < 1.0 ? String(format: "%.1f", xpChance) : "\(Int(xpChance))"
+                    Text("\(xpChanceText)% (\(gameState.getCurrentTapXPAmount()))")
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
@@ -867,7 +871,9 @@ struct LocationResourceListView: View {
                         Spacer()
                         
                         let cardAbbrevs = gameState.getLocationCardAbbreviations()
-                        Text("\(Int(gameState.getCurrentTapCardChance()))% (\(cardAbbrevs.joined(separator: ", ")))")
+                        let cardChance = gameState.getCurrentTapCardChance()
+                        let cardChanceText = cardChance < 1.0 ? String(format: "%.1f", cardChance) : "\(Int(cardChance))"
+                        Text("\(cardChanceText)% (\(cardAbbrevs.joined(separator: ", ")))")
                             .font(.caption2)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
@@ -897,7 +903,9 @@ struct LocationResourceListView: View {
                     
                     Spacer()
                     
-                    Text("\(Int(gameState.getCurrentIdleResourceChance()))%/sec")
+                    let idleResourceChance = gameState.getCurrentIdleResourceChance()
+                    let idleResourceChanceText = idleResourceChance < 1.0 ? String(format: "%.1f", idleResourceChance) : "\(Int(idleResourceChance))"
+                    Text("\(idleResourceChanceText)%/sec")
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
@@ -918,7 +926,9 @@ struct LocationResourceListView: View {
                     Spacer()
                     
                     let idleNuminsRange = gameState.getCurrentIdleNuminsRange()
-                    Text("\(Int(gameState.getCurrentIdleNuminsChance()))%/sec (\(idleNuminsRange.min)-\(idleNuminsRange.max))")
+                    let idleNuminsChance = gameState.getCurrentIdleNuminsChance()
+                    let idleNuminsChanceText = idleNuminsChance < 1.0 ? String(format: "%.1f", idleNuminsChance) : "\(Int(idleNuminsChance))"
+                    Text("\(idleNuminsChanceText)%/sec (\(idleNuminsRange.min)-\(idleNuminsRange.max))")
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
