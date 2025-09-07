@@ -520,7 +520,7 @@ struct LocationView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.8))
+                    .background(Color.black)
                     .cornerRadius(8)
                     .padding(.horizontal, 16)
                 }
@@ -600,6 +600,162 @@ struct LocationSlotView: View {
                             .font(.caption2)
                             .foregroundColor(.gray.opacity(0.6))
                     }
+                )
+        }
+    }
+}
+
+// MARK: - Construction Slots View
+struct ConstructionSlotsView: View {
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                ForEach(0..<4, id: \.self) { index in
+                    ConstructionSlotView(slotIndex: index, gameState: gameState)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Color.black.opacity(0.6))
+        .cornerRadius(12)
+        .padding(.horizontal, 16)
+    }
+}
+
+struct ConstructionSlotView: View {
+    let slotIndex: Int
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 60, height: 60)
+                .overlay(
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                )
+        }
+    }
+}
+
+// MARK: - Resources Slots View
+struct ResourcesSlotsView: View {
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                ForEach(0..<4, id: \.self) { index in
+                    ResourcesSlotView(slotIndex: index, gameState: gameState)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Color.black.opacity(0.6))
+        .cornerRadius(12)
+        .padding(.horizontal, 16)
+    }
+}
+
+struct ResourcesSlotView: View {
+    let slotIndex: Int
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 60, height: 60)
+                .overlay(
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                )
+        }
+    }
+}
+
+// MARK: - Shop Slots View
+struct ShopSlotsView: View {
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                ForEach(0..<4, id: \.self) { index in
+                    ShopSlotView(slotIndex: index, gameState: gameState)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Color.black.opacity(0.6))
+        .cornerRadius(12)
+        .padding(.horizontal, 16)
+    }
+}
+
+struct ShopSlotView: View {
+    let slotIndex: Int
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 60, height: 60)
+                .overlay(
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                )
+        }
+    }
+}
+
+// MARK: - Cards Slots View
+struct CardsSlotsView: View {
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                ForEach(0..<4, id: \.self) { index in
+                    CardsSlotView(slotIndex: index, gameState: gameState)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Color.black.opacity(0.6))
+        .cornerRadius(12)
+        .padding(.horizontal, 16)
+    }
+}
+
+struct CardsSlotView: View {
+    let slotIndex: Int
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 60, height: 60)
+                .overlay(
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.gray)
                 )
         }
     }
@@ -1448,33 +1604,41 @@ struct ConstructionPageView: View {
             
                     VStack {
                         Spacer()
-                        
-                        // Enhancement button - always visible
-                        Button(action: {
-                            gameState.showLocationSlots.toggle()
-                        }) {
-                            HStack {
-                                Text("Enhancements")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.white)
-                                
-                                Spacer()
-                            }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(8)
-                            .padding(.horizontal, 16)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        // Enhancement slots - shown conditionally
-                        if gameState.showLocationSlots {
-                            LocationSlotsView(gameState: gameState)
-                                .padding(.bottom, 10) // Position just above navigation bar
-                        }
                     }
+            
+            // Enhancement slots overlay - positioned at bottom without affecting layout
+            VStack {
+                Spacer()
+                
+                // Enhancement button - always visible
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        gameState.showConstructionSlots.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Enhancements")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.black)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Enhancement slots - shown conditionally with animation
+                if gameState.showConstructionSlots {
+                    ConstructionSlotsView(gameState: gameState)
+                        .padding(.bottom, 10) // Position just above navigation bar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $gameState.showConstructionMenu) {
@@ -1793,32 +1957,41 @@ struct ResourcesPageView: View {
                     VStack {
                         Spacer()
                         
-                        // Enhancement button - always visible
-                        Button(action: {
-                            gameState.showLocationSlots.toggle()
-                        }) {
-                            HStack {
-                                Text("Enhancements")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.white)
-                                
-                                Spacer()
-                            }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(8)
-                            .padding(.horizontal, 16)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        // Enhancement slots - shown conditionally
-                        if gameState.showLocationSlots {
-                            LocationSlotsView(gameState: gameState)
-                                .padding(.bottom, 10) // Position just above navigation bar
-                        }
                     }
+            
+            // Enhancement slots overlay - positioned at bottom without affecting layout
+            VStack {
+                Spacer()
+                
+                // Enhancement button - always visible
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        gameState.showResourcesSlots.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Enhancements")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.black)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Enhancement slots - shown conditionally with animation
+                if gameState.showResourcesSlots {
+                    ResourcesSlotsView(gameState: gameState)
+                        .padding(.bottom, 10) // Position just above navigation bar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -2301,33 +2474,41 @@ struct ShopView: View {
             
                     VStack {
                         Spacer()
-                        
-                        // Enhancement button - always visible
-                        Button(action: {
-                            gameState.showLocationSlots.toggle()
-                        }) {
-                            HStack {
-                                Text("Enhancements")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.white)
-                                
-                                Spacer()
-                            }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(8)
-                            .padding(.horizontal, 16)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        // Enhancement slots - shown conditionally
-                        if gameState.showLocationSlots {
-                            LocationSlotsView(gameState: gameState)
-                                .padding(.bottom, 10) // Position just above navigation bar
-                        }
                     }
+            
+            // Enhancement slots overlay - positioned at bottom without affecting layout
+            VStack {
+                Spacer()
+                
+                // Enhancement button - always visible
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        gameState.showShopSlots.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Enhancements")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.black)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Enhancement slots - shown conditionally with animation
+                if gameState.showShopSlots {
+                    ShopSlotsView(gameState: gameState)
+                        .padding(.bottom, 10) // Position just above navigation bar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Shop")
@@ -2342,6 +2523,26 @@ struct CardsView: View {
         ZStack {
             ScrollView {
                 VStack(spacing: 24) {
+                    // Dev Tool Section
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            addAllCards()
+                        }) {
+                            Text("DEV")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.red.opacity(0.8))
+                                .cornerRadius(4)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    
                     // Explorer Class Section
                     CardClassSection(
                         title: "Explorer Class",
@@ -2369,6 +2570,20 @@ struct CardsView: View {
                         cardClass: .progression,
                         gameState: gameState
                     )
+                    
+                    // Trader Class Section
+                    CardClassSection(
+                        title: "Trader Class",
+                        cardClass: .trader,
+                        gameState: gameState
+                    )
+                    
+                    // Card Class Section
+                    CardClassSection(
+                        title: "Card Class",
+                        cardClass: .card,
+                        gameState: gameState
+                    )
                 }
                 .padding()
                 .padding(.bottom, 100) // Add space for slots
@@ -2376,37 +2591,52 @@ struct CardsView: View {
             
                     VStack {
                         Spacer()
-                        
-                        // Enhancement button - always visible
-                        Button(action: {
-                            gameState.showLocationSlots.toggle()
-                        }) {
-                            HStack {
-                                Text("Enhancements")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.white)
-                                
-                                Spacer()
-                            }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(8)
-                            .padding(.horizontal, 16)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        // Enhancement slots - shown conditionally
-                        if gameState.showLocationSlots {
-                            LocationSlotsView(gameState: gameState)
-                                .padding(.bottom, 10) // Position just above navigation bar
-                        }
                     }
+            
+            // Enhancement slots overlay - positioned at bottom without affecting layout
+            VStack {
+                Spacer()
+                
+                // Enhancement button - always visible
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        gameState.showCardsSlots.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Enhancements")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.black)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Enhancement slots - shown conditionally with animation
+                if gameState.showCardsSlots {
+                    CardsSlotsView(gameState: gameState)
+                        .padding(.bottom, 10) // Position just above navigation bar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Cards")
         .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    private func addAllCards() {
+        let allCardIds = gameState.getAllCardDefinitions().map { $0.id }
+        for cardId in allCardIds {
+            gameState.addCard(cardId, copies: 1)
+        }
     }
 }
 
@@ -2451,58 +2681,141 @@ struct CardSlotView: View {
     }
     
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 0) {
             if let cardDef = cardDef, let userCard = userCard {
                 // Owned card
-                VStack(spacing: 2) {
-                    // Card icon/art placeholder
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(cardClassColor.opacity(0.3))
-                        .frame(height: 180)
-                        .overlay(
-                            VStack {
-                                Image(systemName: cardClassIcon)
-                                    .font(.title2)
-                                    .foregroundColor(cardClassColor)
-                                
-                                Text("T\(userCard.tier)")
-                                    .font(.caption2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(cardClassColor)
-                            }
-                        )
-                    
-                    // Card name
+                VStack(spacing: 0) {
+                    // Card name at the top
                     Text(cardDef.name)
                         .font(.caption)
-                        .fontWeight(.medium)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 4)
+                        .padding(.top, 4)
+                        .lineLimit(1)
                     
-                    // Copies count
-                    Text("\(userCard.copies) copies")
+                    // Card icon/art in top half
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(cardClassColor.opacity(0.3))
+                        .frame(height: 80)
+                        .overlay(
+                            Image(systemName: getCardIcon(for: cardDef.id))
+                                .font(.title)
+                                .foregroundColor(cardClassColor)
+                        )
+                        .padding(.horizontal, 4)
+                        .padding(.top, 2)
+                    
+                    // Ability text in bottom half
+                    Text(getAbilityText(for: cardDef, userCard: userCard))
                         .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 4)
+                        .padding(.top, 4)
+                        .frame(height: 40)
+                    
+                    // Bottom row: Level (left) and Quantity (right)
+                    HStack {
+                        // Level in bottom left
+                        Text("Level \(userCard.tier)")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(cardClassColor)
+                        
+                        Spacer()
+                        
+                        // Quantity in bottom right
+                        Text("\(userCard.copies)")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 4)
+                    .padding(.bottom, 4)
                 }
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(cardClassColor.opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(cardClassColor, lineWidth: 1)
+                        )
+                )
             } else {
                 // Empty slot
-                VStack(spacing: 2) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(cardClassColor.opacity(0.3), lineWidth: 2)
-                        .frame(height: 180)
-                        .overlay(
-                            Image(systemName: "plus")
-                                .font(.title2)
-                                .foregroundColor(cardClassColor.opacity(0.5))
-                        )
-                    
+                VStack(spacing: 0) {
+                    // Card name placeholder
                     Text("Empty Slot")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .fontWeight(.bold)
+                        .foregroundColor(.gray)
+                        .padding(.horizontal, 4)
+                        .padding(.top, 4)
+                    
+                    // Card icon/art placeholder
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(cardClassColor.opacity(0.3), lineWidth: 2)
+                        .frame(height: 80)
+                        .overlay(
+                            Image(systemName: "plus")
+                                .font(.title)
+                                .foregroundColor(cardClassColor.opacity(0.5))
+                        )
+                        .padding(.horizontal, 4)
+                        .padding(.top, 2)
+                    
+                    // Empty space for ability text
+                    Spacer()
+                        .frame(height: 40)
+                        .padding(.top, 4)
+                    
+                    // Bottom row placeholder
+                    HStack {
+                        Text("")
+                        Spacer()
+                        Text("")
+                    }
+                    .padding(.horizontal, 4)
+                    .padding(.bottom, 4)
                 }
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.black.opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(cardClassColor.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                        )
+                )
             }
         }
-        .frame(height: 220)
+        .frame(height: 160)
+    }
+    
+    private func getCardIcon(for cardId: String) -> String {
+        switch cardId {
+        case "astro-prospector":
+            return "telescope.fill"
+        case "deep-scan":
+            return "waveform"
+        default:
+            return cardClassIcon
+        }
+    }
+    
+    private func getAbilityText(for cardDef: CardDef, userCard: UserCard) -> String {
+        let tierValue = cardDef.tiers[userCard.tier - 1].value
+        let percentage = Int(tierValue * 100)
+        
+        switch cardDef.effectKey {
+        case "tapYieldMultiplier":
+            return "[+\(percentage)%] Tap Yield"
+        case "idleRareBias":
+            return "[+\(percentage)%] Rare Bias"
+        default:
+            return cardDef.description
+        }
     }
     
     private var cardClassColor: Color {
@@ -2511,6 +2824,8 @@ struct CardSlotView: View {
         case .constructor: return .orange
         case .collector: return .green
         case .progression: return .purple
+        case .trader: return .yellow
+        case .card: return .red
         }
     }
     
@@ -2520,6 +2835,8 @@ struct CardSlotView: View {
         case .constructor: return "hammer"
         case .collector: return "shippingbox"
         case .progression: return "chart.line.uptrend.xyaxis"
+        case .trader: return "dollarsign.circle"
+        case .card: return "rectangle.stack"
         }
     }
 }

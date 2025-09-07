@@ -29,6 +29,10 @@ class GameState: ObservableObject {
     @Published var showConstructionDetails = false
     @Published var showCardsDetails = false
     @Published var showLocationSlots = false
+    @Published var showConstructionSlots = false
+    @Published var showResourcesSlots = false
+    @Published var showShopSlots = false
+    @Published var showCardsSlots = false
     @Published var resourceSortOption: ResourceSortOption = .alphabetical
     @Published var selectedResourceForDetail: ResourceType?
     
@@ -101,14 +105,8 @@ class GameState: ObservableObject {
         // Initialize resources as empty - resources will be added when first collected
         self.resources = []
         
-        // Initialize cards - add the 4 example cards for testing
-        self.ownedCards = [
-            UserCard(id: UUID().uuidString, cardId: "astro-prospector", copies: 1, tier: 1),
-            UserCard(id: UUID().uuidString, cardId: "deep-scan", copies: 3, tier: 1),
-            UserCard(id: UUID().uuidString, cardId: "bay-optimizer", copies: 1, tier: 1),
-            UserCard(id: UUID().uuidString, cardId: "bulk-storage", copies: 2, tier: 1),
-            UserCard(id: UUID().uuidString, cardId: "learned-hands", copies: 1, tier: 1)
-        ]
+        // Initialize cards - start with no cards
+        self.ownedCards = []
         
         // Initialize all 11 available locations from TDD
         self.availableLocations = [
@@ -1068,11 +1066,11 @@ class GameState: ObservableObject {
                 cardClass: .explorer,
                 effectKey: "tapYieldMultiplier",
                 tiers: [
-                    CardTier(copies: 2, value: 0.02),   // +2%
-                    CardTier(copies: 5, value: 0.04),   // +4%
-                    CardTier(copies: 10, value: 0.07),  // +7%
-                    CardTier(copies: 25, value: 0.11),  // +11%
-                    CardTier(copies: 100, value: 0.16)  // +16%
+                    CardTier(copies: 2, value: 0.25),   // +25%
+                    CardTier(copies: 5, value: 0.50),   // +50%
+                    CardTier(copies: 10, value: 0.75),  // +75%
+                    CardTier(copies: 25, value: 1.00),  // +100%
+                    CardTier(copies: 100, value: 1.50)  // +150%
                 ],
                 description: "Increases tap yield when slotted on Resources/Map screens"
             ),
@@ -1171,8 +1169,8 @@ class GameState: ObservableObject {
         
         // Check if we can upgrade to next tier
         if userCard.tier < 5 {
-            let nextTier = userCard.tier
-            let requiredCopies = cardDef.tiers[nextTier].copies
+            let currentTierIndex = userCard.tier - 1  // Convert tier to 0-based index
+            let requiredCopies = cardDef.tiers[currentTierIndex].copies
             
             if userCard.copies >= requiredCopies {
                 ownedCards[index].copies -= requiredCopies
@@ -1237,6 +1235,8 @@ enum CardClass: String, CaseIterable {
     case constructor = "Constructor"
     case collector = "Collector"
     case progression = "Progression"
+    case trader = "Trader"
+    case card = "Card"
 }
 
 struct CardDef: Identifiable {
