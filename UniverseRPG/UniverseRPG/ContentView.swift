@@ -538,20 +538,23 @@ struct LocationView: View {
     }
     
     private func addDeveloperResources() {
-        // Add 100 of each resource available in the current location
-        for resourceName in gameState.currentLocation.availableResources {
-            if let resourceType = ResourceType.allCases.first(where: { $0.rawValue == resourceName }) {
-                if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
-                    gameState.resources[existingIndex].amount += 100
-                } else {
-                    let newResource = Resource(
-                        type: resourceType,
-                        amount: 100,
-                        icon: gameState.getResourceIcon(for: resourceType),
-                        color: gameState.getResourceColor(for: resourceType)
-                    )
-                    gameState.resources.append(newResource)
-                }
+        // Add 100 resources based on current location's drop table distribution
+        let dropTable = gameState.getLocationDropTable()
+        let totalToAdd = 100
+        
+        for _ in 0..<totalToAdd {
+            let selectedResource = gameState.selectResourceFromDropTable(dropTable)
+            
+            if let existingIndex = gameState.resources.firstIndex(where: { $0.type == selectedResource }) {
+                gameState.resources[existingIndex].amount += 1
+            } else {
+                let newResource = Resource(
+                    type: selectedResource,
+                    amount: 1,
+                    icon: gameState.getResourceIcon(for: selectedResource),
+                    color: gameState.getResourceColor(for: selectedResource)
+                )
+                gameState.resources.append(newResource)
             }
         }
         
@@ -1243,6 +1246,104 @@ struct ResourceCard: View {
     }
 }
 
+// MARK: - Resource Deletion Controls
+struct ResourceDeletionControls: View {
+    let resource: Resource
+    @ObservedObject var gameState: GameState
+    @State private var amountToDelete: Int = 1
+    @State private var showDeleteConfirmation = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Delete Resources")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(.white.opacity(0.7))
+            
+            HStack(spacing: 12) {
+                // Amount selection buttons
+                Button(action: {
+                    if amountToDelete > 1 {
+                        amountToDelete -= 1
+                    }
+                }) {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.red)
+                }
+                .disabled(amountToDelete <= 1)
+                
+                Text("\(amountToDelete)")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .frame(minWidth: 30)
+                
+                Button(action: {
+                    if amountToDelete < Int(resource.amount) {
+                        amountToDelete += 1
+                    }
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.green)
+                }
+                .disabled(amountToDelete >= Int(resource.amount))
+                
+                Spacer()
+                
+                // Max/Min buttons
+                Button("Min") {
+                    amountToDelete = 1
+                }
+                .font(.caption)
+                .foregroundColor(.blue)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.blue.opacity(0.2))
+                .cornerRadius(4)
+                
+                Button("Max") {
+                    amountToDelete = Int(resource.amount)
+                }
+                .font(.caption)
+                .foregroundColor(.blue)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.blue.opacity(0.2))
+                .cornerRadius(4)
+            }
+            
+            // Delete button
+            Button(action: {
+                showDeleteConfirmation = true
+            }) {
+                HStack {
+                    Image(systemName: "trash.fill")
+                    Text("Delete \(amountToDelete) \(amountToDelete == 1 ? "unit" : "units")")
+                }
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(Color.red.opacity(0.8))
+                .cornerRadius(8)
+            }
+            .disabled(amountToDelete <= 0 || amountToDelete > Int(resource.amount))
+        }
+        .alert("Confirm Deletion", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                gameState.deleteResource(resource.type, amount: amountToDelete)
+                amountToDelete = 1 // Reset to 1 after deletion
+            }
+        } message: {
+            Text("Are you sure you want to delete \(amountToDelete) \(amountToDelete == 1 ? "unit" : "units") of \(resource.type.rawValue)? This action cannot be undone.")
+        }
+    }
+}
+
 // MARK: - Empty Resource Card (placeholder for future resources)
 struct EmptyResourceCard: View {
     var body: some View {
@@ -1928,10 +2029,14 @@ struct ResourcesPageView: View {
                     
                     Spacer()
                     
-                    Button("Test") {
-                        gameState.printDropTableTestResults(taps: 100)
-                    }
-                    .foregroundColor(.blue)
+                    Text("\(gameState.getTotalResourcesHeld()) / \(gameState.maxStorageCapacity)")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.blue.opacity(0.2))
+                        .cornerRadius(8)
                 }
                 .padding(.horizontal)
                 .padding(.top, 8)
@@ -2420,6 +2525,9 @@ struct ResourceDetailView: View {
                         }
                     }
                 }
+                
+                // Resource deletion controls
+                ResourceDeletionControls(resource: resource, gameState: gameState)
             }
             .padding(20)
         }
@@ -2889,13 +2997,19 @@ struct CardSlotView: View {
     
     private func getAbilityText(for cardDef: CardDef, userCard: UserCard) -> String {
         let tierValue = cardDef.tiers[userCard.tier - 1].value
-        let percentage = Int(tierValue * 100)
+        let percentage = Int(abs(tierValue) * 100)
         
         switch cardDef.effectKey {
         case "tapYieldMultiplier":
             return "[+\(percentage)%] Tap Yield"
         case "idleRareBias":
             return "[+\(percentage)%] to rare items"
+        case "buildTimeMultiplier":
+            return "[\(percentage)%] faster construction time"
+        case "storageCapBonus":
+            return "[+\(Int(tierValue))] storage capacity"
+        case "xpGainMultiplier":
+            return "[+\(percentage)%] XP gain"
         default:
             return cardDef.description
         }

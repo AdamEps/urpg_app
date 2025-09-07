@@ -68,6 +68,7 @@ class GameState: ObservableObject {
     @Published var resourceSortOption: ResourceSortOption = .alphabetical
     @Published var resourceSortAscending: Bool = true
     @Published var selectedResourceForDetail: ResourceType?
+    @Published var maxStorageCapacity: Int = 1000
     
     // Player data
     @Published var playerName: String = "Commander"
@@ -308,6 +309,12 @@ class GameState: ObservableObject {
         let dropTable = getModifiedDropTable()
         let selectedResource = selectResourceFromDropTable(dropTable)
         
+        // Check if we can add this resource (storage limit check)
+        guard canAddResource(selectedResource, amount: 1) else {
+            print("Storage full! Cannot idle collect \(selectedResource.rawValue)")
+            return
+        }
+        
         // Add 1 of the selected resource (same logic as tapLocation)
         if let existingIndex = resources.firstIndex(where: { $0.type == selectedResource }) {
             // Resource already exists, increment amount
@@ -348,6 +355,12 @@ class GameState: ObservableObject {
         // Active tapping mechanic - gives immediate resources based on drop table percentages
         let dropTable = getLocationDropTable()
         let selectedResource = selectResourceFromDropTable(dropTable)
+        
+        // Check if we can add this resource (storage limit check)
+        guard canAddResource(selectedResource, amount: 1) else {
+            print("Storage full! Cannot collect \(selectedResource.rawValue)")
+            return
+        }
         
         // Add 1 of the selected resource
         if let existingIndex = resources.firstIndex(where: { $0.type == selectedResource }) {
@@ -421,7 +434,7 @@ class GameState: ObservableObject {
         print("Tap #\(currentLocationTapCount) - Collected: \(selectedResource.rawValue)")
     }
     
-    private func selectResourceFromDropTable(_ dropTable: [(ResourceType, Double)]) -> ResourceType {
+    func selectResourceFromDropTable(_ dropTable: [(ResourceType, Double)]) -> ResourceType {
         // Generate random number between 0 and 100
         let randomValue = Double.random(in: 0...100)
         
@@ -1219,8 +1232,8 @@ class GameState: ObservableObject {
             
             // Constructor Class
             CardDef(
-                id: "bay-optimizer",
-                name: "Bay Optimizer",
+                id: "materials-engineer",
+                name: "Materials Engineer",
                 cardClass: .constructor,
                 effectKey: "buildTimeMultiplier",
                 tiers: [
@@ -1230,39 +1243,39 @@ class GameState: ObservableObject {
                     CardTier(copies: 25, value: -0.11), // -11%
                     CardTier(copies: 100, value: -0.16) // -16%
                 ],
-                description: "Faster builds on Construction screen"
+                description: "Reduces construction time when slotted"
             ),
             
             // Collector Class
             CardDef(
-                id: "bulk-storage",
-                name: "Bulk Storage",
+                id: "storage-bay",
+                name: "Storage Bay",
                 cardClass: .collector,
                 effectKey: "storageCapBonus",
                 tiers: [
                     CardTier(copies: 2, value: 100),    // +100
                     CardTier(copies: 5, value: 250),    // +250
                     CardTier(copies: 10, value: 500),   // +500
-                    CardTier(copies: 25, value: 900),   // +900
+                    CardTier(copies: 25, value: 1000),  // +1000
                     CardTier(copies: 100, value: 1500)  // +1500
                 ],
-                description: "Increases per-resource storage caps"
+                description: "Expands storage capacity for resources"
             ),
             
             // Progression Class
             CardDef(
-                id: "learned-hands",
-                name: "Learned Hands",
+                id: "midas-touch",
+                name: "Midas' Touch",
                 cardClass: .progression,
                 effectKey: "xpGainMultiplier",
                 tiers: [
-                    CardTier(copies: 2, value: 0.02),   // +2%
-                    CardTier(copies: 5, value: 0.04),   // +4%
-                    CardTier(copies: 10, value: 0.06),  // +6%
-                    CardTier(copies: 25, value: 0.09),  // +9%
-                    CardTier(copies: 100, value: 0.13)  // +13%
+                    CardTier(copies: 2, value: 0.50),   // +50%
+                    CardTier(copies: 5, value: 0.75),   // +75%
+                    CardTier(copies: 10, value: 1.00),  // +100%
+                    CardTier(copies: 25, value: 1.50),  // +150%
+                    CardTier(copies: 100, value: 2.00)  // +200%
                 ],
-                description: "Global XP boost when slotted on any screen"
+                description: "Increases experience (XP) gain across all activities on chosen screen"
             )
         ]
     }
@@ -1312,6 +1325,40 @@ class GameState: ObservableObject {
     
     func getTotalCardsCollected() -> Int {
         return ownedCards.reduce(0) { $0 + $1.copies }
+    }
+    
+    func getTotalResourcesHeld() -> Int {
+        return resources.filter { $0.type != .numins }.reduce(0) { $0 + Int($1.amount) }
+    }
+    
+    func isStorageFull() -> Bool {
+        return getTotalResourcesHeld() >= maxStorageCapacity
+    }
+    
+    func canAddResource(_ resourceType: ResourceType, amount: Int = 1) -> Bool {
+        // Currency (Numins) can always be added
+        if resourceType == .numins {
+            return true
+        }
+        // Check if adding this amount would exceed storage capacity
+        return getTotalResourcesHeld() + amount <= maxStorageCapacity
+    }
+    
+    func deleteResource(_ resourceType: ResourceType, amount: Int) {
+        guard let index = resources.firstIndex(where: { $0.type == resourceType }) else { return }
+        
+        let currentAmount = Int(resources[index].amount)
+        let newAmount = max(0, currentAmount - amount)
+        
+        if newAmount == 0 {
+            // Remove the resource entirely if amount becomes 0
+            resources.remove(at: index)
+        } else {
+            // Update the amount
+            resources[index].amount = Double(newAmount)
+        }
+        
+        print("Deleted \(amount) \(resourceType.rawValue). Remaining: \(newAmount)")
     }
     
     func getCardsCollectedForClass(_ cardClass: CardClass) -> Int {
