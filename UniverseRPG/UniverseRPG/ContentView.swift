@@ -2595,7 +2595,6 @@ struct ResourceDetailView: View {
             .padding(20)
         }
         .frame(height: 280)
-        .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .offset(y: dragOffset.height)
         .gesture(
