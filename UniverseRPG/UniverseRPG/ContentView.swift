@@ -1252,95 +1252,142 @@ struct ResourceDeletionControls: View {
     @ObservedObject var gameState: GameState
     @State private var amountToDelete: Int = 1
     @State private var showDeleteConfirmation = false
+    @State private var isHoldingMinus = false
+    @State private var isHoldingPlus = false
+    @State private var holdTimer: Timer?
+    @State private var holdSpeed: Double = 0.5 // Start slow, will accelerate
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Delete Resources")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(.white.opacity(0.7))
-            
-            HStack(spacing: 12) {
-                // Amount selection buttons
-                Button(action: {
-                    if amountToDelete > 1 {
-                        amountToDelete -= 1
-                    }
-                }) {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.red)
-                }
-                .disabled(amountToDelete <= 1)
-                
-                Text("\(amountToDelete)")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white)
-                    .frame(minWidth: 30)
-                
-                Button(action: {
-                    if amountToDelete < Int(resource.amount) {
-                        amountToDelete += 1
-                    }
-                }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.green)
-                }
-                .disabled(amountToDelete >= Int(resource.amount))
-                
-                Spacer()
-                
-                // Max/Min buttons
-                Button("Min") {
-                    amountToDelete = 1
-                }
-                .font(.caption)
-                .foregroundColor(.blue)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.blue.opacity(0.2))
-                .cornerRadius(4)
-                
-                Button("Max") {
-                    amountToDelete = Int(resource.amount)
-                }
-                .font(.caption)
-                .foregroundColor(.blue)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.blue.opacity(0.2))
-                .cornerRadius(4)
-            }
-            
-            // Delete button
+        HStack(spacing: 8) {
+            // Delete button (leftmost)
             Button(action: {
                 showDeleteConfirmation = true
             }) {
-                HStack {
+                HStack(spacing: 4) {
                     Image(systemName: "trash.fill")
-                    Text("Delete \(amountToDelete) \(amountToDelete == 1 ? "unit" : "units")")
+                        .font(.caption)
+                    Text("Delete")
+                        .font(.caption)
+                        .fontWeight(.medium)
                 }
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.red.opacity(0.8))
+                .cornerRadius(6)
+            }
+            .disabled(amountToDelete <= 0 || amountToDelete > Int(resource.amount))
+            
+            Spacer()
+            
+            // Max button
+            Button("Max") {
+                amountToDelete = Int(resource.amount)
+            }
+            .font(.caption2)
+            .foregroundColor(.blue)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Color.blue.opacity(0.2))
+            .cornerRadius(4)
+            
+            // Plus button with hold functionality
+            Button(action: {
+                if amountToDelete < Int(resource.amount) {
+                    amountToDelete += 1
+                }
+            }) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.green)
+            }
+            .disabled(amountToDelete >= Int(resource.amount))
+            .onLongPressGesture(minimumDuration: 0.1, maximumDistance: 50) {
+                // Long press started
+            } onPressingChanged: { pressing in
+                if pressing && amountToDelete < Int(resource.amount) {
+                    startHoldIncrement(isIncrement: true)
+                } else {
+                    stopHoldIncrement()
+                }
+            }
+            
+            // Amount display
+            Text("\(amountToDelete)")
                 .font(.subheadline)
                 .fontWeight(.medium)
                 .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(Color.red.opacity(0.8))
-                .cornerRadius(8)
+                .frame(minWidth: 30)
+            
+            // Minus button with hold functionality
+            Button(action: {
+                if amountToDelete > 1 {
+                    amountToDelete -= 1
+                }
+            }) {
+                Image(systemName: "minus.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.red)
             }
-            .disabled(amountToDelete <= 0 || amountToDelete > Int(resource.amount))
+            .disabled(amountToDelete <= 1)
+            .onLongPressGesture(minimumDuration: 0.1, maximumDistance: 50) {
+                // Long press started
+            } onPressingChanged: { pressing in
+                if pressing && amountToDelete > 1 {
+                    startHoldIncrement(isIncrement: false)
+                } else {
+                    stopHoldIncrement()
+                }
+            }
+            
+            // Min button
+            Button("Min") {
+                amountToDelete = 1
+            }
+            .font(.caption2)
+            .foregroundColor(.blue)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Color.blue.opacity(0.2))
+            .cornerRadius(4)
         }
-        .alert("Confirm Deletion", isPresented: $showDeleteConfirmation) {
+        .alert("Delete \(amountToDelete) \(amountToDelete == 1 ? "unit" : "units")?", isPresented: $showDeleteConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
                 gameState.deleteResource(resource.type, amount: amountToDelete)
                 amountToDelete = 1 // Reset to 1 after deletion
             }
-        } message: {
-            Text("Are you sure you want to delete \(amountToDelete) \(amountToDelete == 1 ? "unit" : "units") of \(resource.type.rawValue)? This action cannot be undone.")
         }
+    }
+    
+    private func startHoldIncrement(isIncrement: Bool) {
+        holdSpeed = 0.5 // Start slow
+        holdTimer = Timer.scheduledTimer(withTimeInterval: holdSpeed, repeats: true) { _ in
+            if isIncrement {
+                if amountToDelete < Int(resource.amount) {
+                    amountToDelete += 1
+                } else {
+                    stopHoldIncrement()
+                }
+            } else {
+                if amountToDelete > 1 {
+                    amountToDelete -= 1
+                } else {
+                    stopHoldIncrement()
+                }
+            }
+            
+            // Accelerate the timer (decrease interval)
+            holdSpeed = max(0.05, holdSpeed * 0.9) // Speed up, but don't go below 0.05 seconds
+            holdTimer?.invalidate()
+            startHoldIncrement(isIncrement: isIncrement)
+        }
+    }
+    
+    private func stopHoldIncrement() {
+        holdTimer?.invalidate()
+        holdTimer = nil
+        holdSpeed = 0.5 // Reset speed for next hold
     }
 }
 
