@@ -2016,6 +2016,13 @@ struct LargeBaySlotView: View {
 struct ResourcesPageView: View {
     @ObservedObject var gameState: GameState
     
+    // Helper function to check if a resource is in a specific row
+    func isResourceInRow(_ resourceType: ResourceType, rowIndex: Int) -> Bool {
+        let startIndex = rowIndex * 5
+        let endIndex = min(startIndex + 5, sortedResources.count)
+        return (startIndex..<endIndex).contains { sortedResources[$0].type == resourceType }
+    }
+    
     private var sortedResources: [Resource] {
         let ownedResources = gameState.resources.filter { $0.amount > 0 }
         
@@ -2153,36 +2160,45 @@ struct ResourcesPageView: View {
                 .background(Color.black.opacity(0.2))
                 
                 ScrollView {
-                    VStack(spacing: 0) {
-                        // Resource Detail View - now appears right above the resource grid
-                        if let selectedResource = gameState.selectedResourceForDetail,
-                           let resource = gameState.resources.first(where: { $0.type == selectedResource }) {
-                            ResourceDetailView(resource: resource, gameState: gameState)
-                        }
-                        
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
-                        // Show sorted owned resources first
-                        ForEach(sortedResources, id: \.type) { resource in
-                            Button(action: {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                    gameState.selectedResourceForDetail = resource.type
+                    VStack(spacing: 16) {
+                        // Create rows of 5 resources each
+                        ForEach(0..<((sortedResources.count + 4) / 5), id: \.self) { rowIndex in
+                            VStack(spacing: 0) {
+                                // Show detail view above this row if any resource in this row is selected
+                                if let selectedResource = gameState.selectedResourceForDetail,
+                                   let resource = gameState.resources.first(where: { $0.type == selectedResource }),
+                                   isResourceInRow(selectedResource, rowIndex: rowIndex) {
+                                    ResourceDetailView(resource: resource, gameState: gameState)
+                                        .padding(.bottom, 16)
                                 }
-                            }) {
-                                ResourceCard(resource: resource, gameState: gameState)
-                                    .scaleEffect(gameState.selectedResourceForDetail == resource.type ? 0.95 : 1.0)
-                                    .animation(.spring(response: 0.2, dampingFraction: 0.8), value: gameState.selectedResourceForDetail)
+                                
+                                // Resource row
+                                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 16) {
+                                    ForEach(0..<5, id: \.self) { colIndex in
+                                        let resourceIndex = rowIndex * 5 + colIndex
+                                        
+                                        if resourceIndex < sortedResources.count {
+                                            let resource = sortedResources[resourceIndex]
+                                            Button(action: {
+                                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                                    gameState.selectedResourceForDetail = resource.type
+                                                }
+                                            }) {
+                                                ResourceCard(resource: resource, gameState: gameState)
+                                                    .scaleEffect(gameState.selectedResourceForDetail == resource.type ? 0.95 : 1.0)
+                                                    .animation(.spring(response: 0.2, dampingFraction: 0.8), value: gameState.selectedResourceForDetail)
+                                            }
+                                            .buttonStyle(PlainButtonStyle())
+                                        } else {
+                                            EmptyResourceCard()
+                                        }
+                                    }
+                                }
                             }
-                            .buttonStyle(PlainButtonStyle())
                         }
-                        
-                            // Fill remaining slots with empty placeholders to maintain grid layout
-                            ForEach(sortedResources.count..<150, id: \.self) { _ in
-                                EmptyResourceCard()
-                            }
-                        }
-                        .padding()
-                        .padding(.bottom, 100) // Add space for slots
                     }
+                    .padding()
+                    .padding(.bottom, 100) // Add space for slots
                 }
             }
             
