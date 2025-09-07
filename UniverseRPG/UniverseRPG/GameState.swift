@@ -119,9 +119,7 @@ class GameState: ObservableObject {
     @Published var currentPage: AppPage = .location
     @Published var showingLocationList: Bool = false
     
-    // Idle collection tracking
-    private var idleCollectionTimer: Double = 0.0
-    private let idleCollectionInterval: Double = 10.0 // 10 seconds
+    // Idle collection tracking - now uses dynamic chance-based system
     
     private var gameTimer: Timer?
     
@@ -297,16 +295,19 @@ class GameState: ObservableObject {
             }
         }
         
-        // Idle resource collection - every 10 seconds
-        idleCollectionTimer += 1.0
-        if idleCollectionTimer >= idleCollectionInterval {
-            idleCollectionTimer = 0.0
-            performIdleCollection()
+        // Idle resource collection - dynamic chance every second
+        if Double.random(in: 0...100) <= getCurrentIdleResourceChance() {
+            performIdleResourceCollection()
+        }
+        
+        // Idle Numins collection - dynamic chance every second (independent of resources)
+        if Double.random(in: 0...100) <= getCurrentIdleNuminsChance() {
+            performIdleNuminsCollection()
         }
     }
     
-    private func performIdleCollection() {
-        // Idle collection: collect one resource every 10 seconds based on current location's drop table
+    private func performIdleResourceCollection() {
+        // Idle resource collection: 10% chance every second based on current location's drop table
         let dropTable = getModifiedDropTable()
         let selectedResource = selectResourceFromDropTable(dropTable)
         
@@ -352,6 +353,40 @@ class GameState: ObservableObject {
         }
     }
     
+    private func performIdleNuminsCollection() {
+        // Idle Numins collection: dynamic chance every second with dynamic range
+        let numinsRange = getCurrentIdleNuminsRange()
+        let numinsAmount = Double.random(in: Double(numinsRange.min)...Double(numinsRange.max))
+        
+        // Add Numins to resources
+        if let existingIndex = resources.firstIndex(where: { $0.type == .numins }) {
+            resources[existingIndex].amount += numinsAmount
+        } else {
+            let newNumins = Resource(
+                type: .numins,
+                amount: numinsAmount,
+                icon: getResourceIcon(for: .numins),
+                color: getResourceColor(for: .numins)
+            )
+            resources.append(newNumins)
+        }
+        
+        // Update currency display and tracking
+        currency += Int(numinsAmount)
+        totalNuminsCollected += Int(numinsAmount)
+        
+        // Show Numins feedback
+        lastNuminsAmount = Int(numinsAmount)
+        showNuminsFeedback = true
+        
+        // Hide Numins feedback after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.showNuminsFeedback = false
+        }
+        
+        print("Idle collected \(Int(numinsAmount)) Numins!")
+    }
+    
     func tapLocation() {
         // Active tapping mechanic - gives immediate resources based on drop table percentages
         let dropTable = getLocationDropTable()
@@ -385,9 +420,10 @@ class GameState: ObservableObject {
         locationTapCounts[currentLocation.id, default: 0] += 1
         totalTapsCount += 1
         
-        // 10% chance for Numins bonus
-        if Double.random(in: 0...100) <= 10.0 {
-            let numinsAmount = Double.random(in: 1...100)
+        // Dynamic chance for Numins bonus
+        if Double.random(in: 0...100) <= getCurrentTapNuminsChance() {
+            let numinsRange = getCurrentTapNuminsRange()
+            let numinsAmount = Double.random(in: Double(numinsRange.min)...Double(numinsRange.max))
             
             // Add Numins to resources
             if let existingIndex = resources.firstIndex(where: { $0.type == .numins }) {
@@ -418,9 +454,14 @@ class GameState: ObservableObject {
             print("Bonus! Collected \(Int(numinsAmount)) Numins!")
         }
         
-        // 1% chance for XP from tapping
-        if Double.random(in: 0...100) <= 1.0 {
-            addXP(1)
+        // Dynamic chance for XP from tapping
+        if Double.random(in: 0...100) <= getCurrentTapXPChance() {
+            addXP(getCurrentTapXPAmount())
+        }
+        
+        // Dynamic chance for card collection (only in Taragam-7 for now)
+        if currentLocation.id == "taragam-7" && Double.random(in: 0...100) <= getCurrentTapCardChance() {
+            collectRandomCard()
         }
         
         // Show visual feedback
@@ -433,6 +474,135 @@ class GameState: ObservableObject {
         }
         
         print("Tap #\(currentLocationTapCount) - Collected: \(selectedResource.rawValue)")
+    }
+    
+    private func collectRandomCard() {
+        // Get available cards for current location
+        let availableCards = getLocationAvailableCards()
+        guard !availableCards.isEmpty else { return }
+        
+        // Select a random card from available cards
+        let randomIndex = Int.random(in: 0..<availableCards.count)
+        let selectedCardId = availableCards[randomIndex]
+        
+        // Add the card to owned cards (or upgrade if already owned)
+        if let existingCardIndex = ownedCards.firstIndex(where: { $0.cardId == selectedCardId }) {
+            // Upgrade existing card
+            ownedCards[existingCardIndex].tier += 1
+            print("Upgraded \(selectedCardId) to tier \(ownedCards[existingCardIndex].tier)")
+        } else {
+            // Add new card at tier 1
+            let newCard = UserCard(
+                id: UUID().uuidString,
+                cardId: selectedCardId,
+                copies: 1,
+                tier: 1
+            )
+            ownedCards.append(newCard)
+            print("Collected new card: \(selectedCardId)")
+        }
+    }
+    
+    private func getLocationAvailableCards() -> [String] {
+        // Define which cards are available in each location
+        switch currentLocation.id {
+        case "taragam-7":
+            return ["astro-prospector", "deep-scan", "materials-engineer", "storage-bay"]
+        // Add more locations as cards are implemented
+        default:
+            return []
+        }
+    }
+    
+    // MARK: - Dynamic Chance Calculations
+    
+    func getCurrentTapNuminsChance() -> Double {
+        // Base chance is 10%, can be modified by cards/constructed items
+        let baseChance = 10.0
+        
+        // TODO: Apply card/constructed item modifications here
+        // Example: if hasCard("lucky-numins") { baseChance += 5.0 }
+        
+        return baseChance
+    }
+    
+    func getCurrentTapNuminsRange() -> (min: Int, max: Int) {
+        // Base range is 1-100, can be modified by cards/constructed items
+        let minAmount = 1
+        let maxAmount = 100
+        
+        // TODO: Apply card/constructed item modifications here
+        // Example: if hasCard("numins-boost") { maxAmount += 50 }
+        
+        return (min: minAmount, max: maxAmount)
+    }
+    
+    func getCurrentTapXPChance() -> Double {
+        // Base chance is 1%, can be modified by cards/constructed items
+        let baseChance = 1.0
+        
+        // TODO: Apply card/constructed item modifications here
+        
+        return baseChance
+    }
+    
+    func getCurrentTapXPAmount() -> Int {
+        // Base amount is 1, can be modified by cards/constructed items
+        let amount = 1
+        
+        // TODO: Apply card/constructed item modifications here
+        
+        return amount
+    }
+    
+    func getCurrentTapCardChance() -> Double {
+        // Base chance is 0.1%, can be modified by cards/constructed items
+        let baseChance = 0.1
+        
+        // TODO: Apply card/constructed item modifications here
+        
+        return baseChance
+    }
+    
+    func getCurrentIdleResourceChance() -> Double {
+        // Base chance is 10%, can be modified by cards/constructed items
+        let baseChance = 10.0
+        
+        // TODO: Apply card/constructed item modifications here
+        
+        return baseChance
+    }
+    
+    func getCurrentIdleNuminsChance() -> Double {
+        // Base chance is 10%, can be modified by cards/constructed items
+        let baseChance = 10.0
+        
+        // TODO: Apply card/constructed item modifications here
+        
+        return baseChance
+    }
+    
+    func getCurrentIdleNuminsRange() -> (min: Int, max: Int) {
+        // Base range is 1-50, can be modified by cards/constructed items
+        let minAmount = 1
+        let maxAmount = 50
+        
+        // TODO: Apply card/constructed item modifications here
+        
+        return (min: minAmount, max: maxAmount)
+    }
+    
+    func getLocationCardAbbreviations() -> [String] {
+        // Return abbreviated names for cards available in current location
+        let availableCards = getLocationAvailableCards()
+        let abbreviations: [String: String] = [
+            "astro-prospector": "AP",
+            "deep-scan": "DS", 
+            "materials-engineer": "ME",
+            "storage-bay": "SB"
+        ]
+        
+        return availableCards.compactMap { abbreviations[$0] }
     }
     
     func selectResourceFromDropTable(_ dropTable: [(ResourceType, Double)]) -> ResourceType {

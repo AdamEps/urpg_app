@@ -769,30 +769,156 @@ struct LocationResourceListView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("Available Resources")
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundColor(.white)
-                .padding(.bottom, 2)
+        VStack(alignment: .leading, spacing: 4) {
+            // Available Resources Section
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Available Resources")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .padding(.bottom, 2)
+                
+                ForEach(gameState.getLocationDropTable(), id: \.0) { resourceType, percentage in
+                    HStack(spacing: 2) {
+                        // Resource icon
+                        Image(systemName: getResourceIcon(for: resourceType))
+                            .foregroundColor(getResourceColor(for: resourceType))
+                            .frame(width: 16)
+                            .font(.caption)
+                        
+                        // Resource name
+                        Text(resourceType.rawValue)
+                            .font(.caption2)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        // Percentage
+                        Text("\(Int(percentage))%")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                    }
+                    .padding(.vertical, 1)
+                }
+            }
             
-            ForEach(gameState.getLocationDropTable(), id: \.0) { resourceType, percentage in
+            // Additional Chances Section (Tap-based)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Additional Chances")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.yellow)
+                    .padding(.top, 4)
+                
+                // Numins chance
                 HStack(spacing: 2) {
-                    // Resource icon
-                    Image(systemName: getResourceIcon(for: resourceType))
-                        .foregroundColor(getResourceColor(for: resourceType))
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.yellow)
                         .frame(width: 16)
                         .font(.caption)
                     
-                    // Resource name
-                    Text(resourceType.rawValue)
+                    Text("Numins")
                         .font(.caption2)
                         .foregroundColor(.white)
                     
                     Spacer()
                     
-                    // Percentage
-                    Text("\(Int(percentage))%")
+                    let numinsRange = gameState.getCurrentTapNuminsRange()
+                    Text("\(Int(gameState.getCurrentTapNuminsChance()))% (\(numinsRange.min)-\(numinsRange.max))")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                }
+                .padding(.vertical, 1)
+                
+                // XP chance
+                HStack(spacing: 2) {
+                    Image(systemName: "star.circle.fill")
+                        .foregroundColor(.blue)
+                        .frame(width: 16)
+                        .font(.caption)
+                    
+                    Text("XP")
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Text("\(Int(gameState.getCurrentTapXPChance()))% (\(gameState.getCurrentTapXPAmount()))")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                }
+                .padding(.vertical, 1)
+                
+                // Cards chance (only for Taragam-7)
+                if gameState.currentLocation.id == "taragam-7" {
+                    HStack(spacing: 2) {
+                        Image(systemName: "rectangle.stack.fill")
+                            .foregroundColor(.purple)
+                            .frame(width: 16)
+                            .font(.caption)
+                        
+                        Text("Cards")
+                            .font(.caption2)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        let cardAbbrevs = gameState.getLocationCardAbbreviations()
+                        Text("\(Int(gameState.getCurrentTapCardChance()))% (\(cardAbbrevs.joined(separator: ", ")))")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                    }
+                    .padding(.vertical, 1)
+                }
+            }
+            
+            // Idle Chances Section
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Idle Chances")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.green)
+                    .padding(.top, 4)
+                
+                // Idle resources chance
+                HStack(spacing: 2) {
+                    Image(systemName: "clock.fill")
+                        .foregroundColor(.green)
+                        .frame(width: 16)
+                        .font(.caption)
+                    
+                    Text("Resources")
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Text("\(Int(gameState.getCurrentIdleResourceChance()))%/sec")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                }
+                .padding(.vertical, 1)
+                
+                // Idle Numins chance
+                HStack(spacing: 2) {
+                    Image(systemName: "star.circle")
+                        .foregroundColor(.yellow)
+                        .frame(width: 16)
+                        .font(.caption)
+                    
+                    Text("Numins")
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    let idleNuminsRange = gameState.getCurrentIdleNuminsRange()
+                    Text("\(Int(gameState.getCurrentIdleNuminsChance()))%/sec (\(idleNuminsRange.min)-\(idleNuminsRange.max))")
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
