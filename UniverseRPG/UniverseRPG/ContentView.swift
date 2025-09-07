@@ -2960,12 +2960,26 @@ struct CardClassSection: View {
     let cardClass: CardClass
     @ObservedObject var gameState: GameState
     
+    // Computed property to get cards for this class
+    private var cardsForClass: [CardDef] {
+        gameState.getCardsForClass(cardClass)
+    }
+    
     // Helper function to check if a card is in a specific row
-    func isCardInRow(_ cardId: String, rowIndex: Int) -> Bool {
-        let cardsForClass = gameState.getCardsForClass(cardClass)
+    private func isCardInRow(_ cardId: String, rowIndex: Int) -> Bool {
         let startIndex = rowIndex * 3
         let endIndex = min(startIndex + 3, cardsForClass.count)
-        return (startIndex..<endIndex).contains { cardsForClass[$0].id == cardId }
+        
+        // Safety check to prevent out of bounds
+        guard startIndex < cardsForClass.count else { return false }
+        
+        // Check each card in the row range
+        for i in startIndex..<endIndex {
+            if cardsForClass[i].id == cardId {
+                return true
+            }
+        }
+        return false
     }
     
     var body: some View {
@@ -2976,32 +2990,29 @@ struct CardClassSection: View {
                 .foregroundColor(.primary)
             
             VStack(spacing: 8) {
+                // Show detail view at the top if any card is selected
+                if let selectedCardId = gameState.selectedCardForDetail {
+                    CardDetailView(cardId: selectedCardId, gameState: gameState)
+                        .padding(.bottom, 8)
+                }
+                
                 // Create rows of 3 cards each
                 ForEach(0..<3, id: \.self) { rowIndex in
-                    VStack(spacing: 0) {
-                        // Show detail view above this row if any card in this row is selected
-                        if let selectedCardId = gameState.selectedCardForDetail,
-                           isCardInRow(selectedCardId, rowIndex: rowIndex) {
-                            CardDetailView(cardId: selectedCardId, gameState: gameState)
-                                .padding(.bottom, 8)
-                        }
-                        
-                        // Card row
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                            ForEach(0..<3, id: \.self) { colIndex in
-                                let cardIndex = rowIndex * 3 + colIndex
-                                
-                                if cardIndex < 8 {
-                                    CardSlotView(
-                                        cardClass: cardClass,
-                                        slotIndex: cardIndex,
-                                        gameState: gameState
-                                    )
-                                } else {
-                                    // Empty slot for incomplete rows
-                                    Color.clear
-                                        .frame(height: 120)
-                                }
+                    // Card row
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                        ForEach(0..<3, id: \.self) { colIndex in
+                            let cardIndex = rowIndex * 3 + colIndex
+                            
+                            if cardIndex < 8 {
+                                CardSlotView(
+                                    cardClass: cardClass,
+                                    slotIndex: cardIndex,
+                                    gameState: gameState
+                                )
+                            } else {
+                                // Empty slot for incomplete rows
+                                Color.clear
+                                    .frame(height: 120)
                             }
                         }
                     }
@@ -3031,9 +3042,7 @@ struct CardSlotView: View {
             if let cardDef = cardDef, let userCard = userCard {
                 // Owned card
                 Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        gameState.selectedCardForDetail = cardDef.id
-                    }
+                    gameState.selectedCardForDetail = cardDef.id
                 }) {
                     VStack(spacing: 0) {
                     // Card name at the top
@@ -3095,8 +3104,6 @@ struct CardSlotView: View {
                             )
                     )
                 }
-                .scaleEffect(gameState.selectedCardForDetail == cardDef.id ? 0.95 : 1.0)
-                .animation(.spring(response: 0.2, dampingFraction: 0.8), value: gameState.selectedCardForDetail)
                 .buttonStyle(PlainButtonStyle())
             } else {
                 // Empty slot
