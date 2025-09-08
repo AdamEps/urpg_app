@@ -1414,105 +1414,111 @@ struct ResourceDeletionControls: View {
     @State private var holdSpeed: Double = 0.5 // Start slow, will accelerate
     
     var body: some View {
-        HStack(spacing: 8) {
-            // Delete button (leftmost)
-            Button(action: {
-                showDeleteConfirmation = true
-            }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "trash.fill")
-                        .font(.caption)
-                    Text("Delete")
-                        .font(.caption)
-                        .fontWeight(.medium)
+        // Only show deletion controls if the resource is NOT Numins
+        if resource.type != .numins {
+            HStack(spacing: 8) {
+                // Delete button (leftmost)
+                Button(action: {
+                    showDeleteConfirmation = true
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "trash.fill")
+                            .font(.caption)
+                        Text("Delete")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.red.opacity(0.8))
+                    .cornerRadius(6)
                 }
-                .foregroundColor(.white)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.red.opacity(0.8))
-                .cornerRadius(6)
-            }
-            .disabled(amountToDelete <= 0 || amountToDelete > Int(resource.amount))
-            
-            Spacer()
-            
-            // Max button
-            Button("Max") {
-                amountToDelete = Int(resource.amount)
-            }
-            .font(.caption2)
-            .foregroundColor(.blue)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(Color.blue.opacity(0.2))
-            .cornerRadius(4)
-            
-            // Plus button with hold functionality
-            Button(action: {
-                if amountToDelete < Int(resource.amount) {
-                    amountToDelete += 1
+                .disabled(amountToDelete <= 0 || amountToDelete > Int(resource.amount))
+                
+                Spacer()
+                
+                // Max button
+                Button("Max") {
+                    amountToDelete = Int(resource.amount)
                 }
-            }) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.title3)
-                    .foregroundColor(.green)
+                .font(.caption2)
+                .foregroundColor(.blue)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.blue.opacity(0.2))
+                .cornerRadius(4)
+                
+                // Plus button with hold functionality
+                Button(action: {
+                    if amountToDelete < Int(resource.amount) {
+                        amountToDelete += 1
+                    }
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(.green)
+                }
+                .disabled(amountToDelete >= Int(resource.amount))
+                .onLongPressGesture(minimumDuration: 0.1, maximumDistance: 50) {
+                    // Long press started
+                } onPressingChanged: { pressing in
+                    if pressing && amountToDelete < Int(resource.amount) {
+                        startHoldIncrement(isIncrement: true)
+                    } else {
+                        stopHoldIncrement()
+                    }
+                }
+                
+                // Amount display
+                Text("\(amountToDelete)")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .frame(minWidth: 30)
+                
+                // Minus button with hold functionality
+                Button(action: {
+                    if amountToDelete > 1 {
+                        amountToDelete -= 1
+                    }
+                }) {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(.red)
+                }
+                .disabled(amountToDelete <= 1)
+                .onLongPressGesture(minimumDuration: 0.1, maximumDistance: 50) {
+                    // Long press started
+                } onPressingChanged: { pressing in
+                    if pressing && amountToDelete > 1 {
+                        startHoldIncrement(isIncrement: false)
+                    } else {
+                        stopHoldIncrement()
+                    }
+                }
+                
+                // Min button
+                Button("Min") {
+                    amountToDelete = 1
+                }
+                .font(.caption2)
+                .foregroundColor(.blue)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.blue.opacity(0.2))
+                .cornerRadius(4)
             }
-            .disabled(amountToDelete >= Int(resource.amount))
-            .onLongPressGesture(minimumDuration: 0.1, maximumDistance: 50) {
-                // Long press started
-            } onPressingChanged: { pressing in
-                if pressing && amountToDelete < Int(resource.amount) {
-                    startHoldIncrement(isIncrement: true)
-                } else {
-                    stopHoldIncrement()
+            .alert("Delete \(amountToDelete) \(amountToDelete == 1 ? "unit" : "units")?", isPresented: $showDeleteConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    gameState.deleteResource(resource.type, amount: amountToDelete)
+                    amountToDelete = 1 // Reset to 1 after deletion
                 }
             }
-            
-            // Amount display
-            Text("\(amountToDelete)")
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.white)
-                .frame(minWidth: 30)
-            
-            // Minus button with hold functionality
-            Button(action: {
-                if amountToDelete > 1 {
-                    amountToDelete -= 1
-                }
-            }) {
-                Image(systemName: "minus.circle.fill")
-                    .font(.title3)
-                    .foregroundColor(.red)
-            }
-            .disabled(amountToDelete <= 1)
-            .onLongPressGesture(minimumDuration: 0.1, maximumDistance: 50) {
-                // Long press started
-            } onPressingChanged: { pressing in
-                if pressing && amountToDelete > 1 {
-                    startHoldIncrement(isIncrement: false)
-                } else {
-                    stopHoldIncrement()
-                }
-            }
-            
-            // Min button
-            Button("Min") {
-                amountToDelete = 1
-            }
-            .font(.caption2)
-            .foregroundColor(.blue)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(Color.blue.opacity(0.2))
-            .cornerRadius(4)
-        }
-        .alert("Delete \(amountToDelete) \(amountToDelete == 1 ? "unit" : "units")?", isPresented: $showDeleteConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
-                gameState.deleteResource(resource.type, amount: amountToDelete)
-                amountToDelete = 1 // Reset to 1 after deletion
-            }
+        } else {
+            // Return empty view for Numins
+            EmptyView()
         }
     }
     
@@ -2434,8 +2440,18 @@ struct ResourcesPageView: View {
                                         if resourceIndex < sortedResources.count {
                                             let resource = sortedResources[resourceIndex]
                                             Button(action: {
-                                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                                    gameState.selectedResourceForDetail = resource.type
+                                                // Toggle selection: if same resource is tapped, deselect it
+                                                if gameState.selectedResourceForDetail == resource.type {
+                                                    // Immediate dismissal without animation
+                                                    gameState.selectedResourceForDetail = nil
+                                                } else {
+                                                    // Clear any existing selection first, then animate new selection
+                                                    gameState.selectedResourceForDetail = nil
+                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                                            gameState.selectedResourceForDetail = resource.type
+                                                        }
+                                                    }
                                                 }
                                             }) {
                                                 ResourceCard(resource: resource, gameState: gameState)
@@ -2779,8 +2795,6 @@ struct ResourcesPageView: View {
 struct ResourceDetailView: View {
     let resource: Resource
     @ObservedObject var gameState: GameState
-    @State private var dragOffset = CGSize.zero
-    @State private var isDragging = false
 
     var body: some View {
         ZStack {
@@ -2870,31 +2884,7 @@ struct ResourceDetailView: View {
         }
         .frame(height: 280)
         .padding(.vertical, 8)
-        .offset(y: dragOffset.height)
-        .gesture(
-            DragGesture()
-                .onChanged { gesture in
-                    isDragging = true
-                    if gesture.translation.height < 0 { // Only allow upward swipes
-                        dragOffset = gesture.translation
-                    }
-                }
-                .onEnded { gesture in
-                    isDragging = false
-                    if gesture.translation.height < -50 { // Swipe up threshold
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            gameState.selectedResourceForDetail = nil
-                        }
-                    } else {
-                        // Return to original position
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            dragOffset = .zero
-                        }
-                    }
-                }
-        )
         .transition(.move(edge: .bottom))
-        .opacity(isDragging ? 0.8 : 1.0)
     }
     
     private func getResourceCategory(for resourceType: ResourceType) -> String {
