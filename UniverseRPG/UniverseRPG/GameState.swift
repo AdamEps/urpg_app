@@ -754,13 +754,13 @@ class GameState: ObservableObject {
         switch currentLocation.id {
         // Taragon Gamma System
         case "taragam-7":
-            let resources: [ResourceType] = [.ironOre, .silicon, .water, .oxygen, .graphite, .nitrogen, .phosphorus, .sulfur, .calcium, .magnesium]
+            let resources: [ResourceType] = [.ironOre, .silicon, .water, .oxygen, .graphite, .nitrogen, .copper, .sulfur, .calcium, .gold]
             return Array(zip(resources, percentages))
         case "elcinto":
-            let resources: [ResourceType] = [.ironOre, .silicon, .helium3, .titanium, .aluminum, .nickel, .cobalt, .chromium, .vanadium, .manganese]
+            let resources: [ResourceType] = [.ironOre, .silicon, .helium3, .titanium, .aluminum, .nickel, .cobalt, .rareElements, .vanadium, .manganese]
             return Array(zip(resources, percentages))
         case "taragam-3":
-            let resources: [ResourceType] = [.water, .oxygen, .nitrogen, .graphite, .hydrogen, .methane, .ammonia, .ice, .crystals, .minerals]
+            let resources: [ResourceType] = [.water, .oxygen, .nitrogen, .graphite, .hydrogen, .methane, .ammonia, .lithium, .crystals, .minerals]
             return Array(zip(resources, percentages))
         case "abandoned-star-ship":
             let resources: [ResourceType] = [.scrapMetal, .electronics, .fuelCells, .dataCores, .circuits, .alloys, .components, .techParts, .batteries, .wiring]
@@ -948,6 +948,28 @@ class GameState: ObservableObject {
             return "The currency of the cosmos! These mysterious particles are the universal medium of exchange, accepted by traders across the galaxy."
         case .steelPylons:
             return "Essential construction components! These sturdy steel pylons form the backbone of any serious building project, providing structural support and stability for advanced constructions."
+        case .gears:
+            return "Precision mechanical components! These interlocking gears transfer power and motion in complex machinery, essential for any advanced mechanical system."
+        case .laser:
+            return "Cutting-edge precision technology! This focused light beam can cut through materials with incredible accuracy, perfect for harvesting and manufacturing applications."
+        case .circuitBoard:
+            return "The electronic foundation! This printed circuit board connects and controls electronic components, forming the nervous system of any advanced device."
+        case .cpu:
+            return "The computational brain! This central processing unit performs billions of calculations per second, making it the heart of any advanced computing system."
+        case .dataStorageUnit:
+            return "Massive data capacity! This high-density storage system can hold vast amounts of information, essential for complex data processing and analysis."
+        case .sensorArray:
+            return "Advanced detection system! This array of sensors can detect and analyze environmental conditions, electromagnetic fields, and other phenomena with incredible precision."
+        case .lithiumIonBattery:
+            return "High-energy power storage! This advanced battery technology provides long-lasting, reliable power for portable devices and emergency systems."
+        
+        // Additional resources
+        case .copper:
+            return "The conductor of progress! This versatile metal is essential for electrical systems, communication networks, and advanced technology. Its excellent conductivity makes it invaluable for any electronic device."
+        case .gold:
+            return "The precious standard! This rare and beautiful metal has been valued for millennia. Beyond its aesthetic appeal, gold's unique properties make it essential for advanced electronics and precision instruments."
+        case .lithium:
+            return "The power of the future! This lightweight metal is the key to high-energy batteries and advanced power systems. Essential for any portable technology or energy storage solution."
         default:
             return "A mysterious resource with unknown properties. Further study may reveal its true potential and value."
         }
@@ -1046,7 +1068,7 @@ class GameState: ObservableObject {
         case .gravity: return "arrow.down.circle.fill"
         case .magnetic: return "magnet"
         case .solar: return "sun.max.circle.fill"
-        case .numins: return "star.fill"
+        case .numins: return "star.circle"
         
         // TaraGam 3 resources
         case .hydrogen: return "h.circle.fill"
@@ -1141,6 +1163,18 @@ class GameState: ObservableObject {
         
         // Constructable items
         case .steelPylons: return "building.2"
+        case .gears: return "gear"
+        case .laser: return "laser.burst"
+        case .circuitBoard: return "cpu"
+        case .cpu: return "cpu"
+        case .dataStorageUnit: return "externaldrive"
+        case .sensorArray: return "sensor.tag.radiowaves.forward"
+        case .lithiumIonBattery: return "battery.100"
+        
+        // Additional resources
+        case .copper: return "circle.fill"
+        case .gold: return "star.fill"
+        case .lithium: return "battery.100"
         }
     }
     
@@ -1269,6 +1303,18 @@ class GameState: ObservableObject {
         
         // Constructable items
         case .steelPylons: return .orange
+        case .gears: return .gray
+        case .laser: return .red
+        case .circuitBoard: return .green
+        case .cpu: return .blue
+        case .dataStorageUnit: return .purple
+        case .sensorArray: return .cyan
+        case .lithiumIonBattery: return .yellow
+        
+        // Additional resources
+        case .copper: return .orange
+        case .gold: return .yellow
+        case .lithium: return .gray
         }
     }
     
@@ -1738,6 +1784,18 @@ enum ResourceType: String, CaseIterable {
     
     // Constructable items
     case steelPylons = "Steel Pylons"
+    case gears = "Gears"
+    case laser = "Laser"
+    case circuitBoard = "Circuit Board"
+    case cpu = "CPU"
+    case dataStorageUnit = "Data Storage Unit"
+    case sensorArray = "Sensor Array"
+    case lithiumIonBattery = "Lithium-Ion Battery"
+    
+    // Additional resources for new constructables
+    case copper = "Copper"
+    case gold = "Gold"
+    case lithium = "Lithium"
 }
 
 struct ConstructionBay: Identifiable {
@@ -1786,7 +1844,99 @@ extension ConstructionRecipe {
         xpReward: 2
     )
     
+    // Small Bay Constructables
+    static let gears = ConstructionRecipe(
+        id: "gears",
+        name: "Gears",
+        description: "Basic mechanical components for complex machinery.",
+        duration: 35.0,
+        cost: [.ironOre: 10, .titanium: 10, .nickel: 10],
+        currencyCost: 30,
+        reward: [.gears: 1],
+        requiredBaySize: .small,
+        xpReward: 3
+    )
+    
+    static let laser = ConstructionRecipe(
+        id: "laser",
+        name: "Laser",
+        description: "Precision cutting and harvesting technology.",
+        duration: 60.0,
+        cost: [.silicon: 70, .helium3: 15, .crystals: 1],
+        currencyCost: 50,
+        reward: [.laser: 1],
+        requiredBaySize: .small,
+        xpReward: 5
+    )
+    
+    static let circuitBoard = ConstructionRecipe(
+        id: "circuit-board",
+        name: "Circuit Board",
+        description: "The foundation of all electronic devices.",
+        duration: 45.0,
+        cost: [.graphite: 15, .copper: 5, .water: 1],
+        currencyCost: 35,
+        reward: [.circuitBoard: 1],
+        requiredBaySize: .small,
+        xpReward: 4
+    )
+    
+    static let cpu = ConstructionRecipe(
+        id: "cpu",
+        name: "CPU",
+        description: "The brain of any advanced computing system.",
+        duration: 120.0,
+        cost: [.silicon: 60, .gold: 15, .rareElements: 15],
+        currencyCost: 100,
+        reward: [.cpu: 1],
+        requiredBaySize: .small,
+        xpReward: 7
+    )
+    
+    static let dataStorageUnit = ConstructionRecipe(
+        id: "data-storage-unit",
+        name: "Data Storage Unit",
+        description: "High-capacity data storage for complex systems.",
+        duration: 90.0,
+        cost: [.circuitBoard: 1, .dataCores: 25, .electronics: 45],
+        currencyCost: 75,
+        reward: [.dataStorageUnit: 1],
+        requiredBaySize: .small,
+        xpReward: 7
+    )
+    
+    static let sensorArray = ConstructionRecipe(
+        id: "sensor-array",
+        name: "Sensor Array",
+        description: "Advanced detection and monitoring system.",
+        duration: 75.0,
+        cost: [.silicon: 50, .laser: 3],
+        currencyCost: 150,
+        reward: [.sensorArray: 1],
+        requiredBaySize: .small,
+        xpReward: 6
+    )
+    
+    static let lithiumIonBattery = ConstructionRecipe(
+        id: "lithium-ion-battery",
+        name: "Lithium-Ion Battery",
+        description: "High-energy power storage for portable devices.",
+        duration: 20.0,
+        cost: [.lithium: 10, .graphite: 10, .manganese: 3],
+        currencyCost: 75,
+        reward: [.lithiumIonBattery: 1],
+        requiredBaySize: .small,
+        xpReward: 9
+    )
+    
     static let allRecipes: [ConstructionRecipe] = [
-        .steelPylons
+        .steelPylons,
+        .gears,
+        .laser,
+        .circuitBoard,
+        .cpu,
+        .dataStorageUnit,
+        .sensorArray,
+        .lithiumIonBattery
     ]
 }

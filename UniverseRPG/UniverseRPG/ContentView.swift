@@ -195,7 +195,7 @@ struct TopBarView: View {
                 
                 // Right - Currency (moved up) - fixed width
                 HStack(spacing: 4) {
-                    Image(systemName: "star.fill")
+                    Image(systemName: "star.circle")
                         .foregroundColor(.yellow)
                     Text(gameState.getFormattedCurrency())
                         .font(.headline)
@@ -813,7 +813,7 @@ struct LocationResourceListView: View {
                 
                 // Numins chance
                 HStack(spacing: 2) {
-                    Image(systemName: "star.fill")
+                    Image(systemName: "star.circle")
                         .foregroundColor(.yellow)
                         .frame(width: 16)
                         .font(.caption)
@@ -975,7 +975,7 @@ struct LocationResourceListView: View {
         case .gravity: return "arrow.down.circle.fill"
         case .magnetic: return "magnet"
         case .solar: return "sun.max.fill"
-        case .numins: return "star.fill"
+        case .numins: return "star.circle"
         
         // TaraGam 3 resources
         case .hydrogen: return "h.circle.fill"
@@ -1070,6 +1070,16 @@ struct LocationResourceListView: View {
         
         // Constructable items
         case .steelPylons: return "building.2"
+        case .gears: return "gear"
+        case .laser: return "laser.burst"
+        case .circuitBoard: return "cpu"
+        case .cpu: return "cpu"
+        case .dataStorageUnit: return "externaldrive"
+        case .sensorArray: return "sensor.tag.radiowaves.forward"
+        case .lithiumIonBattery: return "battery.100"
+        case .copper: return "circle.fill"
+        case .gold: return "star.fill"
+        case .lithium: return "battery.100"
         }
     }
     
@@ -1198,6 +1208,16 @@ struct LocationResourceListView: View {
         
         // Constructable items
         case .steelPylons: return .orange
+        case .gears: return .gray
+        case .laser: return .red
+        case .circuitBoard: return .green
+        case .cpu: return .blue
+        case .dataStorageUnit: return .purple
+        case .sensorArray: return .cyan
+        case .lithiumIonBattery: return .yellow
+        case .copper: return .orange
+        case .gold: return .yellow
+        case .lithium: return .gray
         }
     }
 }
@@ -1710,7 +1730,7 @@ struct ConstructionMenuView: View {
                                 
                                 // Currency requirement with color coding
                                 HStack {
-                                    Image(systemName: "star.fill")
+                                    Image(systemName: "star.circle")
                                         .foregroundColor(.yellow)
                                         .frame(width: 16)
                                     Text("Numins")
@@ -1783,7 +1803,7 @@ struct ConstructionMenuView: View {
         case .gravity: return "arrow.down.circle.fill"
         case .magnetic: return "magnet"
         case .solar: return "sun.max.circle.fill"
-        case .numins: return "star.fill"
+        case .numins: return "star.circle"
         default: return "questionmark.circle"
         }
     }
@@ -2025,7 +2045,7 @@ struct SmallBaySlotView: View {
                                 .font(.title2)
                                 .foregroundColor(.gray.opacity(0.6))
                         } else {
-                            Image(systemName: "star.fill")
+                            Image(systemName: "star.circle")
                                 .font(.title2)
                                 .foregroundColor(.yellow)
                         }
@@ -2087,6 +2107,16 @@ struct SmallBaySlotView: View {
         case .oxygen: return "wind"
         case .graphite: return "diamond.fill"
         case .steelPylons: return "building.2"
+        case .gears: return "gear"
+        case .laser: return "laser.burst"
+        case .circuitBoard: return "cpu"
+        case .cpu: return "cpu"
+        case .dataStorageUnit: return "externaldrive"
+        case .sensorArray: return "sensor.tag.radiowaves.forward"
+        case .lithiumIonBattery: return "battery.100"
+        case .copper: return "circle.fill"
+        case .gold: return "star.fill"
+        case .lithium: return "battery.100"
         default: return "questionmark.circle"
         }
     }
@@ -2116,7 +2146,7 @@ struct MediumBaySlotView: View {
                 .stroke(Color.gray.opacity(0.5), lineWidth: 2)
                 .frame(width: (UIScreen.main.bounds.width - 48) / 3, height: (UIScreen.main.bounds.width - 48) / 3)
                 .overlay(
-                    Image(systemName: "star.fill")
+                    Image(systemName: "star.circle")
                         .font(.title2)
                         .foregroundColor(.yellow)
                 )
@@ -2138,7 +2168,7 @@ struct LargeBaySlotView: View {
                 .stroke(Color.gray.opacity(0.5), lineWidth: 2)
                 .frame(width: (UIScreen.main.bounds.width - 36) / 2, height: (UIScreen.main.bounds.width - 36) / 2)
                 .overlay(
-                    Image(systemName: "star.fill")
+                    Image(systemName: "star.circle")
                         .font(.title2)
                         .foregroundColor(.yellow)
                 )
@@ -2410,7 +2440,7 @@ struct ResourcesPageView: View {
         case .gravity: return "arrow.down.circle.fill"
         case .magnetic: return "magnet"
         case .solar: return "sun.max.circle.fill"
-        case .numins: return "star.fill"
+        case .numins: return "star.circle"
         
         // TaraGam 3 resources
         case .hydrogen: return "h.circle.fill"
@@ -2505,6 +2535,16 @@ struct ResourcesPageView: View {
         
         // Constructable items
         case .steelPylons: return "building.2"
+        case .gears: return "gear"
+        case .laser: return "laser.burst"
+        case .circuitBoard: return "cpu"
+        case .cpu: return "cpu"
+        case .dataStorageUnit: return "externaldrive"
+        case .sensorArray: return "sensor.tag.radiowaves.forward"
+        case .lithiumIonBattery: return "battery.100"
+        case .copper: return "circle.fill"
+        case .gold: return "star.fill"
+        case .lithium: return "battery.100"
         }
     }
     
@@ -2633,6 +2673,16 @@ struct ResourcesPageView: View {
         
         // Constructable items
         case .steelPylons: return .orange
+        case .gears: return .gray
+        case .laser: return .red
+        case .circuitBoard: return .green
+        case .cpu: return .blue
+        case .dataStorageUnit: return .purple
+        case .sensorArray: return .cyan
+        case .lithiumIonBattery: return .yellow
+        case .copper: return .orange
+        case .gold: return .yellow
+        case .lithium: return .gray
         }
     }
 }
@@ -2787,8 +2837,10 @@ struct ResourceDetailView: View {
             return "Research"
         case .frozenGases, .iceCrystals, .preservedMatter, .ancientArtifacts, .relics, .fossils, .rareElements, .crystallineStructures, .geologicalSamples:
             return "Ancient"
-        case .steelPylons:
+        case .steelPylons, .gears, .laser, .circuitBoard, .cpu, .dataStorageUnit, .sensorArray, .lithiumIonBattery:
             return "Constructed"
+        case .copper, .gold, .lithium:
+            return "Elements"
         }
     }
 }
