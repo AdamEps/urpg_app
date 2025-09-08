@@ -655,12 +655,14 @@ class GameState: ObservableObject {
     }
     
     func canAffordConstruction(recipe: ConstructionRecipe) -> Bool {
-        // Check resource costs
-        for resource in resources {
-            if let cost = recipe.cost[resource.type] {
-                if resource.amount < cost {
-                    return false
-                }
+        // Check ALL required resource costs
+        for (requiredResourceType, requiredAmount) in recipe.cost {
+            // Find the player's current amount of this resource
+            let playerAmount = resources.first(where: { $0.type == requiredResourceType })?.amount ?? 0
+            
+            // Check if player has enough
+            if playerAmount < requiredAmount {
+                return false
             }
         }
         
@@ -1931,12 +1933,12 @@ extension ConstructionRecipe {
     
     static let allRecipes: [ConstructionRecipe] = [
         .steelPylons,
-        .gears,
-        .laser,
         .circuitBoard,
+        .gears,
         .cpu,
-        .dataStorageUnit,
+        .laser,
+        .lithiumIonBattery,
         .sensorArray,
-        .lithiumIonBattery
+        .dataStorageUnit
     ]
 }

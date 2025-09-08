@@ -1679,72 +1679,28 @@ struct BottomNavigationView: View {
 struct ConstructionMenuView: View {
     @ObservedObject var gameState: GameState
     @Environment(\.dismiss) private var dismiss
+    @State private var expandedRecipes: Set<String> = []
     
     var body: some View {
         NavigationView {
             List {
                 ForEach(ConstructionRecipe.allRecipes, id: \.id) { recipe in
-                    Button(action: {
-                        gameState.startConstruction(recipe: recipe)
-                        dismiss()
-                    }) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(recipe.name)
-                                    .fontWeight(.medium)
-                                Spacer()
-                                Text("\(recipe.xpReward) XP")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.purple)
+                    CollapsibleRecipeView(
+                        recipe: recipe,
+                        gameState: gameState,
+                        isExpanded: expandedRecipes.contains(recipe.id),
+                        onToggle: {
+                            if expandedRecipes.contains(recipe.id) {
+                                expandedRecipes.remove(recipe.id)
+                            } else {
+                                expandedRecipes.insert(recipe.id)
                             }
-                            
-                            HStack {
-                                Text(recipe.description)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Text("\(Int(recipe.duration))s")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            // Resource requirements with color coding
-                            VStack(alignment: .leading, spacing: 4) {
-                                ForEach(Array(recipe.cost.keys.sorted(by: { $0.rawValue < $1.rawValue })), id: \.self) { resourceType in
-                                    if let requiredAmount = recipe.cost[resourceType] {
-                                        HStack {
-                                            Image(systemName: getResourceIcon(for: resourceType))
-                                                .foregroundColor(getResourceColor(for: resourceType))
-                                                .frame(width: 16)
-                                            Text(resourceType.rawValue)
-                                                .font(.caption)
-                                            Spacer()
-                                            Text("(\(Int(getPlayerResourceAmount(resourceType)))/\(Int(requiredAmount)))")
-                                                .font(.caption)
-                                                .fontWeight(.medium)
-                                                .foregroundColor(hasEnoughResource(resourceType, requiredAmount) ? .green : .red)
-                                        }
-                                    }
-                                }
-                                
-                                // Currency requirement with color coding
-                                HStack {
-                                    Image(systemName: "star.circle")
-                                        .foregroundColor(.yellow)
-                                        .frame(width: 16)
-                                    Text("Numins")
-                                        .font(.caption)
-                                    Spacer()
-                                    Text("(\(recipe.currencyCost))")
-                                        .font(.caption)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(gameState.currency >= recipe.currencyCost ? .green : .red)
-                                }
-                            }
+                        },
+                        onStartConstruction: {
+                            gameState.startConstruction(recipe: recipe)
+                            dismiss()
                         }
-                    }
-                    .disabled(!gameState.canAffordConstruction(recipe: recipe))
+                    )
                 }
             }
             .navigationTitle("Construction Recipes")
@@ -1757,6 +1713,138 @@ struct ConstructionMenuView: View {
                 }
             }
         }
+    }
+    
+    private func hasEnoughResource(_ resourceType: ResourceType, _ requiredAmount: Double) -> Bool {
+        if let resource = gameState.resources.first(where: { $0.type == resourceType }) {
+            return resource.amount >= requiredAmount
+        }
+        return false
+    }
+    
+    private func getPlayerResourceAmount(_ resourceType: ResourceType) -> Double {
+        if let resource = gameState.resources.first(where: { $0.type == resourceType }) {
+            return resource.amount
+        }
+        return 0
+    }
+}
+
+// MARK: - Collapsible Recipe View
+struct CollapsibleRecipeView: View {
+    let recipe: ConstructionRecipe
+    @ObservedObject var gameState: GameState
+    let isExpanded: Bool
+    let onToggle: () -> Void
+    let onStartConstruction: () -> Void
+    
+    private var canAfford: Bool {
+        gameState.canAffordConstruction(recipe: recipe)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Header with expand/collapse button
+            Button(action: onToggle) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(recipe.name)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                            Spacer()
+                            Text("\(recipe.xpReward) XP")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.purple)
+                        }
+                        
+                        HStack {
+                            Text(recipe.description)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(Int(recipe.duration))s")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        // Status line when collapsed
+                        if !isExpanded {
+                            HStack {
+                                Text(canAfford ? "Ready to Construct" : "Missing Requirements")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(canAfford ? .green : .red)
+                                Spacer()
+                            }
+                        }
+                    }
+                    
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            // Expanded content
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 4) {
+                    // Resource requirements with color coding
+                    ForEach(Array(recipe.cost.keys.sorted(by: { $0.rawValue < $1.rawValue })), id: \.self) { resourceType in
+                        if let requiredAmount = recipe.cost[resourceType] {
+                            HStack {
+                                Image(systemName: getResourceIcon(for: resourceType))
+                                    .foregroundColor(getResourceColor(for: resourceType))
+                                    .frame(width: 16)
+                                Text(resourceType.rawValue)
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text("(\(Int(getPlayerResourceAmount(resourceType)))/\(Int(requiredAmount)))")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(hasEnoughResource(resourceType, requiredAmount) ? .green : .red)
+                            }
+                        }
+                    }
+                    
+                    // Currency requirement with color coding
+                    HStack {
+                        Image(systemName: "star.circle")
+                            .foregroundColor(.yellow)
+                            .frame(width: 16)
+                        Text("Numins")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                        Spacer()
+                        Text("(\(recipe.currencyCost))")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(gameState.currency >= recipe.currencyCost ? .green : .red)
+                    }
+                    
+                    // Start construction button
+                    Button(action: onStartConstruction) {
+                        HStack {
+                            Spacer()
+                            Text("Start Construction")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
+                        .background(canAfford ? Color.blue : Color.gray)
+                        .cornerRadius(6)
+                    }
+                    .disabled(!canAfford)
+                }
+                .padding(.top, 4)
+            }
+        }
+        .opacity(canAfford ? 1.0 : 0.5)
     }
     
     private func hasEnoughResource(_ resourceType: ResourceType, _ requiredAmount: Double) -> Bool {
