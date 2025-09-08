@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "🚀 Launch UniverseRPG on iPhone",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/UniverseRPG/UniverseRPG.xcodeproj",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "🚀 Launch UniverseRPG on iPhone",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        }
+    ]
+}

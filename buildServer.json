@@ -1,0 +1,17 @@
+{
+  "name": "UniverseRPG",
+  "version": "1.0.0",
+  "bazelVersion": "0.0.0",
+  "bspVersion": "2.0.0",
+  "languages": ["swift"],
+  "argv": [
+    "xcodebuild",
+    "-project",
+    "UniverseRPG/UniverseRPG.xcodeproj",
+    "-scheme",
+    "UniverseRPG",
+    "-destination",
+    "platform=iOS,id=00008140-00180CA80A53001C",
+    "build"
+  ]
+}
