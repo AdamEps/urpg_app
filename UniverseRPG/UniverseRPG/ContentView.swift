@@ -380,10 +380,22 @@ struct LocationView: View {
                 Spacer()
                     .frame(height: 10)
                 ZStack {
-                    AlphaHitTestButton(imageName: "Taragam7", alphaThreshold: 0.1) {
-                        gameState.tapLocation()
+                    if gameState.currentLocation.id == "elcinto" {
+                        AlphaHitTestButton(imageName: "Elcinto", alphaThreshold: 0.1) {
+                            gameState.tapLocation()
+                        }
+                        .frame(width: 240, height: 240) // 80% of 300x300
+                    } else if gameState.currentLocation.id == "taragam-3" {
+                        AlphaHitTestButton(imageName: "Taragam3", alphaThreshold: 0.1) {
+                            gameState.tapLocation()
+                        }
+                        .frame(width: 300, height: 300)
+                    } else {
+                        AlphaHitTestButton(imageName: "Taragam7", alphaThreshold: 0.1) {
+                            gameState.tapLocation()
+                        }
+                        .frame(width: 300, height: 300)
                     }
-                    .frame(width: 300, height: 300)
                     
                     // Collection feedback (tap)
                     if gameState.showCollectionFeedback, let resource = gameState.lastCollectedResource {
@@ -949,7 +961,7 @@ struct LocationResourceListView: View {
         case .solar: return "sun.max.fill"
         case .numins: return "star.circle"
         
-        // TaraGam 3 resources
+        // Taragam-3 resources
         case .hydrogen: return "h.circle.fill"
         case .methane: return "flame"
         case .ammonia: return "drop.triangle"
@@ -1087,7 +1099,7 @@ struct LocationResourceListView: View {
         case .solar: return .yellow
         case .numins: return .yellow
         
-        // TaraGam 3 resources
+        // Taragam-3 resources
         case .hydrogen: return .cyan
         case .methane: return .orange
         case .ammonia: return .green
@@ -2491,7 +2503,7 @@ struct ResourcesPageView: View {
         case .solar: return "sun.max.circle.fill"
         case .numins: return "star.circle"
         
-        // TaraGam 3 resources
+        // Taragam-3 resources
         case .hydrogen: return "h.circle.fill"
         case .methane: return "flame"
         case .ammonia: return "drop.triangle"
@@ -2629,7 +2641,7 @@ struct ResourcesPageView: View {
         case .solar: return .orange
         case .numins: return .yellow
         
-        // TaraGam 3 resources
+        // Taragam-3 resources
         case .hydrogen: return .cyan
         case .methane: return .orange
         case .ammonia: return .green

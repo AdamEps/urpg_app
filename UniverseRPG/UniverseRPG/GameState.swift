@@ -155,7 +155,7 @@ class GameState: ObservableObject {
             ),
             Location(
                 id: "taragam-3",
-                name: "TaraGam 3",
+                name: "Taragam-3",
                 description: "Ice planet with rings",
                 system: "Taragon Gamma",
                 kind: .planet,
@@ -1071,7 +1071,7 @@ class GameState: ObservableObject {
         case .solar: return "sun.max.circle.fill"
         case .numins: return "star.circle"
         
-        // TaraGam 3 resources
+        // Taragam-3 resources
         case .hydrogen: return "h.circle.fill"
         case .methane: return "flame"
         case .ammonia: return "drop.triangle"
@@ -1211,7 +1211,7 @@ class GameState: ObservableObject {
         case .solar: return .orange
         case .numins: return .yellow
         
-        // TaraGam 3 resources
+        // Taragam-3 resources
         case .hydrogen: return .cyan
         case .methane: return .orange
         case .ammonia: return .green
@@ -1692,7 +1692,7 @@ enum ResourceType: String, CaseIterable {
     case solar = "Solar"
     case numins = "Numins"
     
-    // TaraGam 3 resources
+    // Taragam-3 resources
     case hydrogen = "Hydrogen"
     case methane = "Methane"
     case ammonia = "Ammonia"
