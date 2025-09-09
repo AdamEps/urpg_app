@@ -61,7 +61,6 @@ class GameState: ObservableObject {
     @Published var showConstructionDetails = false
     @Published var showCardsDetails = false
     @Published var showLocationSlots = false
-    @Published var showConstructionSlots = false
     @Published var showResourcesSlots = false
     @Published var showShopSlots = false
     @Published var showCardsSlots = false

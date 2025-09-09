@@ -12,37 +12,38 @@ struct ContentView: View {
     @State private var showXPInfo = false
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                VStack(spacing: 0) {
-                    // Top Bar (always visible)
-                    TopBarView(gameState: gameState, showXPInfo: $showXPInfo)
-                    
-                    // Main game area - conditional based on current page
-                    Group {
-                        switch gameState.currentPage {
-                        case .location:
+        ZStack {
+            VStack(spacing: 0) {
+                // Top Bar (always visible)
+                TopBarView(gameState: gameState, showXPInfo: $showXPInfo)
+                
+                // Main game area - conditional based on current page
+                Group {
+                    switch gameState.currentPage {
+                    case .location:
+                        LocationView(gameState: gameState)
+                    case .construction:
+                        ConstructionPageView(gameState: gameState)
+                    case .starMap:
+                        if gameState.showingLocationList {
+                            StarMapView(gameState: gameState)
+                        } else {
                             LocationView(gameState: gameState)
-                        case .construction:
-                            ConstructionPageView(gameState: gameState)
-                        case .starMap:
-                            if gameState.showingLocationList {
-                                StarMapView(gameState: gameState)
-                            } else {
-                                LocationView(gameState: gameState)
-                            }
-                        case .resources:
-                            ResourcesPageView(gameState: gameState)
-                        case .cards:
-                            CardsView(gameState: gameState)
-                        case .shop:
-                            ShopView(gameState: gameState)
                         }
+                    case .resources:
+                        ResourcesPageView(gameState: gameState)
+                    case .cards:
+                        CardsView(gameState: gameState)
+                    case .shop:
+                        ShopView(gameState: gameState)
                     }
-                    
-                    // Bottom navigation
-                    BottomNavigationView(gameState: gameState)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .animation(nil, value: gameState.currentPage)
+                
+                // Bottom navigation
+                BottomNavigationView(gameState: gameState)
+            }
                 
                 // Resource pop out positioned above bottom navigation
                 VStack {
@@ -158,8 +159,6 @@ struct ContentView: View {
                 }
                 
             }
-            .navigationBarHidden(true)
-        }
         .onAppear {
             gameState.startGame()
         }
@@ -291,7 +290,7 @@ struct HeaderView: View {
                 .foregroundColor(.secondary)
             
             // Tap counter with reset button (conditionally shown)
-            if gameState.showTapCounter {
+            if gameState.showTapCounter && (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
                 HStack {
                     Text("Taps: \(gameState.currentLocationTapCount)")
                         .font(.caption)
@@ -305,18 +304,20 @@ struct HeaderView: View {
                 }
             }
             
-            // Toggle button for tap counter
-            HStack {
-                Spacer()
-                Button(action: {
-                    gameState.showTapCounter.toggle()
-                }) {
-                    Image(systemName: gameState.showTapCounter ? "chevron.up" : "chevron.down")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                        .padding(4)
+            // Toggle button for tap counter (only on location page)
+            if gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList) {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        gameState.showTapCounter.toggle()
+                    }) {
+                        Image(systemName: gameState.showTapCounter ? "chevron.up" : "chevron.down")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                            .padding(4)
+                    }
+                    Spacer()
                 }
-                Spacer()
             }
             
             HStack {
@@ -599,50 +600,6 @@ struct LocationSlotView: View {
     }
 }
 
-// MARK: - Construction Slots View
-struct ConstructionSlotsView: View {
-    @ObservedObject var gameState: GameState
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 12) {
-                ForEach(0..<4, id: \.self) { index in
-                    ConstructionSlotView(slotIndex: index, gameState: gameState)
-                }
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(Color.black.opacity(0.6))
-        .cornerRadius(12)
-        .padding(.horizontal, 16)
-    }
-}
-
-struct ConstructionSlotView: View {
-    let slotIndex: Int
-    @ObservedObject var gameState: GameState
-    
-    var body: some View {
-        VStack(spacing: 4) {
-            // Slot container
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
-                .frame(width: 60, height: 80)
-                .overlay(
-                    VStack {
-                        Image(systemName: "plus")
-                            .font(.title3)
-                            .foregroundColor(.gray.opacity(0.6))
-                        
-                        Text("Slot \(slotIndex + 1)")
-                            .font(.caption2)
-                            .foregroundColor(.gray.opacity(0.6))
-                    }
-                )
-        }
-    }
-}
 
 // MARK: - Resources Slots View
 struct ResourcesSlotsView: View {
@@ -1958,118 +1915,88 @@ struct ConstructionPageView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        ZStack {
-            VStack(spacing: 20) {
-                // Construction Bays Header
-                HStack {
-                    Text("Construction Bays")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    Spacer()
-                }
-                .padding(.horizontal)
-                .padding(.top, 8)
-                
-                ScrollView {
-                    VStack(spacing: 24) {
-                        // Small Bays Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Small Bays")
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)
-                                Spacer()
-                            }
-                            .padding(.horizontal)
-                            
-                            HStack(spacing: 12) {
-                                ForEach(0..<4, id: \.self) { index in
-                                    SmallBaySlotView(slotIndex: index, gameState: gameState)
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                        
-                        // Medium Bays Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Medium Bays")
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)
-                                Spacer()
-                            }
-                            .padding(.horizontal)
-                            
-                            HStack(spacing: 12) {
-                                ForEach(0..<3, id: \.self) { index in
-                                    MediumBaySlotView(slotIndex: index, gameState: gameState)
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                        
-                        // Large Bays Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Large Bays")
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)
-                                Spacer()
-                            }
-                            .padding(.horizontal)
-                            
-                            HStack(spacing: 12) {
-                                ForEach(0..<2, id: \.self) { index in
-                                    LargeBaySlotView(slotIndex: index, gameState: gameState)
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                    }
-                    .padding(.bottom, 100) // Add space for slots
-                }
-            }
-            
-                    VStack {
-                        Spacer()
-                    }
-            
-            // Enhancement slots overlay - positioned at bottom without affecting layout
-            VStack {
+        VStack(spacing: 0) {
+            // Construction Bays Header
+            HStack {
+                Text("Construction Bays")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
                 Spacer()
-                
-                // Enhancement button - always visible
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        gameState.showConstructionSlots.toggle()
-                    }
-                }) {
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
+            
+            // Content area with fixed height
+            VStack(spacing: 24) {
+                // Small Bays Section
+                VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text("Enhancements")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
+                        Text("Small Bays")
+                            .font(.headline)
+                            .fontWeight(.semibold)
                             .foregroundColor(.white)
-                        
                         Spacer()
                     }
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(Color.black)
-                    .cornerRadius(8)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal)
+                    
+                    GeometryReader { geometry in
+                        HStack(spacing: 12) {
+                            ForEach(0..<4, id: \.self) { index in
+                                SmallBaySlotView(slotIndex: index, gameState: gameState, availableWidth: geometry.size.width - 32)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    .frame(height: 100)
                 }
-                .buttonStyle(PlainButtonStyle())
                 
-                // Enhancement slots - shown conditionally with animation
-                if gameState.showConstructionSlots {
-                    ConstructionSlotsView(gameState: gameState)
-                        .padding(.bottom, 10) // Position just above navigation bar
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                // Medium Bays Section
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("Medium Bays")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    
+                    GeometryReader { geometry in
+                        HStack(spacing: 12) {
+                            ForEach(0..<3, id: \.self) { index in
+                                MediumBaySlotView(slotIndex: index, gameState: gameState, availableWidth: geometry.size.width - 32)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    .frame(height: 120)
                 }
+                
+                // Large Bays Section
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("Large Bays")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    
+                    GeometryReader { geometry in
+                        HStack(spacing: 12) {
+                            ForEach(0..<2, id: \.self) { index in
+                                LargeBaySlotView(slotIndex: index, gameState: gameState, availableWidth: geometry.size.width - 32)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    .frame(height: 140)
+                }
+                
+                Spacer()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -2083,6 +2010,7 @@ struct ConstructionPageView: View {
 struct SmallBaySlotView: View {
     let slotIndex: Int
     @ObservedObject var gameState: GameState
+    let availableWidth: CGFloat
     @State private var isCollecting = false
     
     private var bay: ConstructionBay? {
@@ -2113,7 +2041,7 @@ struct SmallBaySlotView: View {
         }) {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(isCompleted ? Color.yellow : Color.gray.opacity(0.5), lineWidth: 2)
-                .frame(width: (UIScreen.main.bounds.width - 60) / 4, height: (UIScreen.main.bounds.width - 60) / 4)
+                .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
                 .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
                 .overlay(
                     Group {
@@ -2246,6 +2174,7 @@ struct SmallBaySlotView: View {
 struct MediumBaySlotView: View {
     let slotIndex: Int
     @ObservedObject var gameState: GameState
+    let availableWidth: CGFloat
     
     var body: some View {
         Button(action: {
@@ -2253,7 +2182,7 @@ struct MediumBaySlotView: View {
         }) {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.gray.opacity(0.5), lineWidth: 2)
-                .frame(width: (UIScreen.main.bounds.width - 48) / 3, height: (UIScreen.main.bounds.width - 48) / 3)
+                .frame(width: (availableWidth - 24) / 3, height: (availableWidth - 24) / 3)
                 .overlay(
                     Image(systemName: "star.circle")
                         .font(.title2)
@@ -2268,6 +2197,7 @@ struct MediumBaySlotView: View {
 struct LargeBaySlotView: View {
     let slotIndex: Int
     @ObservedObject var gameState: GameState
+    let availableWidth: CGFloat
     
     var body: some View {
         Button(action: {
@@ -2275,7 +2205,7 @@ struct LargeBaySlotView: View {
         }) {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.gray.opacity(0.5), lineWidth: 2)
-                .frame(width: (UIScreen.main.bounds.width - 36) / 2, height: (UIScreen.main.bounds.width - 36) / 2)
+                .frame(width: (availableWidth - 12) / 2, height: (availableWidth - 12) / 2)
                 .overlay(
                     Image(systemName: "star.circle")
                         .font(.title2)
