@@ -379,15 +379,10 @@ struct LocationView: View {
                 Spacer()
                     .frame(height: 30)
                 ZStack {
-                    Button(action: {
+                    AlphaHitTestButton(imageName: "Taragam7", alphaThreshold: 0.1) {
                         gameState.tapLocation()
-                    }) {
-                        Image("Taragam7")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 300, height: 300)
                     }
-                    .buttonStyle(PlainButtonStyle())
+                    .frame(width: 300, height: 300)
                     
                     // Collection feedback (tap)
                     if gameState.showCollectionFeedback, let resource = gameState.lastCollectedResource {
@@ -408,6 +403,7 @@ struct LocationView: View {
                         .offset(y: -80)
                         .transition(.scale.combined(with: .opacity))
                         .animation(.easeInOut(duration: 0.3), value: gameState.showCollectionFeedback)
+                        .allowsHitTesting(false)
                     }
                     
                     // Idle collection feedback
@@ -434,6 +430,7 @@ struct LocationView: View {
                         .offset(y: -120)
                         .transition(.scale.combined(with: .opacity))
                         .animation(.easeInOut(duration: 0.3), value: gameState.showIdleCollectionFeedback)
+                        .allowsHitTesting(false)
                     }
                     
                     // Numins collection feedback
@@ -460,6 +457,7 @@ struct LocationView: View {
                         .offset(y: -160)
                         .transition(.scale.combined(with: .opacity))
                         .animation(.easeInOut(duration: 0.3), value: gameState.showNuminsFeedback)
+                        .allowsHitTesting(false)
                     }
                     
                     // XP collection feedback
@@ -486,6 +484,7 @@ struct LocationView: View {
                         .offset(y: -200)
                         .transition(.scale.combined(with: .opacity))
                         .animation(.easeInOut(duration: 0.3), value: gameState.showXPFeedback)
+                        .allowsHitTesting(false)
                     }
                 }
                 
