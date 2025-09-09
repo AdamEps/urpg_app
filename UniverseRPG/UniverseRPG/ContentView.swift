@@ -377,7 +377,7 @@ struct LocationView: View {
                 
                 // Centered clickable location (positioned based on tap counter visibility)
                 Spacer()
-                    .frame(height: 30)
+                    .frame(height: 10)
                 ZStack {
                     AlphaHitTestButton(imageName: "Taragam7", alphaThreshold: 0.1) {
                         gameState.tapLocation()
@@ -627,12 +627,18 @@ struct ConstructionSlotView: View {
         VStack(spacing: 4) {
             // Slot container
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 60, height: 60)
+                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .frame(width: 60, height: 80)
                 .overlay(
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.gray)
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
+                        
+                        Text("Slot \(slotIndex + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
                 )
         }
     }
@@ -666,12 +672,18 @@ struct ResourcesSlotView: View {
         VStack(spacing: 4) {
             // Slot container
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 60, height: 60)
+                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .frame(width: 60, height: 80)
                 .overlay(
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.gray)
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
+                        
+                        Text("Slot \(slotIndex + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
                 )
         }
     }
@@ -705,12 +717,18 @@ struct ShopSlotView: View {
         VStack(spacing: 4) {
             // Slot container
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 60, height: 60)
+                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .frame(width: 60, height: 80)
                 .overlay(
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.gray)
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
+                        
+                        Text("Slot \(slotIndex + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
                 )
         }
     }
@@ -744,12 +762,18 @@ struct CardsSlotView: View {
         VStack(spacing: 4) {
             // Slot container
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 60, height: 60)
+                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .frame(width: 60, height: 80)
                 .overlay(
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.gray)
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
+                        
+                        Text("Slot \(slotIndex + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
                 )
         }
     }
