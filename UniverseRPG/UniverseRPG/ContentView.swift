@@ -382,18 +382,10 @@ struct LocationView: View {
                     Button(action: {
                         gameState.tapLocation()
                     }) {
-                        VStack {
-                            Image(systemName: "globe")
-                                .font(.system(size: 60))
-                                .foregroundColor(.blue)
-                            
-                            Text("Tap to Collect")
-                                .font(.caption)
-                                .foregroundColor(.white)
-                        }
-                        .frame(width: 120, height: 120)
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(20)
+                        Image("Taragam7")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 300, height: 300)
                     }
                     .buttonStyle(PlainButtonStyle())
                     
