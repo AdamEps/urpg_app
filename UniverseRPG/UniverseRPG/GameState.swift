@@ -164,7 +164,7 @@ class GameState: ObservableObject {
             ),
             Location(
                 id: "abandoned-star-ship",
-                name: "Abandoned Star Ship",
+                name: "Abandoned Starship",
                 description: "Derelict vessel floating in space",
                 system: "Taragon Gamma",
                 kind: .ship,
@@ -980,7 +980,7 @@ class GameState: ObservableObject {
         // This would ideally be data-driven, but for now we'll use some examples
         switch resourceType {
         case .ironOre:
-            return ["Taragam-7", "Abandoned Star Ship", "Koraxon"]
+            return ["Taragam-7", "Abandoned Starship", "Koraxon"]
         case .silicon:
             return ["Taragam-7", "Violis Outpost"]
         case .water:
@@ -1079,7 +1079,7 @@ class GameState: ObservableObject {
         case .crystals: return "diamond"
         case .minerals: return "cube"
         
-        // Abandoned Star Ship resources
+        // Abandoned Starship resources
         case .scrapMetal: return "wrench.and.screwdriver"
         case .electronics: return "cpu"
         case .fuelCells: return "battery.100"
@@ -1219,7 +1219,7 @@ class GameState: ObservableObject {
         case .crystals: return .purple
         case .minerals: return .brown
         
-        // Abandoned Star Ship resources
+        // Abandoned Starship resources
         case .scrapMetal: return .gray
         case .electronics: return .blue
         case .fuelCells: return .green
@@ -1700,7 +1700,7 @@ enum ResourceType: String, CaseIterable {
     case crystals = "Crystals"
     case minerals = "Minerals"
     
-    // Abandoned Star Ship resources
+    // Abandoned Starship resources
     case scrapMetal = "Scrap Metal"
     case electronics = "Electronics"
     case fuelCells = "Fuel Cells"

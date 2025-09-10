@@ -389,12 +389,22 @@ struct LocationView: View {
                         AlphaHitTestButton(imageName: "Taragam3", alphaThreshold: 0.1) {
                             gameState.tapLocation()
                         }
-                        .frame(width: 300, height: 300)
+                        .frame(width: 390, height: 390) // 30% bigger than Taragam-7
+                    } else if gameState.currentLocation.id == "abandoned-star-ship" {
+                        AlphaHitTestButton(imageName: "AbandonedStarship", alphaThreshold: 0.1) {
+                            gameState.tapLocation()
+                        }
+                        .frame(width: 273, height: 273) // 30% smaller than Taragam-3
+                    } else if gameState.currentLocation.id == "taragon-gamma" {
+                        AlphaHitTestButton(imageName: "TargonGamma", alphaThreshold: 0.1) {
+                            gameState.tapLocation()
+                        }
+                        .frame(width: 360, height: 360) // Same as Taragam-7 to avoid layout issues
                     } else {
                         AlphaHitTestButton(imageName: "Taragam7", alphaThreshold: 0.1) {
                             gameState.tapLocation()
                         }
-                        .frame(width: 300, height: 300)
+                        .frame(width: 360, height: 360) // 20% bigger than original 300
                     }
                     
                     // Collection feedback (tap)
@@ -969,7 +979,7 @@ struct LocationResourceListView: View {
         case .crystals: return "diamond"
         case .minerals: return "cube"
         
-        // Abandoned Star Ship resources
+        // Abandoned Starship resources
         case .scrapMetal: return "wrench.and.screwdriver"
         case .electronics: return "cpu"
         case .fuelCells: return "battery.100"
@@ -1107,7 +1117,7 @@ struct LocationResourceListView: View {
         case .crystals: return .purple
         case .minerals: return .brown
         
-        // Abandoned Star Ship resources
+        // Abandoned Starship resources
         case .scrapMetal: return .gray
         case .electronics: return .blue
         case .fuelCells: return .green
@@ -2511,7 +2521,7 @@ struct ResourcesPageView: View {
         case .crystals: return "diamond"
         case .minerals: return "cube"
         
-        // Abandoned Star Ship resources
+        // Abandoned Starship resources
         case .scrapMetal: return "wrench.and.screwdriver"
         case .electronics: return "cpu"
         case .fuelCells: return "battery.100"
@@ -2649,7 +2659,7 @@ struct ResourcesPageView: View {
         case .crystals: return .purple
         case .minerals: return .brown
         
-        // Abandoned Star Ship resources
+        // Abandoned Starship resources
         case .scrapMetal: return .gray
         case .electronics: return .blue
         case .fuelCells: return .green
