@@ -10,12 +10,102 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var gameState = GameState()
     @State private var showXPInfo = false
+    @State private var showingProfile = false
+    @State private var isLoggedIn = false
+    @State private var currentUsername = ""
     
     var body: some View {
+        Group {
+            if isLoggedIn {
+                mainGameView
+            } else {
+                LoginView(isLoggedIn: $isLoggedIn, currentUsername: $currentUsername, gameState: gameState)
+            }
+        }
+        .onAppear {
+            checkLoginStatus()
+        }
+    }
+    
+    private func checkLoginStatus() {
+        let userDefaults = UserDefaults.standard
+        isLoggedIn = userDefaults.bool(forKey: "UniverseRPG_IsLoggedIn")
+        currentUsername = userDefaults.string(forKey: "UniverseRPG_Username") ?? ""
+        
+        if isLoggedIn && !currentUsername.isEmpty {
+            loadGameState()
+            setupAutoSave()
+        }
+    }
+    
+    private func setupAutoSave() {
+        // Auto-save every 30 seconds while logged in
+        Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { _ in
+            if isLoggedIn {
+                saveGameState()
+            }
+        }
+    }
+    
+    private func loadGameState() {
+        let userDefaults = UserDefaults.standard
+        let saveKey = "UniverseRPG_SaveData_\(currentUsername)"
+        
+        if let data = userDefaults.data(forKey: saveKey),
+           let saveData = try? JSONDecoder().decode(SerializableGameState.self, from: data) {
+            applySaveData(saveData)
+        }
+        // If no save data, keep the default fresh GameState
+    }
+    
+    private func applySaveData(_ saveData: SerializableGameState) {
+        gameState.playerName = saveData.playerName
+        gameState.playerLevel = saveData.playerLevel
+        gameState.playerXP = saveData.playerXP
+        gameState.currency = saveData.currency
+        
+        // Set current page - convert .location to .starMap for navigation
+        if let page = AppPage(rawValue: saveData.currentPage) {
+            gameState.currentPage = page == .location ? .starMap : page
+        }
+        
+        // Load other game state data as needed...
+        gameState.currentLocationTapCount = saveData.currentLocationTapCount
+        gameState.totalTapsCount = saveData.totalTapsCount
+        
+        print("✅ Loaded save data for \(currentUsername)")
+    }
+    
+    func saveGameState() {
+        guard !currentUsername.isEmpty else { return }
+        
+        let userDefaults = UserDefaults.standard
+        let saveKey = "UniverseRPG_SaveData_\(currentUsername)"
+        let saveData = SerializableGameState(from: gameState)
+        
+        if let data = try? JSONEncoder().encode(saveData) {
+            userDefaults.set(data, forKey: saveKey)
+            print("💾 Auto-saved game state for \(currentUsername)")
+        }
+    }
+    
+    func logout() {
+        let userDefaults = UserDefaults.standard
+        userDefaults.set(false, forKey: "UniverseRPG_IsLoggedIn")
+        userDefaults.removeObject(forKey: "UniverseRPG_Username")
+        isLoggedIn = false
+        currentUsername = ""
+        
+        // Reset to fresh game state
+        gameState.resetToDefaults()
+        print("🚪 Logged out successfully")
+    }
+    
+    private var mainGameView: some View {
         ZStack {
             VStack(spacing: 0) {
                 // Top Bar (always visible)
-                TopBarView(gameState: gameState, showXPInfo: $showXPInfo)
+                TopBarView(gameState: gameState, showXPInfo: $showXPInfo, showingProfile: $showingProfile, logoutAction: logout)
                 
                 // Main game area - conditional based on current page
                 Group {
@@ -44,123 +134,129 @@ struct ContentView: View {
                 // Bottom navigation
                 BottomNavigationView(gameState: gameState)
             }
+            
+            // Resource pop out positioned above bottom navigation
+            VStack {
+                Spacer()
+                    .allowsHitTesting(false)
                 
-                // Resource pop out positioned above bottom navigation
-                VStack {
-                    Spacer()
-                    
-                    if gameState.showLocationResources && (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
-                        HStack(alignment: .bottom, spacing: 0) {
-                            Spacer()
-                            
-                            // Toggle button on left side of resource box when open
-                            Button(action: {
-                                gameState.showLocationResources.toggle()
-                            }) {
-                                Image(systemName: "chevron.right")
-                                    .font(.title2)
-                                    .foregroundColor(.white)
-                                    .padding(8)
-                                    .background(Color.black)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .stroke(Color.gray, lineWidth: 1)
-                                    )
-                                    .cornerRadius(6)
-                            }
-                            
-                            // Resource box
-                            LocationResourceListView(gameState: gameState)
-                                .frame(width: UIScreen.main.bounds.width * 0.5)
+                if gameState.showLocationResources && (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
+                    HStack(alignment: .bottom, spacing: 0) {
+                        Spacer()
+                            .allowsHitTesting(false)
+                        
+                        // Toggle button on left side of resource box when open
+                        Button(action: {
+                            gameState.showLocationResources.toggle()
+                        }) {
+                            Image(systemName: "chevron.right")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                                .padding(8)
+                                .background(Color.black)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.gray, lineWidth: 1)
+                                )
+                                .cornerRadius(6)
                         }
-                        .padding(.trailing, 0)
-                        .padding(.bottom, 80) // Position well above navigation bar
-                    } else if (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
-                        HStack {
-                            Spacer()
-                            
-                            // Toggle button on right side of screen when closed
-                            Button(action: {
-                                gameState.showLocationResources.toggle()
-                            }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.title2)
-                                    .foregroundColor(.white)
-                                    .padding(8)
-                                    .background(Color.black)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .stroke(Color.gray, lineWidth: 1)
-                                    )
-                                    .cornerRadius(6)
-                            }
-                        }
-                        .padding(.trailing, 0)
-                        .padding(.bottom, 80) // Position well above navigation bar
+                        
+                        // Resource box
+                        LocationResourceListView(gameState: gameState)
+                            .frame(width: UIScreen.main.bounds.width * 0.5)
                     }
-                }
-                
-                // Tap counter pop out positioned below location name
-                VStack {
-                    // Push down to position below location name header
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(height: 150) // Height to clear top bar + location name + more space
-                    
-                    if gameState.showTapCounter && (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
-                        HStack(alignment: .bottom, spacing: 0) {
-                            Spacer()
-                            
-                            // Toggle button on left side of tap counter box when open
-                            Button(action: {
-                                gameState.showTapCounter.toggle()
-                            }) {
-                                Image(systemName: "chevron.right")
-                                    .font(.title2)
-                                    .foregroundColor(.white)
-                                    .padding(8)
-                                    .background(Color.black)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .stroke(Color.gray, lineWidth: 1)
-                                    )
-                                    .cornerRadius(6)
-                            }
-                            
-                            // Tap counter box
-                            TapCounterView(gameState: gameState)
-                                .frame(width: UIScreen.main.bounds.width * 0.3)
+                    .padding(.trailing, 0)
+                    .padding(.bottom, 80) // Position well above navigation bar
+                } else if (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
+                    HStack {
+                        Spacer()
+                            .allowsHitTesting(false)
+                        
+                        // Toggle button on right side of screen when closed
+                        Button(action: {
+                            gameState.showLocationResources.toggle()
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                                .padding(8)
+                                .background(Color.black)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.gray, lineWidth: 1)
+                                )
+                                .cornerRadius(6)
                         }
-                        .padding(.trailing, 0)
-                    } else if (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
-                        HStack {
-                            Spacer()
-                            
-                            // Toggle button on right side of screen when closed
-                            Button(action: {
-                                gameState.showTapCounter.toggle()
-                            }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.title2)
-                                    .foregroundColor(.white)
-                                    .padding(8)
-                                    .background(Color.black)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .stroke(Color.gray, lineWidth: 1)
-                                    )
-                                    .cornerRadius(6)
-                            }
-                        }
-                        .padding(.trailing, 0)
                     }
-                    
-                    Spacer()
+                    .padding(.trailing, 0)
+                    .padding(.bottom, 80) // Position well above navigation bar
                 }
-                
             }
+            
+            // Tap counter pop out positioned below location name
+            VStack {
+                // Push down to position below location name header
+                Rectangle()
+                    .fill(Color.clear)
+                    .frame(height: 150) // Height to clear top bar + location name + more space
+                    .allowsHitTesting(false)
+                
+                if gameState.showTapCounter && (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
+                    HStack(alignment: .bottom, spacing: 0) {
+                        Spacer()
+                            .allowsHitTesting(false)
+                        
+                        // Toggle button on left side of tap counter box when open
+                        Button(action: {
+                            gameState.showTapCounter.toggle()
+                        }) {
+                            Image(systemName: "chevron.right")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                                .padding(8)
+                                .background(Color.black)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.gray, lineWidth: 1)
+                                )
+                                .cornerRadius(6)
+                        }
+                        
+                        // Tap counter box
+                        TapCounterView(gameState: gameState)
+                            .frame(width: UIScreen.main.bounds.width * 0.3)
+                    }
+                    .padding(.trailing, 0)
+                } else if (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
+                    HStack {
+                        Spacer()
+                            .allowsHitTesting(false)
+                        
+                        // Toggle button on right side of screen when closed
+                        Button(action: {
+                            gameState.showTapCounter.toggle()
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                                .padding(8)
+                                .background(Color.black)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.gray, lineWidth: 1)
+                                )
+                                .cornerRadius(6)
+                        }
+                    }
+                    .padding(.trailing, 0)
+                }
+            }
+        }
         .onAppear {
             gameState.startGame()
+        }
+        .sheet(isPresented: $showingProfile) {
+            ProfileView(gameState: gameState, currentUsername: currentUsername, logoutAction: logout)
         }
     }
 }
@@ -169,6 +265,8 @@ struct ContentView: View {
 struct TopBarView: View {
     @ObservedObject var gameState: GameState
     @Binding var showXPInfo: Bool
+    @Binding var showingProfile: Bool
+    let logoutAction: () -> Void
     
     var body: some View {
         VStack(spacing: 4) {
@@ -176,7 +274,7 @@ struct TopBarView: View {
             HStack {
                 // Left - Settings (moved up) - fixed width
                 Button(action: {
-                    // Settings action
+                    showingProfile = true
                 }) {
                     Image(systemName: "gearshape.fill")
                         .foregroundColor(.white)
@@ -1667,7 +1765,7 @@ struct BottomNavigationView: View {
             }
         }
         .padding(.horizontal)
-        .padding(.vertical, 16) // Equal padding above and below icons
+        .padding(.vertical, 16)
         .background(Color.gray.opacity(0.3))
         .sheet(isPresented: $gameState.showObjectives) {
             ObjectivesView(gameState: gameState)

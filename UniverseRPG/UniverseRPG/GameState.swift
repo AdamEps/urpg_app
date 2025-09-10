@@ -70,6 +70,39 @@ class GameState: ObservableObject {
     @Published var selectedCardForDetail: String?
     @Published var maxStorageCapacity: Int = 1000
     
+    // MARK: - Reset functionality
+    func resetToDefaults() {
+        let fresh = GameState()
+        self.playerName = fresh.playerName
+        self.playerLevel = fresh.playerLevel
+        self.playerXP = fresh.playerXP
+        self.currency = fresh.currency
+        self.currentLocation = fresh.currentLocation
+        self.resources = fresh.resources
+        self.constructionBays = fresh.constructionBays
+        self.availableLocations = fresh.availableLocations
+        self.ownedCards = fresh.ownedCards
+        self.currentPage = fresh.currentPage
+        self.showingLocationList = fresh.showingLocationList
+        self.currentLocationTapCount = fresh.currentLocationTapCount
+        self.locationTapCounts = fresh.locationTapCounts
+        self.totalTapsCount = fresh.totalTapsCount
+        self.totalXPGained = fresh.totalXPGained
+        self.locationIdleCollectionCounts = fresh.locationIdleCollectionCounts
+        self.totalIdleCollectionCount = fresh.totalIdleCollectionCount
+        self.totalNuminsCollected = fresh.totalNuminsCollected
+        self.totalConstructionsCompleted = fresh.totalConstructionsCompleted
+        self.smallConstructionsCompleted = fresh.smallConstructionsCompleted
+        self.mediumConstructionsCompleted = fresh.mediumConstructionsCompleted
+        self.largeConstructionsCompleted = fresh.largeConstructionsCompleted
+        self.maxStorageCapacity = fresh.maxStorageCapacity
+        self.showLocationResources = fresh.showLocationResources
+        print("🔄 Game state reset to defaults")
+    }
+    
+    // Reference to GameStateManager for auto-save (deprecated)
+    weak var gameStateManager: GameStateManager?
+    
     // Player data
     @Published var playerName: String = "Commander"
     @Published var playerLevel: Int = 0
@@ -115,7 +148,7 @@ class GameState: ObservableObject {
     @Published var ownedCards: [UserCard] = []
     
     // Navigation state
-    @Published var currentPage: AppPage = .location
+    @Published var currentPage: AppPage = .starMap
     @Published var showingLocationList: Bool = false
     
     // Idle collection tracking - now uses dynamic chance-based system
@@ -472,6 +505,9 @@ class GameState: ObservableObject {
             self.showCollectionFeedback = false
         }
         
+        // Trigger auto-save
+        gameStateManager?.triggerAutoSave()
+        
         print("Tap #\(currentLocationTapCount) - Collected: \(selectedResource.rawValue)")
     }
     
@@ -651,6 +687,9 @@ class GameState: ObservableObject {
         )
         
         constructionBays[bayIndex].currentConstruction = construction
+        
+        // Trigger auto-save
+        gameStateManager?.triggerAutoSave()
     }
     
     func canAffordConstruction(recipe: ConstructionRecipe) -> Bool {
@@ -740,6 +779,9 @@ class GameState: ObservableObject {
         
         // Update current location tap count
         currentLocationTapCount = locationTapCounts[location.id, default: 0]
+        
+        // Trigger auto-save
+        gameStateManager?.triggerAutoSave()
     }
     
     func resetCurrentLocationTapCount() {
