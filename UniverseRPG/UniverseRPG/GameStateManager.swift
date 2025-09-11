@@ -130,38 +130,55 @@ class GameStateManager: ObservableObject {
     @Published var currentUsername: String = ""
     
     private let userDefaults = UserDefaults.standard
-    private let saveDataKey = "UniverseRPG_SaveData"
+    private var saveDataKey: String {
+        return "UniverseRPG_SaveData_\(currentUsername)"
+    }
     private let usernameKey = "UniverseRPG_Username"
     private let isLoggedInKey = "UniverseRPG_IsLoggedIn"
     
     private init() {
+        print("🚀 GameStateManager INIT - Starting initialization...")
+        
         // Initialize with default game state
         self.gameState = GameState()
+        print("🚀 GameStateManager INIT - Created fresh GameState")
         
         // Connect GameState to GameStateManager for auto-save
         self.gameState.gameStateManager = self
+        print("🚀 GameStateManager INIT - Connected GameState to GameStateManager")
         
-        // Clear all saved usernames and force login screen
-        self.isLoggedIn = false
-        self.currentUsername = ""
+        // Check for existing login state instead of forcing logout
+        self.isLoggedIn = userDefaults.bool(forKey: isLoggedInKey)
+        self.currentUsername = userDefaults.string(forKey: usernameKey) ?? ""
+        print("🚀 GameStateManager INIT - Login state check: isLoggedIn=\(isLoggedIn), username='\(currentUsername)'")
+        print("🚀 GameStateManager INIT - UserDefaults keys: isLoggedInKey='\(isLoggedInKey)', usernameKey='\(usernameKey)'")
         
-        // Clear all stored data
-        userDefaults.removeObject(forKey: isLoggedInKey)
-        userDefaults.removeObject(forKey: usernameKey)
-        
-        // Clear all user-specific data except test account
-        let allKeys = userDefaults.dictionaryRepresentation().keys
+        // Debug: Check what's actually in UserDefaults
+        let allKeys = userDefaults.dictionaryRepresentation().keys.filter { $0.contains("UniverseRPG") }
+        print("🚀 GameStateManager INIT - All UniverseRPG keys in UserDefaults: \(Array(allKeys))")
         for key in allKeys {
-            if key.contains("_password") {
-                // Don't clear test account
-                if key != "test_password" {
-                    userDefaults.removeObject(forKey: key)
-                }
+            if let value = userDefaults.object(forKey: key) {
+                print("🚀 GameStateManager INIT - Key '\(key)': \(value)")
             }
+        }
+        
+        // If we have a valid login state, restore the user session
+        if isLoggedIn && !currentUsername.isEmpty {
+            print("🔄 RESTORING SESSION - User: \(currentUsername)")
+            // Add a small delay to ensure UserDefaults is fully loaded
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.loadGameState()
+            }
+        } else {
+            // Only clear if no valid session exists
+            print("🚀 GameStateManager INIT - No valid session found, staying logged out")
+            self.isLoggedIn = false
+            self.currentUsername = ""
         }
         
         // Always ensure test account exists
         userDefaults.set("test", forKey: "test_password")
+        print("🚀 GameStateManager INIT - Initialization complete. Final state: isLoggedIn=\(isLoggedIn), username='\(currentUsername)'")
     }
     
     // MARK: - Authentication
@@ -200,15 +217,17 @@ class GameStateManager: ObservableObject {
     func logout() {
         // Save current state before logout
         saveGameState()
+        print("💾 LOGOUT - Game state saved for user: \(currentUsername)")
         
+        // Only update login state, don't clear data
         self.isLoggedIn = false
         self.currentUsername = ""
         
-        userDefaults.removeObject(forKey: usernameKey)
         userDefaults.set(false, forKey: isLoggedInKey)
+        // Don't remove username key - keep it for potential future login
         
-        // Reset to default game state
-        resetGameStateToFresh()
+        // DON'T reset game state - data should persist!
+        print("🔓 LOGOUT - User logged out, data preserved")
     }
     
     func validateCredentials(username: String, password: String) -> Bool {
@@ -333,35 +352,54 @@ class GameStateManager: ObservableObject {
     
     // MARK: - Save/Load System
     func saveGameState() {
-        guard isLoggedIn else { return }
+        guard isLoggedIn else { 
+            print("❌ Save failed: Not logged in")
+            return 
+        }
+        
+        print("💾 SAVING GAME STATE - User: \(currentUsername)")
+        print("💾 SAVING GAME STATE - Resources count: \(gameState.resources.count)")
+        print("💾 SAVING GAME STATE - Currency: \(gameState.currency)")
+        print("💾 SAVING GAME STATE - Player XP: \(gameState.playerXP)")
+        print("💾 SAVING GAME STATE - Save key: \(saveDataKey)")
         
         let saveData = SerializableGameState(from: gameState)
         
         do {
             let data = try JSONEncoder().encode(saveData)
             userDefaults.set(data, forKey: saveDataKey)
-            print("Game state saved successfully")
+            print("✅ Game state saved successfully for \(currentUsername) - Data size: \(data.count) bytes")
         } catch {
-            print("Failed to save game state: \(error)")
+            print("❌ Failed to save game state: \(error)")
         }
     }
     
     func loadGameState() {
-        guard isLoggedIn else { return }
+        guard isLoggedIn else { 
+            print("❌ Load failed: Not logged in")
+            return 
+        }
+        
+        print("📂 LOADING GAME STATE - User: \(currentUsername)")
+        print("📂 LOADING GAME STATE - Save key: \(saveDataKey)")
         
         guard let data = userDefaults.data(forKey: saveDataKey) else {
-            print("No save data found, starting fresh")
+            print("📭 No save data found for \(currentUsername), starting fresh")
             // Reset existing game state to fresh state
             resetGameStateToFresh()
             return
         }
         
+        print("📂 LOADING GAME STATE - Found save data: \(data.count) bytes")
+        
         do {
             let saveData = try JSONDecoder().decode(SerializableGameState.self, from: data)
+            print("📂 LOADING GAME STATE - Decoded save data successfully")
+            print("📂 LOADING GAME STATE - Save data contains: resources=\(saveData.resources.count), currency=\(saveData.currency), xp=\(saveData.playerXP)")
             applySaveData(saveData)
-            print("Game state loaded successfully")
+            print("✅ Game state loaded successfully for \(currentUsername)")
         } catch {
-            print("Failed to load game state: \(error)")
+            print("❌ Failed to load game state: \(error)")
             // Reset existing game state to fresh state
             resetGameStateToFresh()
         }

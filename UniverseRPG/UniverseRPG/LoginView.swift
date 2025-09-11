@@ -11,6 +11,7 @@ struct LoginView: View {
     @Binding var isLoggedIn: Bool
     @Binding var currentUsername: String
     let gameState: GameState
+    @ObservedObject var gameStateManager: GameStateManager
     
     @State private var username = ""
     @State private var password = ""
@@ -128,16 +129,16 @@ struct LoginView: View {
             return
         }
         
-        // Create new account
-        userDefaults.set(password, forKey: "\(username)_password")
+        // Create new account using GameStateManager
+        gameStateManager.createUser(username: username, password: password)
         loginUser()
     }
     
     private func loginUser() {
-        let userDefaults = UserDefaults.standard
-        userDefaults.set(username, forKey: "UniverseRPG_Username")
-        userDefaults.set(true, forKey: "UniverseRPG_IsLoggedIn")
+        // Use GameStateManager's login system
+        gameStateManager.login(username: username)
         
+        // Update ContentView's state
         currentUsername = username
         isLoggedIn = true
         

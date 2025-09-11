@@ -9,32 +9,90 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var gameState = GameState()
+    @StateObject private var gameStateManager = GameStateManager.shared
     @State private var showXPInfo = false
     @State private var showingProfile = false
     @State private var isLoggedIn = false
     @State private var currentUsername = ""
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some View {
         Group {
             if isLoggedIn {
                 mainGameView
             } else {
-                LoginView(isLoggedIn: $isLoggedIn, currentUsername: $currentUsername, gameState: gameState)
+                LoginView(isLoggedIn: $isLoggedIn, currentUsername: $currentUsername, gameState: gameState, gameStateManager: gameStateManager)
             }
         }
         .onAppear {
+            print("📱 ContentView onAppear - App appeared!")
             checkLoginStatus()
+            
+            // Test save system on app appear
+            if isLoggedIn {
+                print("🧪 TESTING SAVE SYSTEM - Current user: \(currentUsername)")
+                print("🧪 GameStateManager isLoggedIn: \(gameStateManager.isLoggedIn)")
+                print("🧪 GameStateManager currentUsername: \(gameStateManager.currentUsername)")
+                
+                // Add a visual indicator that we restored a session
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    // Show an alert or visual indicator that session was restored
+                }
+            }
+        }
+        .onChange(of: scenePhase) { phase in
+            print("📱 Scene phase changed to: \(phase)")
+            switch phase {
+            case .background:
+                if isLoggedIn {
+                    print("📱 App backgrounded - saving game state")
+                    gameStateManager.saveGameState()
+                } else {
+                    print("📱 App backgrounded - not logged in, skipping save")
+                }
+            case .inactive:
+                if isLoggedIn {
+                    print("📱 App inactive - saving game state")
+                    gameStateManager.saveGameState()
+                } else {
+                    print("📱 App inactive - not logged in, skipping save")
+                }
+            case .active:
+                print("📱 App active - current login state: \(isLoggedIn)")
+                if isLoggedIn {
+                    print("📱 App active - checking session")
+                    // Ensure session is still valid when app becomes active
+                    checkLoginStatus()
+                } else {
+                    print("📱 App active - not logged in, will check on next onAppear")
+                }
+            @unknown default:
+                print("📱 Unknown scene phase: \(phase)")
+                break
+            }
         }
     }
     
     private func checkLoginStatus() {
-        let userDefaults = UserDefaults.standard
-        isLoggedIn = userDefaults.bool(forKey: "UniverseRPG_IsLoggedIn")
-        currentUsername = userDefaults.string(forKey: "UniverseRPG_Username") ?? ""
+        print("🔍 ContentView checkLoginStatus - Starting...")
+        print("🔍 ContentView checkLoginStatus - GameStateManager state: isLoggedIn=\(gameStateManager.isLoggedIn), username='\(gameStateManager.currentUsername)'")
+        
+        // GameStateManager now handles session restoration automatically
+        // Just sync the ContentView state with GameStateManager
+        isLoggedIn = gameStateManager.isLoggedIn
+        currentUsername = gameStateManager.currentUsername
+        
+        print("🔍 ContentView checkLoginStatus - ContentView state after sync: isLoggedIn=\(isLoggedIn), username='\(currentUsername)'")
         
         if isLoggedIn && !currentUsername.isEmpty {
-            loadGameState()
+            // Connect GameState to GameStateManager
+            gameState.gameStateManager = gameStateManager
+            gameStateManager.gameState = gameState
+            
             setupAutoSave()
+            print("🔄 ContentView - Session restored for user: \(currentUsername)")
+        } else {
+            print("🔍 ContentView checkLoginStatus - No valid session found")
         }
     }
     
@@ -42,70 +100,30 @@ struct ContentView: View {
         // Auto-save every 30 seconds while logged in
         Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { _ in
             if isLoggedIn {
-                saveGameState()
+                print("⏰ Auto-save triggered")
+                gameStateManager.saveGameState()
             }
         }
     }
     
-    private func loadGameState() {
-        let userDefaults = UserDefaults.standard
-        let saveKey = "UniverseRPG_SaveData_\(currentUsername)"
-        
-        if let data = userDefaults.data(forKey: saveKey),
-           let saveData = try? JSONDecoder().decode(SerializableGameState.self, from: data) {
-            applySaveData(saveData)
-        }
-        // If no save data, keep the default fresh GameState
-    }
-    
-    private func applySaveData(_ saveData: SerializableGameState) {
-        gameState.playerName = saveData.playerName
-        gameState.playerLevel = saveData.playerLevel
-        gameState.playerXP = saveData.playerXP
-        gameState.currency = saveData.currency
-        
-        // Set current page - convert .location to .starMap for navigation
-        if let page = AppPage(rawValue: saveData.currentPage) {
-            gameState.currentPage = page == .location ? .starMap : page
-        }
-        
-        // Load other game state data as needed...
-        gameState.currentLocationTapCount = saveData.currentLocationTapCount
-        gameState.totalTapsCount = saveData.totalTapsCount
-        
-        print("✅ Loaded save data for \(currentUsername)")
-    }
-    
-    func saveGameState() {
-        guard !currentUsername.isEmpty else { return }
-        
-        let userDefaults = UserDefaults.standard
-        let saveKey = "UniverseRPG_SaveData_\(currentUsername)"
-        let saveData = SerializableGameState(from: gameState)
-        
-        if let data = try? JSONEncoder().encode(saveData) {
-            userDefaults.set(data, forKey: saveKey)
-            print("💾 Auto-saved game state for \(currentUsername)")
-        }
-    }
+    // Save/load functions now handled by GameStateManager
     
     func logout() {
-        let userDefaults = UserDefaults.standard
-        userDefaults.set(false, forKey: "UniverseRPG_IsLoggedIn")
-        userDefaults.removeObject(forKey: "UniverseRPG_Username")
-        isLoggedIn = false
-        currentUsername = ""
+        // GameStateManager handles saving and logout state
+        gameStateManager.logout()
         
-        // Reset to fresh game state
-        gameState.resetToDefaults()
-        print("🚪 Logged out successfully")
+        // Sync ContentView state with GameStateManager
+        isLoggedIn = gameStateManager.isLoggedIn
+        currentUsername = gameStateManager.currentUsername
+        
+        print("✅ Logged out successfully - data preserved")
     }
     
     private var mainGameView: some View {
         ZStack {
             VStack(spacing: 0) {
                 // Top Bar (always visible)
-                TopBarView(gameState: gameState, showXPInfo: $showXPInfo, showingProfile: $showingProfile, logoutAction: logout)
+                TopBarView(gameState: gameState, gameStateManager: gameStateManager, showXPInfo: $showXPInfo, showingProfile: $showingProfile, logoutAction: logout)
                 
                 // Main game area - conditional based on current page
                 Group {
@@ -264,6 +282,7 @@ struct ContentView: View {
 // MARK: - Top Bar View
 struct TopBarView: View {
     @ObservedObject var gameState: GameState
+    @ObservedObject var gameStateManager: GameStateManager
     @Binding var showXPInfo: Bool
     @Binding var showingProfile: Bool
     let logoutAction: () -> Void
@@ -272,12 +291,23 @@ struct TopBarView: View {
         VStack(spacing: 4) {
             // Top row - Player name, gear, and currency
             HStack {
-                // Left - Settings (moved up) - fixed width
-                Button(action: {
-                    showingProfile = true
-                }) {
-                    Image(systemName: "gearshape.fill")
-                        .foregroundColor(.white)
+                // Left - Settings and Test Save - fixed width
+                HStack {
+                    Button(action: {
+                        print("🧪 MANUAL SAVE TEST - Triggering save...")
+                        gameStateManager.saveGameState()
+                        print("🧪 MANUAL SAVE TEST - Save completed")
+                    }) {
+                        Image(systemName: "square.and.arrow.down")
+                            .foregroundColor(.blue)
+                    }
+                    
+                    Button(action: {
+                        showingProfile = true
+                    }) {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundColor(.white)
+                    }
                 }
                 .frame(width: 100, alignment: .leading) // Match right side width for perfect centering
                 
