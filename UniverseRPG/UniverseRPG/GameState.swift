@@ -273,8 +273,9 @@ class GameState: ObservableObject {
             )
         ]
         
-        // Initialize construction bays (start with 4 Small bays)
+        // Initialize construction bays (start with 4 Small bays, 2 Medium bays, 1 Large bay)
         self.constructionBays = [
+            // Small bays
             ConstructionBay(
                 id: "small-bay-1",
                 size: .small,
@@ -296,6 +297,38 @@ class GameState: ObservableObject {
             ConstructionBay(
                 id: "small-bay-4",
                 size: .small,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            // Medium bays
+            ConstructionBay(
+                id: "medium-bay-1",
+                size: .medium,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            ConstructionBay(
+                id: "medium-bay-2",
+                size: .medium,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            ConstructionBay(
+                id: "medium-bay-3",
+                size: .medium,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            // Large bays
+            ConstructionBay(
+                id: "large-bay-1",
+                size: .large,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            ConstructionBay(
+                id: "large-bay-2",
+                size: .large,
                 currentConstruction: nil,
                 isUnlocked: false
             )
@@ -696,6 +729,11 @@ class GameState: ObservableObject {
     }
     
     func canAffordConstruction(recipe: ConstructionRecipe) -> Bool {
+        // If dev tool is enabled, always allow construction
+        if devToolBuildableWithoutIngredients {
+            return true
+        }
+        
         // Check ALL required resource costs
         for (requiredResourceType, requiredAmount) in recipe.cost {
             // Find the player's current amount of this resource
@@ -1216,6 +1254,11 @@ class GameState: ObservableObject {
         case .dataStorageUnit: return "externaldrive"
         case .sensorArray: return "sensor.tag.radiowaves.forward"
         case .lithiumIonBattery: return "battery.100"
+        case .fusionReactor: return "atom"
+        case .quantumComputer: return "cpu"
+        case .spaceStationModule: return "building.2.fill"
+        case .starshipHull: return "airplane"
+        case .terraformingArray: return "globe"
         
         // Additional resources
         case .copper: return "circle.fill"
@@ -1356,6 +1399,11 @@ class GameState: ObservableObject {
         case .dataStorageUnit: return .purple
         case .sensorArray: return .cyan
         case .lithiumIonBattery: return .yellow
+        case .fusionReactor: return .red
+        case .quantumComputer: return .purple
+        case .spaceStationModule: return .blue
+        case .starshipHull: return .gray
+        case .terraformingArray: return .green
         
         // Additional resources
         case .copper: return .orange
@@ -1407,6 +1455,136 @@ class GameState: ObservableObject {
         case .rare:
             return Array(sortedResources.dropFirst(7).map { $0.0 })
         }
+    }
+    
+    // MARK: - Dev Tools
+    @Published var showDevToolsDropdown = false
+    @Published var devToolUnlockAllBays = false
+    @Published var devToolBuildableWithoutIngredients = false
+    
+    func unlockAllConstructionBays() {
+        for i in 0..<constructionBays.count {
+            constructionBays[i].isUnlocked = true
+        }
+        print("🔧 DEV TOOL - All construction bays unlocked!")
+    }
+    
+    func toggleBayUnlock() {
+        devToolUnlockAllBays.toggle()
+        print("🔧 DEV TOOL - Toggle called, new state: \(devToolUnlockAllBays)")
+        
+        // Ensure we have all 9 construction bays (4 small + 3 medium + 2 large)
+        if constructionBays.count < 9 {
+            print("🔧 DEV TOOL - Reinitializing construction bays (had \(constructionBays.count), need 9)")
+            initializeAllConstructionBays()
+        }
+        
+        print("🔧 DEV TOOL - Total construction bays: \(constructionBays.count)")
+        
+        // Create new array with updated bay states to trigger UI update
+        var updatedBays: [ConstructionBay] = []
+        for i in 0..<constructionBays.count {
+            let oldState = constructionBays[i].isUnlocked
+            let newUnlockedState: Bool
+            if i == 0 {
+                // First small bay is always unlocked
+                newUnlockedState = true
+            } else {
+                // All other bays follow the dev tool toggle
+                newUnlockedState = devToolUnlockAllBays
+            }
+            
+            let updatedBay = ConstructionBay(
+                id: constructionBays[i].id,
+                size: constructionBays[i].size,
+                currentConstruction: constructionBays[i].currentConstruction,
+                isUnlocked: newUnlockedState
+            )
+            updatedBays.append(updatedBay)
+            
+            print("🔧 DEV TOOL - Bay \(i) (\(constructionBays[i].size.rawValue) - \(constructionBays[i].id)): \(oldState) -> \(newUnlockedState)")
+        }
+        
+        // Replace the entire array to trigger UI update
+        constructionBays = updatedBays
+        
+        print("🔧 DEV TOOL - All bays unlock toggled: \(devToolUnlockAllBays)")
+        print("🔧 DEV TOOL - First small bay always unlocked, others: \(devToolUnlockAllBays ? "unlocked" : "locked")")
+        print("🔧 DEV TOOL - Updated \(updatedBays.count) bays total")
+    }
+    
+    private func initializeAllConstructionBays() {
+        self.constructionBays = [
+            // Small bays
+            ConstructionBay(
+                id: "small-bay-1",
+                size: .small,
+                currentConstruction: nil,
+                isUnlocked: true
+            ),
+            ConstructionBay(
+                id: "small-bay-2",
+                size: .small,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            ConstructionBay(
+                id: "small-bay-3",
+                size: .small,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            ConstructionBay(
+                id: "small-bay-4",
+                size: .small,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            // Medium bays
+            ConstructionBay(
+                id: "medium-bay-1",
+                size: .medium,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            ConstructionBay(
+                id: "medium-bay-2",
+                size: .medium,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            ConstructionBay(
+                id: "medium-bay-3",
+                size: .medium,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            // Large bays
+            ConstructionBay(
+                id: "large-bay-1",
+                size: .large,
+                currentConstruction: nil,
+                isUnlocked: false
+            ),
+            ConstructionBay(
+                id: "large-bay-2",
+                size: .large,
+                currentConstruction: nil,
+                isUnlocked: false
+            )
+        ]
+        print("🔧 DEV TOOL - Initialized all 9 construction bays")
+    }
+    
+    func completeAllConstructions() {
+        for i in 0..<constructionBays.count {
+            if let construction = constructionBays[i].currentConstruction {
+                // Complete the construction by setting time remaining to 0
+                constructionBays[i].currentConstruction?.timeRemaining = 0
+                constructionBays[i].currentConstruction?.progress = 1.0
+            }
+        }
+        print("🔧 DEV TOOL - All constructions completed instantly!")
     }
     
     func getModifiedDropTable() -> [(ResourceType, Double)] {
@@ -1837,6 +2015,11 @@ enum ResourceType: String, CaseIterable {
     case dataStorageUnit = "Data Storage Unit"
     case sensorArray = "Sensor Array"
     case lithiumIonBattery = "Lithium-Ion Battery"
+    case fusionReactor = "Fusion Reactor"
+    case quantumComputer = "Quantum Computer"
+    case spaceStationModule = "Space Station Module"
+    case starshipHull = "Starship Hull"
+    case terraformingArray = "Terraforming Array"
     
     // Additional resources for new constructables
     case copper = "Copper"
@@ -1848,7 +2031,7 @@ struct ConstructionBay: Identifiable {
     let id: String
     let size: BaySize
     var currentConstruction: Construction?
-    let isUnlocked: Bool
+    var isUnlocked: Bool
 }
 
 enum BaySize: String, CaseIterable {
@@ -1975,6 +2158,68 @@ extension ConstructionRecipe {
         xpReward: 9
     )
     
+    // Medium Bay Constructables
+    static let fusionReactor = ConstructionRecipe(
+        id: "fusion-reactor",
+        name: "Fusion Reactor",
+        description: "Advanced power generation system for large-scale operations.",
+        duration: 180.0,
+        cost: [.helium3: 100, .titanium: 50, .rareElements: 25],
+        currencyCost: 500,
+        reward: [.fusionReactor: 1],
+        requiredBaySize: .medium,
+        xpReward: 15
+    )
+    
+    static let quantumComputer = ConstructionRecipe(
+        id: "quantum-computer",
+        name: "Quantum Computer",
+        description: "Revolutionary computing technology for complex calculations.",
+        duration: 240.0,
+        cost: [.cpu: 5, .dataStorageUnit: 3, .rareElements: 50],
+        currencyCost: 750,
+        reward: [.quantumComputer: 1],
+        requiredBaySize: .medium,
+        xpReward: 20
+    )
+    
+    static let spaceStationModule = ConstructionRecipe(
+        id: "space-station-module",
+        name: "Space Station Module",
+        description: "Habitable module for long-term space operations.",
+        duration: 300.0,
+        cost: [.steelPylons: 20, .circuitBoard: 10, .titanium: 100],
+        currencyCost: 1000,
+        reward: [.spaceStationModule: 1],
+        requiredBaySize: .medium,
+        xpReward: 25
+    )
+    
+    // Large Bay Constructables
+    static let starshipHull = ConstructionRecipe(
+        id: "starship-hull",
+        name: "Starship Hull",
+        description: "The main structure of an interstellar vessel.",
+        duration: 600.0,
+        cost: [.titanium: 200, .steelPylons: 50, .rareElements: 100],
+        currencyCost: 2000,
+        reward: [.starshipHull: 1],
+        requiredBaySize: .large,
+        xpReward: 50
+    )
+    
+    static let terraformingArray = ConstructionRecipe(
+        id: "terraforming-array",
+        name: "Terraforming Array",
+        description: "Massive system for planetary environment modification.",
+        duration: 900.0,
+        cost: [.fusionReactor: 2, .quantumComputer: 1, .rareElements: 200],
+        currencyCost: 5000,
+        reward: [.terraformingArray: 1],
+        requiredBaySize: .large,
+        xpReward: 75
+    )
+    
     static let allRecipes: [ConstructionRecipe] = [
         .steelPylons,
         .circuitBoard,
@@ -1983,6 +2228,11 @@ extension ConstructionRecipe {
         .laser,
         .lithiumIonBattery,
         .sensorArray,
-        .dataStorageUnit
+        .dataStorageUnit,
+        .fusionReactor,
+        .quantumComputer,
+        .spaceStationModule,
+        .starshipHull,
+        .terraformingArray
     ]
 }

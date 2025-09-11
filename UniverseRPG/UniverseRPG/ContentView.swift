@@ -48,7 +48,7 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: scenePhase) { phase in
+        .onChange(of: scenePhase) { _, phase in
             print("📱 Scene phase changed to: \(phase)")
             switch phase {
             case .background:
@@ -232,12 +232,6 @@ struct ContentView: View {
             
             // Tap counter pop out positioned below location name
             VStack {
-                // Push down to position below location name header
-                Rectangle()
-                    .fill(Color.clear)
-                    .frame(height: 150) // Height to clear top bar + location name + more space
-                    .allowsHitTesting(false)
-                
                 if gameState.showTapCounter && (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
                     HStack(alignment: .bottom, spacing: 0) {
                         Spacer()
@@ -264,6 +258,7 @@ struct ContentView: View {
                             .frame(width: UIScreen.main.bounds.width * 0.3)
                     }
                     .padding(.trailing, 0)
+                    .padding(.top, 100) // Position directly below top bar + location name
                 } else if (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
                     HStack {
                         Spacer()
@@ -286,7 +281,10 @@ struct ContentView: View {
                         }
                     }
                     .padding(.trailing, 0)
+                    .padding(.top, 100) // Position directly below top bar + location name
                 }
+                
+                Spacer()
             }
         }
         .onAppear {
@@ -300,7 +298,7 @@ struct ContentView: View {
         .onAppear {
             print("🔍 SHEET - Profile sheet onAppear called, showingProfile: \(showingProfile)")
         }
-        .onChange(of: showingProfile) { newValue in
+        .onChange(of: showingProfile) { _, newValue in
             print("🔍 PROFILE VIEW - showingProfile changed to: \(newValue)")
         }
     }
@@ -1226,6 +1224,11 @@ struct LocationResourceListView: View {
         case .dataStorageUnit: return "externaldrive"
         case .sensorArray: return "sensor.tag.radiowaves.forward"
         case .lithiumIonBattery: return "battery.100"
+        case .fusionReactor: return "atom"
+        case .quantumComputer: return "cpu"
+        case .spaceStationModule: return "building.2.fill"
+        case .starshipHull: return "airplane"
+        case .terraformingArray: return "globe"
         case .copper: return "circle.fill"
         case .gold: return "star.fill"
         case .lithium: return "battery.100"
@@ -1364,6 +1367,11 @@ struct LocationResourceListView: View {
         case .dataStorageUnit: return .purple
         case .sensorArray: return .cyan
         case .lithiumIonBattery: return .yellow
+        case .fusionReactor: return .red
+        case .quantumComputer: return .purple
+        case .spaceStationModule: return .blue
+        case .starshipHull: return .gray
+        case .terraformingArray: return .green
         case .copper: return .orange
         case .gold: return .yellow
         case .lithium: return .gray
@@ -1465,11 +1473,21 @@ struct ConstructionBayRow: View {
                         .frame(width: 100)
                 }
             } else {
-                Button("Start Construction") {
-                    gameState.showConstructionMenu = true
+                if bay.isUnlocked {
+                    Button("+") {
+                        gameState.showConstructionMenu = true
+                    }
+                    .buttonStyle(.bordered)
+                    .foregroundColor(.green)
+                } else {
+                    HStack {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                        Text("Locked")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
                 }
-                .buttonStyle(.bordered)
-                .disabled(!bay.isUnlocked)
             }
         }
         .padding(.vertical, 4)
@@ -2047,7 +2065,117 @@ struct CollapsibleRecipeView: View {
         case .magnetic: return "magnet"
         case .solar: return "sun.max.circle.fill"
         case .numins: return "star.circle"
-        default: return "questionmark.circle"
+        
+        // Taragam-3 resources
+        case .hydrogen: return "h.circle.fill"
+        case .methane: return "flame"
+        case .ammonia: return "drop.triangle"
+        case .ice: return "snowflake"
+        case .crystals: return "diamond"
+        case .minerals: return "cube"
+        
+        // Abandoned Starship resources
+        case .scrapMetal: return "wrench.and.screwdriver"
+        case .electronics: return "cpu"
+        case .fuelCells: return "battery.100"
+        case .dataCores: return "externaldrive"
+        case .circuits: return "circle.grid.cross"
+        case .alloys: return "rectangle.stack"
+        case .components: return "gearshape.2"
+        case .techParts: return "gear"
+        case .batteries: return "battery.50"
+        case .wiring: return "cable.connector"
+        
+        // Ernest's Homestead resources
+        case .food: return "leaf"
+        case .textiles: return "tshirt"
+        case .tools: return "hammer"
+        case .medicine: return "cross.case"
+        case .seeds: return "seedling"
+        case .livestock: return "pawprint"
+        case .grain: return "leaf.circle"
+        case .vegetables: return "carrot"
+        case .herbs: return "leaf.arrow.circlepath"
+        case .supplies: return "shippingbox"
+        
+        // Koraxon resources
+        case .heavyElements: return "atom"
+        case .denseMatter: return "circle.fill"
+        case .compressedGas: return "cloud.fill"
+        case .exoticMatter: return "sparkles"
+        case .gravitons: return "arrow.down.circle"
+        case .darkEnergy: return "moon.stars"
+        case .neutronium: return "n.circle"
+        case .quarkMatter: return "q.circle"
+        case .strangeMatter: return "s.circle"
+        case .antimatter: return "minus.circle"
+        
+        // Taragon Beta resources
+        case .redPlasma: return "flame.circle"
+        case .infraredEnergy: return "thermometer"
+        case .stellarWind: return "wind"
+        case .magneticFields: return "magnifyingglass"
+        case .cosmicRays: return "rays"
+        case .photons: return "lightbulb"
+        case .particles: return "circle.dotted"
+        case .solarFlares: return "sun.max"
+        case .corona: return "sun.haze"
+        case .chromosphere: return "circle.hexagongrid"
+        
+        // Violis Alpha resources
+        case .stellarDust: return "sparkle"
+        case .cosmicDebris: return "trash"
+        case .microParticles: return "circle.grid.3x3"
+        case .spaceGas: return "cloud"
+        case .ionStreams: return "arrow.right"
+        case .electronFlow: return "e.circle"
+        case .protonBeams: return "p.circle"
+        case .neutronFlux: return "n.circle.fill"
+        case .gammaRays: return "g.circle"
+        case .xRays: return "x.circle"
+        
+        // Violis Outpost resources
+        case .researchData: return "doc.text"
+        case .labEquipment: return "flask"
+        case .samples: return "testtube.2"
+        case .experiments: return "beaker"
+        case .prototypes: return "cube.transparent"
+        case .blueprints: return "doc.plaintext"
+        case .formulas: return "function"
+        case .algorithms: return "chevron.left.forwardslash.chevron.right"
+        case .code: return "curlybraces"
+        case .documentation: return "book"
+        
+        // Rogue Wanderer resources
+        case .frozenGases: return "snowflake.circle"
+        case .iceCrystals: return "diamond.fill"
+        case .preservedMatter: return "cube.box"
+        case .ancientArtifacts: return "crown"
+        case .relics: return "building.columns"
+        case .fossils: return "leaf.fill"
+        case .rareElements: return "r.circle"
+        case .crystallineStructures: return "diamond.circle"
+        case .geologicalSamples: return "mountain.2"
+        
+        // Constructable items
+        case .steelPylons: return "building.2"
+        case .gears: return "gear"
+        case .laser: return "laser.burst"
+        case .circuitBoard: return "cpu"
+        case .cpu: return "cpu"
+        case .dataStorageUnit: return "externaldrive"
+        case .sensorArray: return "sensor.tag.radiowaves.forward"
+        case .lithiumIonBattery: return "battery.100"
+        case .fusionReactor: return "atom"
+        case .quantumComputer: return "cpu"
+        case .spaceStationModule: return "building.2.fill"
+        case .starshipHull: return "airplane"
+        case .terraformingArray: return "globe"
+        
+        // Additional resources
+        case .copper: return "circle.fill"
+        case .gold: return "star.fill"
+        case .lithium: return "battery.100"
         }
     }
     
@@ -2082,7 +2210,117 @@ struct CollapsibleRecipeView: View {
         case .magnetic: return .blue
         case .solar: return .orange
         case .numins: return .yellow
-        default: return .gray
+        
+        // Taragam-3 resources
+        case .hydrogen: return .cyan
+        case .methane: return .orange
+        case .ammonia: return .green
+        case .ice: return .blue
+        case .crystals: return .purple
+        case .minerals: return .brown
+        
+        // Abandoned Starship resources
+        case .scrapMetal: return .gray
+        case .electronics: return .blue
+        case .fuelCells: return .green
+        case .dataCores: return .purple
+        case .circuits: return .yellow
+        case .alloys: return .gray
+        case .components: return .orange
+        case .techParts: return .blue
+        case .batteries: return .green
+        case .wiring: return .red
+        
+        // Ernest's Homestead resources
+        case .food: return .green
+        case .textiles: return .blue
+        case .tools: return .gray
+        case .medicine: return .red
+        case .seeds: return .brown
+        case .livestock: return .orange
+        case .grain: return .yellow
+        case .vegetables: return .green
+        case .herbs: return .green
+        case .supplies: return .brown
+        
+        // Koraxon resources
+        case .heavyElements: return .purple
+        case .denseMatter: return .black
+        case .compressedGas: return .cyan
+        case .exoticMatter: return .purple
+        case .gravitons: return .blue
+        case .darkEnergy: return .black
+        case .neutronium: return .gray
+        case .quarkMatter: return .red
+        case .strangeMatter: return .purple
+        case .antimatter: return .white
+        
+        // Taragon Beta resources
+        case .redPlasma: return .red
+        case .infraredEnergy: return .red
+        case .stellarWind: return .cyan
+        case .magneticFields: return .blue
+        case .cosmicRays: return .purple
+        case .photons: return .yellow
+        case .particles: return .white
+        case .solarFlares: return .orange
+        case .corona: return .yellow
+        case .chromosphere: return .orange
+        
+        // Violis Alpha resources
+        case .stellarDust: return .gray
+        case .cosmicDebris: return .brown
+        case .microParticles: return .white
+        case .spaceGas: return .cyan
+        case .ionStreams: return .blue
+        case .electronFlow: return .yellow
+        case .protonBeams: return .red
+        case .neutronFlux: return .gray
+        case .gammaRays: return .green
+        case .xRays: return .purple
+        
+        // Violis Outpost resources
+        case .researchData: return .blue
+        case .labEquipment: return .gray
+        case .samples: return .green
+        case .experiments: return .purple
+        case .prototypes: return .cyan
+        case .blueprints: return .blue
+        case .formulas: return .orange
+        case .algorithms: return .red
+        case .code: return .green
+        case .documentation: return .brown
+        
+        // Rogue Wanderer resources
+        case .frozenGases: return .cyan
+        case .iceCrystals: return .blue
+        case .preservedMatter: return .gray
+        case .ancientArtifacts: return .yellow
+        case .relics: return .brown
+        case .fossils: return .brown
+        case .rareElements: return .purple
+        case .crystallineStructures: return .purple
+        case .geologicalSamples: return .brown
+        
+        // Constructable items
+        case .steelPylons: return .orange
+        case .gears: return .gray
+        case .laser: return .red
+        case .circuitBoard: return .green
+        case .cpu: return .blue
+        case .dataStorageUnit: return .purple
+        case .sensorArray: return .cyan
+        case .lithiumIonBattery: return .yellow
+        case .fusionReactor: return .red
+        case .quantumComputer: return .purple
+        case .spaceStationModule: return .blue
+        case .starshipHull: return .gray
+        case .terraformingArray: return .green
+        
+        // Additional resources
+        case .copper: return .orange
+        case .gold: return .yellow
+        case .lithium: return .gray
         }
     }
 }
@@ -2092,18 +2330,34 @@ struct ConstructionPageView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Construction Bays Header
-            HStack {
-                Text("Construction Bays")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                Spacer()
-            }
-            .padding(.horizontal)
-            .padding(.top, 8)
-            .padding(.bottom, 20)
+        ZStack {
+            VStack(spacing: 0) {
+                // Construction Bays Header
+                HStack {
+                    Text("Construction Bays")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    Spacer()
+                    
+                    // Dev Tool Button - fixed position
+                    Button(action: {
+                        gameState.showDevToolsDropdown.toggle()
+                    }) {
+                        Text("DEV")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.red.opacity(0.8))
+                            .cornerRadius(4)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
             
             // Content area with fixed height
             VStack(spacing: 24) {
@@ -2174,6 +2428,81 @@ struct ConstructionPageView: View {
                 }
                 
                 Spacer()
+            }
+            }
+            
+            // Dropdown Overlay - positioned absolutely
+            if gameState.showDevToolsDropdown {
+                VStack {
+                    HStack {
+                        Spacer()
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            // Bay Unlock Toggle
+                            HStack {
+                                Text("Unlock All Bays")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Toggle("", isOn: Binding(
+                                    get: { gameState.devToolUnlockAllBays },
+                                    set: { _ in gameState.toggleBayUnlock() }
+                                ))
+                                .toggleStyle(SwitchToggleStyle(tint: .green))
+                                .scaleEffect(0.8)
+                            }
+                            
+                            // Buildable Without Ingredients Toggle
+                            HStack {
+                                Text("Build Without Ingredients")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Toggle("", isOn: $gameState.devToolBuildableWithoutIngredients)
+                                    .toggleStyle(SwitchToggleStyle(tint: .blue))
+                                    .scaleEffect(0.8)
+                            }
+                            
+                            // Complete All Constructions Button
+                            Button(action: {
+                                gameState.completeAllConstructions()
+                                gameState.showDevToolsDropdown = false
+                            }) {
+                                Text("Complete All Constructions")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.orange.opacity(0.8))
+                                    .cornerRadius(4)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                        .padding(12)
+                        .background(Color.black.opacity(0.9))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray, lineWidth: 1)
+                        )
+                        .frame(width: 200) // Fixed width instead of full screen
+                        .padding(.trailing, 16)
+                    }
+                    .padding(.top, 60) // Position below the header
+                    
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    // Invisible background to catch taps outside the dropdown
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            // Close dropdown when tapping outside
+                            gameState.showDevToolsDropdown = false
+                        }
+                )
+                .zIndex(1000)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -2328,6 +2657,11 @@ struct SmallBaySlotView: View {
         case .dataStorageUnit: return "externaldrive"
         case .sensorArray: return "sensor.tag.radiowaves.forward"
         case .lithiumIonBattery: return "battery.100"
+        case .fusionReactor: return "atom"
+        case .quantumComputer: return "cpu"
+        case .spaceStationModule: return "building.2.fill"
+        case .starshipHull: return "airplane"
+        case .terraformingArray: return "globe"
         case .copper: return "circle.fill"
         case .gold: return "star.fill"
         case .lithium: return "battery.100"
@@ -2352,22 +2686,168 @@ struct MediumBaySlotView: View {
     let slotIndex: Int
     @ObservedObject var gameState: GameState
     let availableWidth: CGFloat
+    @State private var isCollecting = false
+    
+    private var bay: ConstructionBay? {
+        let bayId = "medium-bay-\(slotIndex + 1)"
+        return gameState.constructionBays.first { $0.id == bayId }
+    }
+    
+    private var isUnderConstruction: Bool {
+        bay?.currentConstruction != nil
+    }
+    
+    private var isCompleted: Bool {
+        guard let construction = bay?.currentConstruction else { return false }
+        return construction.timeRemaining <= 0
+    }
     
     var body: some View {
         Button(action: {
-            // No action - bays are not active
+            if let bay = bay, bay.isUnlocked {
+                if isCompleted {
+                    // Collect completed item
+                    collectCompletedItem()
+                } else if !isUnderConstruction {
+                    // Start construction
+                    gameState.showConstructionMenu = true
+                }
+            }
         }) {
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .stroke(isCompleted ? Color.yellow : Color.gray.opacity(0.5), lineWidth: 2)
                 .frame(width: (availableWidth - 24) / 3, height: (availableWidth - 24) / 3)
+                .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
                 .overlay(
-                    Image(systemName: "star.circle")
-                        .font(.title2)
-                        .foregroundColor(.yellow)
+                    Group {
+                        if isUnderConstruction {
+                            VStack(spacing: 4) {
+                                // Construction name
+                                Text(bay?.currentConstruction?.recipe.name ?? "")
+                                    .font(.caption2)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                                
+                                // Construction icon
+                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                    .font(.caption)
+                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                
+                                if isCompleted {
+                                    // Complete text
+                                    Text("Complete")
+                                        .font(.caption2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.green)
+                                } else {
+                                    // Progress bar
+                                    ProgressView(value: bay?.currentConstruction?.progress ?? 0)
+                                        .frame(width: 40, height: 4)
+                                        .tint(.blue)
+                                    
+                                    // Countdown timer
+                                    Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
+                                        .font(.caption2)
+                                        .foregroundColor(.white)
+                                }
+                            }
+                        } else if let bay = bay, bay.isUnlocked {
+                            Image(systemName: "plus")
+                                .font(.title2)
+                                .foregroundColor(.gray.opacity(0.6))
+                        } else {
+                            Image(systemName: "star.circle")
+                                .font(.title2)
+                                .foregroundColor(.yellow)
+                        }
+                    }
                 )
         }
         .buttonStyle(PlainButtonStyle())
-        .disabled(true)
+        .disabled(bay?.isUnlocked != true && !isCompleted)
+        .scaleEffect(isCollecting ? 0.8 : 1.0)
+        .opacity(isCollecting ? 0.5 : 1.0)
+    }
+    
+    private func collectCompletedItem() {
+        guard let bay = bay, let construction = bay.currentConstruction else { return }
+        
+        // Start collection animation
+        withAnimation(.easeInOut(duration: 0.5)) {
+            isCollecting = true
+        }
+        
+        // Delay the actual collection to allow animation to play
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            // Add rewards to player resources
+            for (resourceType, amount) in construction.recipe.reward {
+                if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
+                    gameState.resources[existingIndex].amount += amount
+                } else {
+                    let newResource = Resource(
+                        type: resourceType,
+                        amount: amount,
+                        icon: getResourceIcon(for: resourceType),
+                        color: getResourceColor(for: resourceType)
+                    )
+                    gameState.resources.append(newResource)
+                }
+            }
+            
+            // Clear the construction
+            if let bayIndex = gameState.constructionBays.firstIndex(where: { $0.id == bay.id }) {
+                gameState.constructionBays[bayIndex].currentConstruction = nil
+            }
+            
+            // Award XP
+            gameState.addXP(construction.recipe.xpReward)
+            
+            // Check for location unlocks
+            gameState.checkLocationUnlocks()
+            
+            // Reset animation state
+            isCollecting = false
+        }
+    }
+    
+    private func getResourceIcon(for type: ResourceType) -> String {
+        switch type {
+        case .ironOre: return "cube.fill"
+        case .silicon: return "diamond.fill"
+        case .water: return "drop.fill"
+        case .oxygen: return "wind"
+        case .graphite: return "diamond.fill"
+        case .steelPylons: return "building.2"
+        case .gears: return "gear"
+        case .laser: return "laser.burst"
+        case .circuitBoard: return "cpu"
+        case .cpu: return "cpu"
+        case .dataStorageUnit: return "externaldrive"
+        case .sensorArray: return "sensor.tag.radiowaves.forward"
+        case .lithiumIonBattery: return "battery.100"
+        case .fusionReactor: return "atom"
+        case .quantumComputer: return "cpu"
+        case .spaceStationModule: return "building.2.fill"
+        case .starshipHull: return "airplane"
+        case .terraformingArray: return "globe"
+        case .copper: return "circle.fill"
+        case .gold: return "star.fill"
+        case .lithium: return "battery.100"
+        default: return "questionmark.circle"
+        }
+    }
+    
+    private func getResourceColor(for type: ResourceType) -> Color {
+        switch type {
+        case .ironOre: return .gray
+        case .silicon: return .purple
+        case .water: return .blue
+        case .oxygen: return .cyan
+        case .graphite: return .gray
+        case .steelPylons: return .orange
+        default: return .gray
+        }
     }
 }
 
@@ -2375,22 +2855,168 @@ struct LargeBaySlotView: View {
     let slotIndex: Int
     @ObservedObject var gameState: GameState
     let availableWidth: CGFloat
+    @State private var isCollecting = false
+    
+    private var bay: ConstructionBay? {
+        let bayId = "large-bay-\(slotIndex + 1)"
+        return gameState.constructionBays.first { $0.id == bayId }
+    }
+    
+    private var isUnderConstruction: Bool {
+        bay?.currentConstruction != nil
+    }
+    
+    private var isCompleted: Bool {
+        guard let construction = bay?.currentConstruction else { return false }
+        return construction.timeRemaining <= 0
+    }
     
     var body: some View {
         Button(action: {
-            // No action - bays are not active
+            if let bay = bay, bay.isUnlocked {
+                if isCompleted {
+                    // Collect completed item
+                    collectCompletedItem()
+                } else if !isUnderConstruction {
+                    // Start construction
+                    gameState.showConstructionMenu = true
+                }
+            }
         }) {
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .stroke(isCompleted ? Color.yellow : Color.gray.opacity(0.5), lineWidth: 2)
                 .frame(width: (availableWidth - 12) / 2, height: (availableWidth - 12) / 2)
+                .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
                 .overlay(
-                    Image(systemName: "star.circle")
-                        .font(.title2)
-                        .foregroundColor(.yellow)
+                    Group {
+                        if isUnderConstruction {
+                            VStack(spacing: 4) {
+                                // Construction name
+                                Text(bay?.currentConstruction?.recipe.name ?? "")
+                                    .font(.caption2)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                                
+                                // Construction icon
+                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                    .font(.caption)
+                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                
+                                if isCompleted {
+                                    // Complete text
+                                    Text("Complete")
+                                        .font(.caption2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.green)
+                                } else {
+                                    // Progress bar
+                                    ProgressView(value: bay?.currentConstruction?.progress ?? 0)
+                                        .frame(width: 40, height: 4)
+                                        .tint(.blue)
+                                    
+                                    // Countdown timer
+                                    Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
+                                        .font(.caption2)
+                                        .foregroundColor(.white)
+                                }
+                            }
+                        } else if let bay = bay, bay.isUnlocked {
+                            Image(systemName: "plus")
+                                .font(.title2)
+                                .foregroundColor(.gray.opacity(0.6))
+                        } else {
+                            Image(systemName: "star.circle")
+                                .font(.title2)
+                                .foregroundColor(.yellow)
+                        }
+                    }
                 )
         }
         .buttonStyle(PlainButtonStyle())
-        .disabled(true)
+        .disabled(bay?.isUnlocked != true && !isCompleted)
+        .scaleEffect(isCollecting ? 0.8 : 1.0)
+        .opacity(isCollecting ? 0.5 : 1.0)
+    }
+    
+    private func collectCompletedItem() {
+        guard let bay = bay, let construction = bay.currentConstruction else { return }
+        
+        // Start collection animation
+        withAnimation(.easeInOut(duration: 0.5)) {
+            isCollecting = true
+        }
+        
+        // Delay the actual collection to allow animation to play
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            // Add rewards to player resources
+            for (resourceType, amount) in construction.recipe.reward {
+                if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
+                    gameState.resources[existingIndex].amount += amount
+                } else {
+                    let newResource = Resource(
+                        type: resourceType,
+                        amount: amount,
+                        icon: getResourceIcon(for: resourceType),
+                        color: getResourceColor(for: resourceType)
+                    )
+                    gameState.resources.append(newResource)
+                }
+            }
+            
+            // Clear the construction
+            if let bayIndex = gameState.constructionBays.firstIndex(where: { $0.id == bay.id }) {
+                gameState.constructionBays[bayIndex].currentConstruction = nil
+            }
+            
+            // Award XP
+            gameState.addXP(construction.recipe.xpReward)
+            
+            // Check for location unlocks
+            gameState.checkLocationUnlocks()
+            
+            // Reset animation state
+            isCollecting = false
+        }
+    }
+    
+    private func getResourceIcon(for type: ResourceType) -> String {
+        switch type {
+        case .ironOre: return "cube.fill"
+        case .silicon: return "diamond.fill"
+        case .water: return "drop.fill"
+        case .oxygen: return "wind"
+        case .graphite: return "diamond.fill"
+        case .steelPylons: return "building.2"
+        case .gears: return "gear"
+        case .laser: return "laser.burst"
+        case .circuitBoard: return "cpu"
+        case .cpu: return "cpu"
+        case .dataStorageUnit: return "externaldrive"
+        case .sensorArray: return "sensor.tag.radiowaves.forward"
+        case .lithiumIonBattery: return "battery.100"
+        case .fusionReactor: return "atom"
+        case .quantumComputer: return "cpu"
+        case .spaceStationModule: return "building.2.fill"
+        case .starshipHull: return "airplane"
+        case .terraformingArray: return "globe"
+        case .copper: return "circle.fill"
+        case .gold: return "star.fill"
+        case .lithium: return "battery.100"
+        default: return "questionmark.circle"
+        }
+    }
+    
+    private func getResourceColor(for type: ResourceType) -> Color {
+        switch type {
+        case .ironOre: return .gray
+        case .silicon: return .purple
+        case .water: return .blue
+        case .oxygen: return .cyan
+        case .graphite: return .gray
+        case .steelPylons: return .orange
+        default: return .gray
+        }
     }
 }
 
@@ -2768,6 +3394,11 @@ struct ResourcesPageView: View {
         case .dataStorageUnit: return "externaldrive"
         case .sensorArray: return "sensor.tag.radiowaves.forward"
         case .lithiumIonBattery: return "battery.100"
+        case .fusionReactor: return "atom"
+        case .quantumComputer: return "cpu"
+        case .spaceStationModule: return "building.2.fill"
+        case .starshipHull: return "airplane"
+        case .terraformingArray: return "globe"
         case .copper: return "circle.fill"
         case .gold: return "star.fill"
         case .lithium: return "battery.100"
@@ -2906,6 +3537,11 @@ struct ResourcesPageView: View {
         case .dataStorageUnit: return .purple
         case .sensorArray: return .cyan
         case .lithiumIonBattery: return .yellow
+        case .fusionReactor: return .red
+        case .quantumComputer: return .purple
+        case .spaceStationModule: return .blue
+        case .starshipHull: return .gray
+        case .terraformingArray: return .green
         case .copper: return .orange
         case .gold: return .yellow
         case .lithium: return .gray
@@ -3037,10 +3673,10 @@ struct ResourceDetailView: View {
             return "Research"
         case .frozenGases, .iceCrystals, .preservedMatter, .ancientArtifacts, .relics, .fossils, .rareElements, .crystallineStructures, .geologicalSamples:
             return "Ancient"
-        case .steelPylons, .gears, .laser, .circuitBoard, .cpu, .dataStorageUnit, .sensorArray, .lithiumIonBattery:
+        case .steelPylons, .gears, .laser, .circuitBoard, .cpu, .dataStorageUnit, .sensorArray, .lithiumIonBattery, .fusionReactor, .quantumComputer, .spaceStationModule, .starshipHull, .terraformingArray:
             return "Constructed"
         case .copper, .gold, .lithium:
-            return "Elements"
+            return "Metals"
         }
     }
 }
