@@ -8,33 +8,9 @@
 import Foundation
 import SwiftUI
 
-// MARK: - Save Data Version (Updated)
+// MARK: - Save Data Version
 struct SaveDataVersion {
     static let current = "1.0.0"
-    
-    // Version history for migration (in chronological order)
-    static let versions: [String] = [
-        "1.0.0"  // Initial version
-    ]
-    
-    // Check if a version is supported
-    static func isVersionSupported(_ version: String) -> Bool {
-        return versions.contains(version)
-    }
-    
-    // Get the migration path from one version to another
-    static func getMigrationPath(from: String, to: String) -> [String]? {
-        guard let fromIndex = versions.firstIndex(of: from),
-              let toIndex = versions.firstIndex(of: to) else {
-            return nil
-        }
-        
-        if fromIndex >= toIndex {
-            return nil // No migration needed or invalid path
-        }
-        
-        return Array(versions[fromIndex + 1...toIndex])
-    }
 }
 
 // MARK: - Serializable Game State
@@ -45,9 +21,9 @@ struct SerializableGameState: Codable {
     let playerXP: Int
     let currency: Int
     let currentLocationId: String
-    var resources: [SerializableResource]
-    var constructionBays: [SerializableConstructionBay]
-    var ownedCards: [SerializableUserCard]
+    let resources: [SerializableResource]
+    let constructionBays: [SerializableConstructionBay]
+    let ownedCards: [SerializableUserCard]
     let currentLocationTapCount: Int
     let locationTapCounts: [String: Int]
     let totalTapsCount: Int
@@ -88,33 +64,6 @@ struct SerializableGameState: Codable {
         self.currentPage = gameState.currentPage.rawValue
         self.lastSaved = Date()
     }
-    
-    // Custom initializer for migration
-    init(version: String, playerName: String, playerLevel: Int, playerXP: Int, currency: Int, currentLocationId: String, resources: [SerializableResource], constructionBays: [SerializableConstructionBay], ownedCards: [SerializableUserCard], currentLocationTapCount: Int, locationTapCounts: [String: Int], totalTapsCount: Int, totalXPGained: Int, locationIdleCollectionCounts: [String: Int], totalIdleCollectionCount: Int, totalNuminsCollected: Int, totalConstructionsCompleted: Int, smallConstructionsCompleted: Int, mediumConstructionsCompleted: Int, largeConstructionsCompleted: Int, maxStorageCapacity: Int, currentPage: String, lastSaved: Date) {
-        self.version = version
-        self.playerName = playerName
-        self.playerLevel = playerLevel
-        self.playerXP = playerXP
-        self.currency = currency
-        self.currentLocationId = currentLocationId
-        self.resources = resources
-        self.constructionBays = constructionBays
-        self.ownedCards = ownedCards
-        self.currentLocationTapCount = currentLocationTapCount
-        self.locationTapCounts = locationTapCounts
-        self.totalTapsCount = totalTapsCount
-        self.totalXPGained = totalXPGained
-        self.locationIdleCollectionCounts = locationIdleCollectionCounts
-        self.totalIdleCollectionCount = totalIdleCollectionCount
-        self.totalNuminsCollected = totalNuminsCollected
-        self.totalConstructionsCompleted = totalConstructionsCompleted
-        self.smallConstructionsCompleted = smallConstructionsCompleted
-        self.mediumConstructionsCompleted = mediumConstructionsCompleted
-        self.largeConstructionsCompleted = largeConstructionsCompleted
-        self.maxStorageCapacity = maxStorageCapacity
-        self.currentPage = currentPage
-        self.lastSaved = lastSaved
-    }
 }
 
 // MARK: - Serializable Data Models
@@ -125,11 +74,6 @@ struct SerializableResource: Codable {
     init(from resource: Resource) {
         self.type = resource.type.rawValue
         self.amount = resource.amount
-    }
-    
-    init(type: String, amount: Double) {
-        self.type = type
-        self.amount = amount
     }
 }
 
@@ -145,13 +89,6 @@ struct SerializableConstructionBay: Codable {
         self.currentConstruction = bay.currentConstruction.map { SerializableConstruction(from: $0) }
         self.isUnlocked = bay.isUnlocked
     }
-    
-    init(id: String, size: String, currentConstruction: SerializableConstruction?, isUnlocked: Bool) {
-        self.id = id
-        self.size = size
-        self.currentConstruction = currentConstruction
-        self.isUnlocked = isUnlocked
-    }
 }
 
 struct SerializableConstruction: Codable {
@@ -165,13 +102,6 @@ struct SerializableConstruction: Codable {
         self.recipeId = construction.recipe.id
         self.timeRemaining = construction.timeRemaining
         self.progress = construction.progress
-    }
-    
-    init(id: String, recipeId: String, timeRemaining: Double, progress: Double) {
-        self.id = id
-        self.recipeId = recipeId
-        self.timeRemaining = timeRemaining
-        self.progress = progress
     }
 }
 
@@ -189,14 +119,6 @@ struct SerializableUserCard: Codable {
         self.tier = card.tier
         self.slottedOn = card.slottedOn
     }
-    
-    init(id: String, cardId: String, copies: Int, tier: Int, slottedOn: [String]) {
-        self.id = id
-        self.cardId = cardId
-        self.copies = copies
-        self.tier = tier
-        self.slottedOn = slottedOn
-    }
 }
 
 // MARK: - Game State Manager
@@ -208,7 +130,6 @@ class GameStateManager: ObservableObject {
     @Published var currentUsername: String = ""
     
     private let userDefaults = UserDefaults.standard
-    private let migrationManager = SaveMigrationManager.shared
     private var saveDataKey: String {
         return "UniverseRPG_SaveData_\(currentUsername)"
     }
@@ -263,8 +184,6 @@ class GameStateManager: ObservableObject {
     // MARK: - Authentication
     func login(username: String) {
         print("🔐 LOGIN - Starting login for user: \(username)")
-        print("🔐 LOGIN - Previous user was: '\(currentUsername)'")
-        
         self.currentUsername = username
         self.isLoggedIn = true
         
@@ -275,11 +194,8 @@ class GameStateManager: ObservableObject {
         userDefaults.set(Date(), forKey: "\(username)_last_login")
         
         // Load existing save data
-        print("🔐 LOGIN - About to load game state for: \(username)")
         loadGameState()
         print("🔐 LOGIN - Login completed with currentPage: \(gameState.currentPage)")
-        print("🔐 LOGIN - Resources count after load: \(gameState.resources.count)")
-        print("🔐 LOGIN - Currency after load: \(gameState.currency)")
     }
     
     func createUser(username: String, password: String) {
@@ -520,7 +436,7 @@ class GameStateManager: ObservableObject {
         print("Game state reset to fresh values with currentPage = \(gameState.currentPage)")
     }
     
-    // MARK: - Save/Load System with Migration
+    // MARK: - Save/Load System
     func saveGameState() {
         guard isLoggedIn else { 
             print("❌ Save failed: Not logged in")
@@ -537,18 +453,8 @@ class GameStateManager: ObservableObject {
         
         do {
             let data = try JSONEncoder().encode(saveData)
-            
-            // Create backup before saving
-            if let backupKey = migrationManager.createBackup(of: data, for: currentUsername) {
-                print("💾 BACKUP CREATED - Key: \(backupKey)")
-            }
-            
             userDefaults.set(data, forKey: saveDataKey)
             print("✅ Game state saved successfully for \(currentUsername) - Data size: \(data.count) bytes")
-            
-            // Clean up old backups
-            migrationManager.cleanupOldBackups(for: currentUsername)
-            
         } catch {
             print("❌ Failed to save game state: \(error)")
         }
@@ -562,42 +468,25 @@ class GameStateManager: ObservableObject {
         
         print("📂 LOADING GAME STATE - User: \(currentUsername)")
         print("📂 LOADING GAME STATE - Save key: \(saveDataKey)")
-        print("📂 LOADING GAME STATE - Current resources before load: \(gameState.resources.count)")
-        print("📂 LOADING GAME STATE - Current currency before load: \(gameState.currency)")
         
         guard let data = userDefaults.data(forKey: saveDataKey) else {
             print("📭 No save data found for \(currentUsername), starting fresh")
             // Reset existing game state to fresh state
             resetGameStateToFresh()
-            print("📂 LOADING GAME STATE - After reset: resources=\(gameState.resources.count), currency=\(gameState.currency)")
             return
         }
         
         print("📂 LOADING GAME STATE - Found save data: \(data.count) bytes")
         
-        // Try to migrate the save data
-        let migrationResult = migrationManager.migrateSaveData(data)
-        
-        switch migrationResult {
-        case .success(let migratedSaveData):
-            print("✅ MIGRATION SUCCESS - Applied migration to save data")
-            applySaveData(migratedSaveData)
+        do {
+            let saveData = try JSONDecoder().decode(SerializableGameState.self, from: data)
+            print("📂 LOADING GAME STATE - Decoded save data successfully")
+            print("📂 LOADING GAME STATE - Save data contains: resources=\(saveData.resources.count), currency=\(saveData.currency), xp=\(saveData.playerXP)")
+            applySaveData(saveData)
             print("✅ Game state loaded successfully for \(currentUsername)")
-            
-        case .noMigrationNeeded:
-            print("📂 NO MIGRATION NEEDED - Save data is current version")
-            do {
-                let saveData = try JSONDecoder().decode(SerializableGameState.self, from: data)
-                applySaveData(saveData)
-                print("✅ Game state loaded successfully for \(currentUsername)")
-            } catch {
-                print("❌ Failed to load game state: \(error)")
-                resetGameStateToFresh()
-            }
-            
-        case .failure(let errorMessage):
-            print("❌ MIGRATION FAILED - \(errorMessage)")
-            print("🔄 FALLBACK - Starting fresh game state")
+        } catch {
+            print("❌ Failed to load game state: \(error)")
+            // Reset existing game state to fresh state
             resetGameStateToFresh()
         }
     }
@@ -710,28 +599,13 @@ class GameStateManager: ObservableObject {
     func importSaveData(_ data: Data) -> Bool {
         guard isLoggedIn else { return false }
         
-        // Try to migrate the imported data
-        let migrationResult = migrationManager.migrateSaveData(data)
-        
-        switch migrationResult {
-        case .success(let migratedSaveData):
-            applySaveData(migratedSaveData)
+        do {
+            let saveData = try JSONDecoder().decode(SerializableGameState.self, from: data)
+            applySaveData(saveData)
             saveGameState() // Save the imported data
             return true
-            
-        case .noMigrationNeeded:
-            do {
-                let saveData = try JSONDecoder().decode(SerializableGameState.self, from: data)
-                applySaveData(saveData)
-                saveGameState() // Save the imported data
-                return true
-            } catch {
-                print("Failed to import save data: \(error)")
-                return false
-            }
-            
-        case .failure(let errorMessage):
-            print("Failed to migrate imported save data: \(errorMessage)")
+        } catch {
+            print("Failed to import save data: \(error)")
             return false
         }
     }
@@ -768,46 +642,5 @@ class GameStateManager: ObservableObject {
             existingUsernames.append(username)
             userDefaults.set(existingUsernames, forKey: "UniverseRPG_AllUsernames")
         }
-    }
-    
-    // MARK: - Dev Tools
-    func resetAccountData(username: String) -> Bool {
-        print("🔄 RESET ACCOUNT DATA - Resetting data for user: \(username)")
-        
-        // Remove save data for this account
-        let saveDataKey = "UniverseRPG_SaveData_\(username)"
-        userDefaults.removeObject(forKey: saveDataKey)
-        
-        // If this is the current user, reset their game state
-        if username == currentUsername && isLoggedIn {
-            resetGameStateToFresh()
-            saveGameState() // Save the fresh state
-        }
-        
-        print("✅ RESET ACCOUNT DATA - Data reset for user: \(username)")
-        return true
-    }
-    
-    func devLogin(username: String) -> Bool {
-        print("🔧 DEV LOGIN - Bypassing password for user: \(username)")
-        print("🔧 DEV LOGIN - Current state before login: isLoggedIn=\(isLoggedIn), currentUsername='\(currentUsername)'")
-        
-        // Check if account exists
-        guard userDefaults.string(forKey: "\(username)_password") != nil else {
-            print("❌ DEV LOGIN - Account '\(username)' does not exist")
-            return false
-        }
-        
-        print("🔧 DEV LOGIN - Account exists, proceeding with login")
-        
-        // Update last login time
-        userDefaults.set(Date(), forKey: "\(username)_last_login")
-        
-        // Login the user
-        login(username: username)
-        
-        print("🔧 DEV LOGIN - After login call: isLoggedIn=\(isLoggedIn), currentUsername='\(currentUsername)'")
-        print("✅ DEV LOGIN - Successfully logged in as: \(username)")
-        return true
     }
 }

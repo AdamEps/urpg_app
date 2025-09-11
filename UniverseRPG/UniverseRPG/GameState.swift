@@ -303,6 +303,9 @@ class GameState: ObservableObject {
     }
     
     func startGame() {
+        // Only start the timer if it's not already running
+        guard gameTimer == nil else { return }
+        
         // Start the game timer for idle collection
         gameTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             self.updateGame()

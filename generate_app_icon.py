@@ -3,7 +3,7 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 
-def create_app_icon(version="2.0.1", size=1024):
+def create_app_icon(version="2.0.3", size=1024):
     """
     Create a black app icon with white bold URPG text and version number
     """
@@ -54,7 +54,7 @@ def create_app_icon(version="2.0.1", size=1024):
     return img
 
 def main():
-    version = "2.0.1"  # Current version
+    version = "2.0.3"  # Current version
     
     # Create the app icon
     print(f"Creating app icon for version {version}...")

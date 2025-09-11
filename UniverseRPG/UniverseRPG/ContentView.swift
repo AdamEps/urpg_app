@@ -11,7 +11,15 @@ struct ContentView: View {
     @StateObject private var gameState = GameState()
     @StateObject private var gameStateManager = GameStateManager.shared
     @State private var showXPInfo = false
-    @State private var showingProfile = false
+    @State private var showingProfile = false {
+        didSet {
+            print("🔍 PROFILE STATE - showingProfile set to: \(showingProfile)")
+            // Add stack trace to see where this is being set from
+            print("🔍 PROFILE STATE - Stack trace:")
+            Thread.callStackSymbols.forEach { print("  \($0)") }
+        }
+    }
+    
     @State private var isLoggedIn = false
     @State private var currentUsername = ""
     @Environment(\.scenePhase) private var scenePhase
@@ -76,6 +84,7 @@ struct ContentView: View {
     private func checkLoginStatus() {
         print("🔍 ContentView checkLoginStatus - Starting...")
         print("🔍 ContentView checkLoginStatus - GameStateManager state: isLoggedIn=\(gameStateManager.isLoggedIn), username='\(gameStateManager.currentUsername)'")
+        print("🔍 ContentView checkLoginStatus - showingProfile before sync: \(showingProfile)")
         
         // GameStateManager now handles session restoration automatically
         // Just sync the ContentView state with GameStateManager
@@ -83,11 +92,15 @@ struct ContentView: View {
         currentUsername = gameStateManager.currentUsername
         
         print("🔍 ContentView checkLoginStatus - ContentView state after sync: isLoggedIn=\(isLoggedIn), username='\(currentUsername)'")
+        print("🔍 ContentView checkLoginStatus - showingProfile after sync: \(showingProfile)")
         
         if isLoggedIn && !currentUsername.isEmpty {
             // Connect GameState to GameStateManager
             gameState.gameStateManager = gameStateManager
             gameStateManager.gameState = gameState
+            
+            // Reset profile view to false when logging in
+            showingProfile = false
             
             setupAutoSave()
             print("🔄 ContentView - Session restored for user: \(currentUsername)")
@@ -109,6 +122,8 @@ struct ContentView: View {
     // Save/load functions now handled by GameStateManager
     
     func logout() {
+        print("🔍 LOGOUT - showingProfile before logout: \(showingProfile)")
+        
         // GameStateManager handles saving and logout state
         gameStateManager.logout()
         
@@ -116,6 +131,10 @@ struct ContentView: View {
         isLoggedIn = gameStateManager.isLoggedIn
         currentUsername = gameStateManager.currentUsername
         
+        // Close the profile view when logout is finalized
+        showingProfile = false
+        
+        print("🔍 LOGOUT - showingProfile after logout: \(showingProfile)")
         print("✅ Logged out successfully - data preserved")
     }
     
@@ -271,10 +290,18 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            print("🔍 CONTENT VIEW - onAppear called, showingProfile: \(showingProfile)")
+            print("🔍 CONTENT VIEW - isLoggedIn: \(isLoggedIn), currentUsername: '\(currentUsername)'")
             gameState.startGame()
         }
         .sheet(isPresented: $showingProfile) {
             ProfileView(gameState: gameState, currentUsername: currentUsername, logoutAction: logout)
+        }
+        .onAppear {
+            print("🔍 SHEET - Profile sheet onAppear called, showingProfile: \(showingProfile)")
+        }
+        .onChange(of: showingProfile) { newValue in
+            print("🔍 PROFILE VIEW - showingProfile changed to: \(newValue)")
         }
     }
 }

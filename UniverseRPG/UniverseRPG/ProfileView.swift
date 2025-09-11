@@ -13,6 +13,13 @@ struct ProfileView: View {
     let logoutAction: () -> Void
     @State private var showingLogoutAlert = false
     
+    init(gameState: GameState, currentUsername: String, logoutAction: @escaping () -> Void) {
+        self.gameState = gameState
+        self.currentUsername = currentUsername
+        self.logoutAction = logoutAction
+        print("🔍 PROFILE VIEW - ProfileView created for user: \(currentUsername)")
+    }
+    
     var body: some View {
         NavigationView {
             ZStack {

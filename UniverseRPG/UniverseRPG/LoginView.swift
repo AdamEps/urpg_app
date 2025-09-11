@@ -18,9 +18,25 @@ struct LoginView: View {
     @State private var confirmPassword = ""
     @State private var isSignUp = false
     @State private var errorMessage = ""
+    @State private var showingDevTool = false
     
     var body: some View {
         VStack(spacing: 20) {
+            // Dev tool button (top right)
+            HStack {
+                Spacer()
+                Button(action: {
+                    showingDevTool = true
+                }) {
+                    Image(systemName: "wrench.and.screwdriver")
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .background(Color.blue.opacity(0.7))
+                        .cornerRadius(8)
+                }
+            }
+            .padding(.horizontal)
+            
             Spacer()
             
             Text("Universe RPG")
@@ -82,11 +98,32 @@ struct LoginView: View {
         .onAppear {
             setupTestAccount()
         }
+        .sheet(isPresented: $showingDevTool) {
+            AccountDevToolView(gameStateManager: gameStateManager) { username, password in
+                // Auto-fill the login form
+                self.username = username
+                self.password = password
+                self.errorMessage = ""
+                
+                // Automatically trigger sign in after a brief delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    self.attemptSignIn()
+                }
+            }
+        }
     }
     
     private func setupTestAccount() {
         let userDefaults = UserDefaults.standard
         userDefaults.set("test", forKey: "test_password")
+        
+        // Set up creation and last login times for test account if they don't exist
+        if userDefaults.object(forKey: "test_created_at") == nil {
+            userDefaults.set(Date(), forKey: "test_created_at")
+        }
+        if userDefaults.object(forKey: "test_last_login") == nil {
+            userDefaults.set(Date(), forKey: "test_last_login")
+        }
     }
     
     private func attemptSignIn() {
