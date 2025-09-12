@@ -1885,7 +1885,7 @@ struct ConstructionMenuView: View {
                     )
                 }
             }
-            .navigationTitle("Construction Recipes")
+            .navigationTitle("Construction Blueprints")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -1912,7 +1912,7 @@ struct ConstructionMenuView: View {
     }
 }
 
-// MARK: - Collapsible Recipe View
+// MARK: - Collapsible Blueprint View
 struct CollapsibleBlueprintView: View {
     let blueprint: ConstructionBlueprint
     @ObservedObject var gameState: GameState
