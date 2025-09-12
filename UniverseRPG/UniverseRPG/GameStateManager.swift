@@ -156,20 +156,20 @@ struct SerializableConstructionBay: Codable {
 
 struct SerializableConstruction: Codable {
     let id: String
-    let recipeId: String
+    let blueprintId: String
     let timeRemaining: Double
     let progress: Double
     
     init(from construction: Construction) {
         self.id = construction.id
-        self.recipeId = construction.recipe.id
+        self.blueprintId = construction.blueprint.id
         self.timeRemaining = construction.timeRemaining
         self.progress = construction.progress
     }
     
-    init(id: String, recipeId: String, timeRemaining: Double, progress: Double) {
+    init(id: String, blueprintId: String, timeRemaining: Double, progress: Double) {
         self.id = id
-        self.recipeId = recipeId
+        self.blueprintId = blueprintId
         self.timeRemaining = timeRemaining
         self.progress = progress
     }
@@ -246,7 +246,12 @@ class GameStateManager: ObservableObject {
             print("🔄 RESTORING SESSION - User: \(currentUsername)")
             // Add a small delay to ensure UserDefaults is fully loaded
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                print("🔄 RESTORING SESSION - Loading game state for: \(self.currentUsername)")
                 self.loadGameState()
+                // Trigger UI update after loading
+                DispatchQueue.main.async {
+                    self.objectWillChange.send()
+                }
             }
         } else {
             // Only clear if no valid session exists
@@ -456,7 +461,6 @@ class GameStateManager: ObservableObject {
         gameState.showingLocationList = freshGameState.showingLocationList
         
         // Reset all UI state
-        gameState.showConstructionMenu = false
         gameState.showConstructionPage = false
         gameState.showLocations = false
         gameState.showResourcesPage = false
@@ -630,17 +634,18 @@ class GameStateManager: ObservableObject {
         gameState.constructionBays = saveData.constructionBays.compactMap { serializableBay in
             guard let baySize = BaySize(rawValue: serializableBay.size) else { return nil }
             
-            let currentConstruction: Construction? = {
-                guard let serializableConstruction = serializableBay.currentConstruction else { return nil }
-                guard let recipe = ConstructionRecipe.allRecipes.first(where: { $0.id == serializableConstruction.recipeId }) else { return nil }
-                
-                return Construction(
+            let currentConstruction: Construction?
+            if let serializableConstruction = serializableBay.currentConstruction,
+               let blueprint = ConstructionBlueprint.allBlueprints.first(where: { $0.id == serializableConstruction.blueprintId }) {
+                currentConstruction = Construction(
                     id: serializableConstruction.id,
-                    recipe: recipe,
+                    blueprint: blueprint,
                     timeRemaining: serializableConstruction.timeRemaining,
                     progress: serializableConstruction.progress
                 )
-            }()
+            } else {
+                currentConstruction = nil
+            }
             
             return ConstructionBay(
                 id: serializableBay.id,
@@ -689,9 +694,14 @@ class GameStateManager: ObservableObject {
         // Explicitly trigger UI updates after applying save data
         DispatchQueue.main.async {
             self.objectWillChange.send()
+            self.gameState.objectWillChange.send()
         }
         
         print("Applied save data with currentPage = \(gameState.currentPage)")
+        print("Applied save data - Resources count: \(gameState.resources.count)")
+        print("Applied save data - Currency: \(gameState.currency)")
+        print("Applied save data - Player Level: \(gameState.playerLevel)")
+        print("Applied save data - Player XP: \(gameState.playerXP)")
     }
     
     // MARK: - Auto-save Triggers

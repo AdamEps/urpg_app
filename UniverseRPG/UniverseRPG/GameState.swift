@@ -48,8 +48,8 @@ class GameState: ObservableObject {
     @Published var resources: [Resource] = []
     @Published var constructionBays: [ConstructionBay] = []
     @Published var availableLocations: [Location] = []
-    @Published var showConstructionMenu = false
     @Published var showConstructionPage = false
+    @Published var showConstructionMenu = false
     @Published var showLocations = false
     @Published var showResourcesPage = false
     @Published var showCards = false
@@ -352,7 +352,7 @@ class GameState: ObservableObject {
                 constructionBays[i].currentConstruction?.timeRemaining -= 1.0
                 
                 // Update progress
-                let totalDuration = construction.recipe.duration
+                let totalDuration = construction.blueprint.duration
                 let elapsed = totalDuration - construction.timeRemaining
                 constructionBays[i].currentConstruction?.progress = min(elapsed / totalDuration, 1.0)
                 
@@ -694,31 +694,31 @@ class GameState: ObservableObject {
         return dropTable.first?.0 ?? .ironOre
     }
     
-    func startConstruction(recipe: ConstructionRecipe) {
-        guard canAffordConstruction(recipe: recipe) else { return }
+    func startConstruction(blueprint: ConstructionBlueprint) {
+        guard canAffordConstruction(blueprint: blueprint) else { return }
         
         // Find an empty bay of the right size
         guard let bayIndex = constructionBays.firstIndex(where: { 
             $0.currentConstruction == nil && 
             $0.isUnlocked && 
-            $0.size == recipe.requiredBaySize 
+            $0.size == blueprint.requiredBaySize 
         }) else { return }
         
         // Deduct resource cost
         for i in resources.indices {
-            if let cost = recipe.cost[resources[i].type] {
+            if let cost = blueprint.cost[resources[i].type] {
                 resources[i].amount -= cost
             }
         }
         
         // Deduct currency cost
-        currency -= recipe.currencyCost
+        currency -= blueprint.currencyCost
         
         // Create construction
         let construction = Construction(
             id: UUID().uuidString,
-            recipe: recipe,
-            timeRemaining: recipe.duration,
+            blueprint: blueprint,
+            timeRemaining: blueprint.duration,
             progress: 0.0
         )
         
@@ -728,14 +728,14 @@ class GameState: ObservableObject {
         gameStateManager?.triggerAutoSave()
     }
     
-    func canAffordConstruction(recipe: ConstructionRecipe) -> Bool {
+    func canAffordConstruction(blueprint: ConstructionBlueprint) -> Bool {
         // If dev tool is enabled, always allow construction
         if devToolBuildableWithoutIngredients {
             return true
         }
         
         // Check ALL required resource costs
-        for (requiredResourceType, requiredAmount) in recipe.cost {
+        for (requiredResourceType, requiredAmount) in blueprint.cost {
             // Find the player's current amount of this resource
             let playerAmount = resources.first(where: { $0.type == requiredResourceType })?.amount ?? 0
             
@@ -746,7 +746,7 @@ class GameState: ObservableObject {
         }
         
         // Check currency cost
-        if currency < recipe.currencyCost {
+        if currency < blueprint.currencyCost {
             return false
         }
         
@@ -758,14 +758,14 @@ class GameState: ObservableObject {
         
         // Give rewards based on construction recipe
         for i in resources.indices {
-            if let reward = construction.recipe.reward[resources[i].type] {
+            if let reward = construction.blueprint.reward[resources[i].type] {
                 resources[i].amount += reward
             }
         }
         
         // Track construction statistics
         totalConstructionsCompleted += 1
-        switch construction.recipe.requiredBaySize {
+        switch construction.blueprint.requiredBaySize {
         case .small:
             smallConstructionsCompleted += 1
         case .medium:
@@ -2042,12 +2042,12 @@ enum BaySize: String, CaseIterable {
 
 struct Construction: Identifiable {
     let id: String
-    let recipe: ConstructionRecipe
+    let blueprint: ConstructionBlueprint
     var timeRemaining: Double
     var progress: Double
 }
 
-struct ConstructionRecipe: Identifiable {
+struct ConstructionBlueprint: Identifiable {
     let id: String
     let name: String
     let description: String
@@ -2060,8 +2060,8 @@ struct ConstructionRecipe: Identifiable {
 }
 
 // Sample recipes for MVP
-extension ConstructionRecipe {
-    static let steelPylons = ConstructionRecipe(
+extension ConstructionBlueprint {
+    static let steelPylons = ConstructionBlueprint(
         id: "steel-pylons",
         name: "Steel Pylons",
         description: "Essential for building almost anything!",
@@ -2074,7 +2074,7 @@ extension ConstructionRecipe {
     )
     
     // Small Bay Constructables
-    static let gears = ConstructionRecipe(
+    static let gears = ConstructionBlueprint(
         id: "gears",
         name: "Gears",
         description: "Basic mechanical components for complex machinery.",
@@ -2086,7 +2086,7 @@ extension ConstructionRecipe {
         xpReward: 3
     )
     
-    static let laser = ConstructionRecipe(
+    static let laser = ConstructionBlueprint(
         id: "laser",
         name: "Laser",
         description: "Precision cutting and harvesting technology.",
@@ -2098,7 +2098,7 @@ extension ConstructionRecipe {
         xpReward: 5
     )
     
-    static let circuitBoard = ConstructionRecipe(
+    static let circuitBoard = ConstructionBlueprint(
         id: "circuit-board",
         name: "Circuit Board",
         description: "The foundation of all electronic devices.",
@@ -2110,7 +2110,7 @@ extension ConstructionRecipe {
         xpReward: 4
     )
     
-    static let cpu = ConstructionRecipe(
+    static let cpu = ConstructionBlueprint(
         id: "cpu",
         name: "CPU",
         description: "The brain of any advanced computing system.",
@@ -2122,7 +2122,7 @@ extension ConstructionRecipe {
         xpReward: 7
     )
     
-    static let dataStorageUnit = ConstructionRecipe(
+    static let dataStorageUnit = ConstructionBlueprint(
         id: "data-storage-unit",
         name: "Data Storage Unit",
         description: "High-capacity data storage for complex systems.",
@@ -2134,7 +2134,7 @@ extension ConstructionRecipe {
         xpReward: 7
     )
     
-    static let sensorArray = ConstructionRecipe(
+    static let sensorArray = ConstructionBlueprint(
         id: "sensor-array",
         name: "Sensor Array",
         description: "Advanced detection and monitoring system.",
@@ -2146,7 +2146,7 @@ extension ConstructionRecipe {
         xpReward: 6
     )
     
-    static let lithiumIonBattery = ConstructionRecipe(
+    static let lithiumIonBattery = ConstructionBlueprint(
         id: "lithium-ion-battery",
         name: "Lithium-Ion Battery",
         description: "High-energy power storage for portable devices.",
@@ -2159,7 +2159,7 @@ extension ConstructionRecipe {
     )
     
     // Medium Bay Constructables
-    static let fusionReactor = ConstructionRecipe(
+    static let fusionReactor = ConstructionBlueprint(
         id: "fusion-reactor",
         name: "Fusion Reactor",
         description: "Advanced power generation system for large-scale operations.",
@@ -2171,7 +2171,7 @@ extension ConstructionRecipe {
         xpReward: 15
     )
     
-    static let quantumComputer = ConstructionRecipe(
+    static let quantumComputer = ConstructionBlueprint(
         id: "quantum-computer",
         name: "Quantum Computer",
         description: "Revolutionary computing technology for complex calculations.",
@@ -2183,7 +2183,7 @@ extension ConstructionRecipe {
         xpReward: 20
     )
     
-    static let spaceStationModule = ConstructionRecipe(
+    static let spaceStationModule = ConstructionBlueprint(
         id: "space-station-module",
         name: "Space Station Module",
         description: "Habitable module for long-term space operations.",
@@ -2196,7 +2196,7 @@ extension ConstructionRecipe {
     )
     
     // Large Bay Constructables
-    static let starshipHull = ConstructionRecipe(
+    static let starshipHull = ConstructionBlueprint(
         id: "starship-hull",
         name: "Starship Hull",
         description: "The main structure of an interstellar vessel.",
@@ -2208,7 +2208,7 @@ extension ConstructionRecipe {
         xpReward: 50
     )
     
-    static let terraformingArray = ConstructionRecipe(
+    static let terraformingArray = ConstructionBlueprint(
         id: "terraforming-array",
         name: "Terraforming Array",
         description: "Massive system for planetary environment modification.",
@@ -2220,7 +2220,7 @@ extension ConstructionRecipe {
         xpReward: 75
     )
     
-    static let allRecipes: [ConstructionRecipe] = [
+    static let allBlueprints: [ConstructionBlueprint] = [
         .steelPylons,
         .circuitBoard,
         .gears,

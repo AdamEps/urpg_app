@@ -88,24 +88,30 @@ struct ContentView: View {
         
         // GameStateManager now handles session restoration automatically
         // Just sync the ContentView state with GameStateManager
-        isLoggedIn = gameStateManager.isLoggedIn
-        currentUsername = gameStateManager.currentUsername
-        
-        print("🔍 ContentView checkLoginStatus - ContentView state after sync: isLoggedIn=\(isLoggedIn), username='\(currentUsername)'")
-        print("🔍 ContentView checkLoginStatus - showingProfile after sync: \(showingProfile)")
-        
-        if isLoggedIn && !currentUsername.isEmpty {
-            // Connect GameState to GameStateManager
-            gameState.gameStateManager = gameStateManager
-            gameStateManager.gameState = gameState
+        DispatchQueue.main.async {
+            self.isLoggedIn = self.gameStateManager.isLoggedIn
+            self.currentUsername = self.gameStateManager.currentUsername
             
-            // Reset profile view to false when logging in
-            showingProfile = false
+            print("🔍 ContentView checkLoginStatus - ContentView state after sync: isLoggedIn=\(self.isLoggedIn), username='\(self.currentUsername)'")
+            print("🔍 ContentView checkLoginStatus - showingProfile after sync: \(self.showingProfile)")
             
-            setupAutoSave()
-            print("🔄 ContentView - Session restored for user: \(currentUsername)")
-        } else {
-            print("🔍 ContentView checkLoginStatus - No valid session found")
+            if self.isLoggedIn && !self.currentUsername.isEmpty {
+                // Connect GameState to GameStateManager
+                self.gameState.gameStateManager = self.gameStateManager
+                self.gameStateManager.gameState = self.gameState
+                
+                // Reset profile view to false when logging in
+                self.showingProfile = false
+                
+                self.setupAutoSave()
+                print("🔄 ContentView - Session restored for user: \(self.currentUsername)")
+                
+                // Force a game state load to ensure data is current
+                print("🔄 ContentView - Forcing game state reload...")
+                self.gameStateManager.loadGameState()
+            } else {
+                print("🔍 ContentView checkLoginStatus - No valid session found")
+            }
         }
     }
     
@@ -1460,7 +1466,7 @@ struct ConstructionBayRow: View {
             if let construction = bay.currentConstruction {
                 HStack {
                     VStack(alignment: .leading) {
-                        Text(construction.recipe.name)
+                        Text(construction.blueprint.name)
                             .fontWeight(.medium)
                         Text("Time remaining: \(Int(construction.timeRemaining))s")
                             .font(.caption)
@@ -1845,6 +1851,9 @@ struct BottomNavigationView: View {
         .sheet(isPresented: $gameState.showObjectives) {
             ObjectivesView(gameState: gameState)
         }
+        .sheet(isPresented: $gameState.showConstructionMenu) {
+            ConstructionMenuView(gameState: gameState)
+        }
     }
 }
 
@@ -1852,25 +1861,25 @@ struct BottomNavigationView: View {
 struct ConstructionMenuView: View {
     @ObservedObject var gameState: GameState
     @Environment(\.dismiss) private var dismiss
-    @State private var expandedRecipes: Set<String> = []
+    @State private var expandedBlueprints: Set<String> = []
     
     var body: some View {
         NavigationView {
             List {
-                ForEach(ConstructionRecipe.allRecipes, id: \.id) { recipe in
-                    CollapsibleRecipeView(
-                        recipe: recipe,
+                ForEach(ConstructionBlueprint.allBlueprints, id: \.id) { blueprint in
+                    CollapsibleBlueprintView(
+                        blueprint: blueprint,
                         gameState: gameState,
-                        isExpanded: expandedRecipes.contains(recipe.id),
+                        isExpanded: expandedBlueprints.contains(blueprint.id),
                         onToggle: {
-                            if expandedRecipes.contains(recipe.id) {
-                                expandedRecipes.remove(recipe.id)
+                            if expandedBlueprints.contains(blueprint.id) {
+                                expandedBlueprints.remove(blueprint.id)
                             } else {
-                                expandedRecipes.insert(recipe.id)
+                                expandedBlueprints.insert(blueprint.id)
                             }
                         },
                         onStartConstruction: {
-                            gameState.startConstruction(recipe: recipe)
+                            gameState.startConstruction(blueprint: blueprint)
                             dismiss()
                         }
                     )
@@ -1904,15 +1913,15 @@ struct ConstructionMenuView: View {
 }
 
 // MARK: - Collapsible Recipe View
-struct CollapsibleRecipeView: View {
-    let recipe: ConstructionRecipe
+struct CollapsibleBlueprintView: View {
+    let blueprint: ConstructionBlueprint
     @ObservedObject var gameState: GameState
     let isExpanded: Bool
     let onToggle: () -> Void
     let onStartConstruction: () -> Void
     
     private var canAfford: Bool {
-        gameState.canAffordConstruction(recipe: recipe)
+        gameState.canAffordConstruction(blueprint: blueprint)
     }
     
     var body: some View {
@@ -1922,22 +1931,22 @@ struct CollapsibleRecipeView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Text(recipe.name)
+                            Text(blueprint.name)
                                 .fontWeight(.medium)
                                 .foregroundColor(.white)
                             Spacer()
-                            Text("\(recipe.xpReward) XP")
+                            Text("\(blueprint.xpReward) XP")
                                 .font(.caption)
                                 .fontWeight(.medium)
                                 .foregroundColor(.purple)
                         }
                         
                         HStack {
-                            Text(recipe.description)
+                            Text(blueprint.description)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Spacer()
-                            Text("\(Int(recipe.duration))s")
+                            Text("\(Int(blueprint.duration))s")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -1965,8 +1974,8 @@ struct CollapsibleRecipeView: View {
             if isExpanded {
                 VStack(alignment: .leading, spacing: 4) {
                     // Resource requirements with color coding
-                    ForEach(Array(recipe.cost.keys.sorted(by: { $0.rawValue < $1.rawValue })), id: \.self) { resourceType in
-                        if let requiredAmount = recipe.cost[resourceType] {
+                    ForEach(Array(blueprint.cost.keys.sorted(by: { $0.rawValue < $1.rawValue })), id: \.self) { resourceType in
+                        if let requiredAmount = blueprint.cost[resourceType] {
                             HStack {
                                 Image(systemName: getResourceIcon(for: resourceType))
                                     .foregroundColor(getResourceColor(for: resourceType))
@@ -1992,10 +2001,10 @@ struct CollapsibleRecipeView: View {
                             .font(.caption)
                             .foregroundColor(.white)
                         Spacer()
-                        Text("(\(recipe.currencyCost))")
+                        Text("(\(blueprint.currencyCost))")
                             .font(.caption)
                             .fontWeight(.medium)
-                            .foregroundColor(gameState.currency >= recipe.currencyCost ? .green : .red)
+                            .foregroundColor(gameState.currency >= blueprint.currencyCost ? .green : .red)
                     }
                     
                     // Start construction button
@@ -2506,9 +2515,6 @@ struct ConstructionPageView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .sheet(isPresented: $gameState.showConstructionMenu) {
-            ConstructionMenuView(gameState: gameState)
-        }
     }
 }
 
@@ -2554,16 +2560,16 @@ struct SmallBaySlotView: View {
                         if isUnderConstruction {
                             VStack(spacing: 4) {
                                 // Construction name
-                                Text(bay?.currentConstruction?.recipe.name ?? "")
+                                Text(bay?.currentConstruction?.blueprint.name ?? "")
                                     .font(.caption2)
                                     .fontWeight(.medium)
                                     .foregroundColor(.white)
                                     .lineLimit(1)
                                 
                                 // Construction icon
-                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
                                     .font(.caption)
-                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
                                 
                                 if isCompleted {
                                     // Complete text
@@ -2612,7 +2618,7 @@ struct SmallBaySlotView: View {
         // Delay the actual collection to allow animation to play
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             // Add rewards to player resources
-            for (resourceType, amount) in construction.recipe.reward {
+            for (resourceType, amount) in construction.blueprint.reward {
                 if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
                     gameState.resources[existingIndex].amount += amount
                 } else {
@@ -2632,7 +2638,7 @@ struct SmallBaySlotView: View {
             }
             
             // Award XP
-            gameState.addXP(construction.recipe.xpReward)
+            gameState.addXP(construction.blueprint.xpReward)
             
             // Check for location unlocks
             gameState.checkLocationUnlocks()
@@ -2723,16 +2729,16 @@ struct MediumBaySlotView: View {
                         if isUnderConstruction {
                             VStack(spacing: 4) {
                                 // Construction name
-                                Text(bay?.currentConstruction?.recipe.name ?? "")
+                                Text(bay?.currentConstruction?.blueprint.name ?? "")
                                     .font(.caption2)
                                     .fontWeight(.medium)
                                     .foregroundColor(.white)
                                     .lineLimit(1)
                                 
                                 // Construction icon
-                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
                                     .font(.caption)
-                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
                                 
                                 if isCompleted {
                                     // Complete text
@@ -2781,7 +2787,7 @@ struct MediumBaySlotView: View {
         // Delay the actual collection to allow animation to play
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             // Add rewards to player resources
-            for (resourceType, amount) in construction.recipe.reward {
+            for (resourceType, amount) in construction.blueprint.reward {
                 if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
                     gameState.resources[existingIndex].amount += amount
                 } else {
@@ -2801,7 +2807,7 @@ struct MediumBaySlotView: View {
             }
             
             // Award XP
-            gameState.addXP(construction.recipe.xpReward)
+            gameState.addXP(construction.blueprint.xpReward)
             
             // Check for location unlocks
             gameState.checkLocationUnlocks()
@@ -2892,16 +2898,16 @@ struct LargeBaySlotView: View {
                         if isUnderConstruction {
                             VStack(spacing: 4) {
                                 // Construction name
-                                Text(bay?.currentConstruction?.recipe.name ?? "")
+                                Text(bay?.currentConstruction?.blueprint.name ?? "")
                                     .font(.caption2)
                                     .fontWeight(.medium)
                                     .foregroundColor(.white)
                                     .lineLimit(1)
                                 
                                 // Construction icon
-                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
                                     .font(.caption)
-                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.recipe.reward.keys.first ?? .ironOre))
+                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
                                 
                                 if isCompleted {
                                     // Complete text
@@ -2950,7 +2956,7 @@ struct LargeBaySlotView: View {
         // Delay the actual collection to allow animation to play
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             // Add rewards to player resources
-            for (resourceType, amount) in construction.recipe.reward {
+            for (resourceType, amount) in construction.blueprint.reward {
                 if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
                     gameState.resources[existingIndex].amount += amount
                 } else {
@@ -2970,7 +2976,7 @@ struct LargeBaySlotView: View {
             }
             
             // Award XP
-            gameState.addXP(construction.recipe.xpReward)
+            gameState.addXP(construction.blueprint.xpReward)
             
             // Check for location unlocks
             gameState.checkLocationUnlocks()

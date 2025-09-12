@@ -372,7 +372,6 @@ class GameStateManager: ObservableObject {
         gameState.showingLocationList = freshGameState.showingLocationList
         
         // Reset all UI state
-        gameState.showConstructionMenu = false
         gameState.showConstructionPage = false
         gameState.showLocations = false
         gameState.showResourcesPage = false

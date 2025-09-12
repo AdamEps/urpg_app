@@ -168,14 +168,14 @@ class SaveMigrationManager {
             let currentConstruction: SerializableConstruction? = {
                 guard let constructionDict = bayDict["currentConstruction"] as? [String: Any],
                       let constructionId = constructionDict["id"] as? String,
-                      let recipeId = constructionDict["recipeId"] as? String,
+                      let blueprintId = constructionDict["recipeId"] as? String,
                       let timeRemaining = constructionDict["timeRemaining"] as? Double,
                       let progress = constructionDict["progress"] as? Double else {
                     return nil
                 }
                 return SerializableConstruction(
                     id: constructionId,
-                    recipeId: recipeId,
+                    blueprintId: blueprintId,
                     timeRemaining: timeRemaining,
                     progress: progress
                 )
