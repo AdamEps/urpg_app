@@ -1243,6 +1243,11 @@ struct LocationResourceListView: View {
         case .copper: return "circle.fill"
         case .gold: return "star.fill"
         case .lithium: return "battery.100"
+        
+        // Enhancement items
+        case .excavator: return "hammer.fill"
+        case .laserHarvester: return "laser.burst"
+        case .virtualAlmanac: return "book.fill"
         }
     }
     
@@ -1386,6 +1391,11 @@ struct LocationResourceListView: View {
         case .copper: return .orange
         case .gold: return .yellow
         case .lithium: return .gray
+        
+        // Enhancement items
+        case .excavator: return .brown
+        case .laserHarvester: return .red
+        case .virtualAlmanac: return .purple
         }
     }
 }
@@ -2937,6 +2947,11 @@ struct ResourcesPageView: View {
         case .copper: return "circle.fill"
         case .gold: return "star.fill"
         case .lithium: return "battery.100"
+        
+        // Enhancement items
+        case .excavator: return "hammer.fill"
+        case .laserHarvester: return "laser.burst"
+        case .virtualAlmanac: return "book.fill"
         }
     }
     
@@ -3080,6 +3095,11 @@ struct ResourcesPageView: View {
         case .copper: return .orange
         case .gold: return .yellow
         case .lithium: return .gray
+        
+        // Enhancement items
+        case .excavator: return .brown
+        case .laserHarvester: return .red
+        case .virtualAlmanac: return .purple
         }
     }
 }
@@ -3210,6 +3230,8 @@ struct ResourceDetailView: View {
             return "Ancient"
         case .steelPylons, .gears, .laser, .circuitBoard, .cpu, .dataStorageUnit, .sensorArray, .lithiumIonBattery, .fusionReactor, .quantumComputer, .spaceStationModule, .starshipHull, .terraformingArray:
             return "Constructed"
+        case .excavator, .laserHarvester, .virtualAlmanac:
+            return "Enhancement"
         case .copper, .gold, .lithium:
             return "Metals"
         }

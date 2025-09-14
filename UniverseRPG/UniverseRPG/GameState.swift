@@ -1265,6 +1265,11 @@ class GameState: ObservableObject {
         case .copper: return "circle.fill"
         case .gold: return "star.fill"
         case .lithium: return "battery.100"
+        
+        // Enhancement items
+        case .excavator: return "hammer.fill"
+        case .laserHarvester: return "laser.burst"
+        case .virtualAlmanac: return "book.fill"
         }
     }
     
@@ -1410,6 +1415,11 @@ class GameState: ObservableObject {
         case .copper: return .orange
         case .gold: return .yellow
         case .lithium: return .gray
+        
+        // Enhancement items
+        case .excavator: return .brown
+        case .laserHarvester: return .red
+        case .virtualAlmanac: return .purple
         }
     }
     
@@ -2027,6 +2037,11 @@ enum ResourceType: String, CaseIterable {
     case copper = "Copper"
     case gold = "Gold"
     case lithium = "Lithium"
+    
+    // Enhancement items
+    case excavator = "Excavator"
+    case laserHarvester = "Laser Harvester"
+    case virtualAlmanac = "Virtual Almanac"
 }
 
 struct ConstructionBay: Identifiable {
@@ -2197,6 +2212,42 @@ extension ConstructionBlueprint {
         xpReward: 25
     )
     
+    static let excavator = ConstructionBlueprint(
+        id: "excavator",
+        name: "Excavator",
+        description: "Enhancement Item: Ability Unknown",
+        duration: 300.0, // 5 minutes
+        cost: [.steelPylons: 10, .gears: 3],
+        currencyCost: 300,
+        reward: [.excavator: 1],
+        requiredBaySize: .medium,
+        xpReward: 25
+    )
+    
+    static let laserHarvester = ConstructionBlueprint(
+        id: "laser-harvester",
+        name: "Laser Harvester",
+        description: "Enhancement Item: Ability Unknown",
+        duration: 450.0, // 7.5 minutes
+        cost: [.laser: 5, .circuitBoard: 3, .steelPylons: 4],
+        currencyCost: 550,
+        reward: [.laserHarvester: 1],
+        requiredBaySize: .medium,
+        xpReward: 40
+    )
+    
+    static let virtualAlmanac = ConstructionBlueprint(
+        id: "virtual-almanac",
+        name: "Virtual Almanac",
+        description: "Enhancement Item: Ability Unknown",
+        duration: 600.0, // 10 minutes
+        cost: [.cpu: 1, .dataStorageUnit: 1, .alloys: 50, .silicon: 50],
+        currencyCost: 995,
+        reward: [.virtualAlmanac: 1],
+        requiredBaySize: .medium,
+        xpReward: 75
+    )
+    
     // Large Bay Constructables
     static let starshipHull = ConstructionBlueprint(
         id: "starship-hull",
@@ -2234,6 +2285,9 @@ extension ConstructionBlueprint {
         .fusionReactor,
         .quantumComputer,
         .spaceStationModule,
+        .excavator,
+        .laserHarvester,
+        .virtualAlmanac,
         .starshipHull,
         .terraformingArray
     ]

@@ -105,6 +105,24 @@ This document tracks our development conversations and key decisions for the Uni
   - Total button height now: 32 pixels (container) + 8 pixels (padding) = 40 pixels
 - **Status**: ✅ Complete - Version 2.0.5 - App launched for testing
 
+### 2025-01-27 - Enhancement Items Addition
+- **Request**: Add 3 medium bay constructables that are enhancement items
+  - Excavator: Steel Pylons (10) + Gears (3) + 300 Numins, 5 min, 25 XP
+    - Ability: 2X-5X higher yield for common & uncommon resources for 1 min (3 min cooldown, 10% break chance)
+  - Laser Harvester: Laser (5) + Circuit Board (3) + Steel Pylons (4) + 550 Numins, 7.5 min, 40 XP
+    - Ability: Random rare resource collection every 5 sec for 30 sec (2 min cooldown, 25% break chance)
+  - Virtual Almanac: CPU (1) + Data Storage Unit (1) + Alloys (50) + Silicon (50) + 995 Numins, 10 min, 75 XP
+    - Ability: Shows location resources and chances (removable after 30 min, forfeits Numins earnings)
+  - All show "Enhancement Item: Ability Unknown" until first construction + ability discovery cost paid
+- **Solution**: 
+  - Added new ResourceType cases: excavator, laserHarvester, virtualAlmanac
+  - Added icons: hammer.fill, laser.burst, book.fill respectively
+  - Added colors: brown, red, purple respectively
+  - Created ConstructionBlueprint definitions with proper costs, durations, and XP rewards
+  - Set all as medium bay constructables with "Enhancement Item: Ability Unknown" descriptions
+  - Added blueprints to allBlueprints array for availability in game
+- **Status**: ✅ Complete - App launched for testing
+
 ---
 
 *This file should be maintained during each development session. Each new conversation should start by reading this file and adding a new entry.*
