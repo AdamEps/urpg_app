@@ -51,6 +51,7 @@ class GameState: ObservableObject {
     @Published var showConstructionPage = false
     @Published var showConstructionMenu = false
     @Published var showLocations = false
+    @Published var selectedBaySizeForBlueprints: BaySize = .small
     @Published var showResourcesPage = false
     @Published var showCards = false
     @Published var showLocationResources = false
@@ -1838,6 +1839,7 @@ enum LocationKind: String, CaseIterable {
 enum AppPage: String, CaseIterable {
     case location = "Location"
     case construction = "Construction"
+    case blueprints = "Blueprints"
     case starMap = "Star Map"
     case resources = "Resources"
     case cards = "Cards"

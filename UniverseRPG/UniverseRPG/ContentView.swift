@@ -157,6 +157,11 @@ struct ContentView: View {
                         LocationView(gameState: gameState)
                     case .construction:
                         ConstructionPageView(gameState: gameState)
+                    case .blueprints:
+                        BlueprintsView(gameState: gameState, initialBaySize: gameState.selectedBaySizeForBlueprints)
+                            .onAppear {
+                                print("🔍 BlueprintsView appeared with selectedBaySizeForBlueprints: \(gameState.selectedBaySizeForBlueprints)")
+                            }
                     case .starMap:
                         if gameState.showingLocationList {
                             StarMapView(gameState: gameState)
@@ -1481,7 +1486,9 @@ struct ConstructionBayRow: View {
             } else {
                 if bay.isUnlocked {
                     Button("+") {
-                        gameState.showConstructionMenu = true
+                        print("🔍 Small bay clicked - setting selectedBaySizeForBlueprints to .small")
+                        gameState.selectedBaySizeForBlueprints = .small
+                        gameState.currentPage = .blueprints
                     }
                     .buttonStyle(.bordered)
                     .foregroundColor(.green)
@@ -1851,486 +1858,6 @@ struct BottomNavigationView: View {
         .sheet(isPresented: $gameState.showObjectives) {
             ObjectivesView(gameState: gameState)
         }
-        .sheet(isPresented: $gameState.showConstructionMenu) {
-            ConstructionMenuView(gameState: gameState)
-        }
-    }
-}
-
-// MARK: - Construction Menu
-struct ConstructionMenuView: View {
-    @ObservedObject var gameState: GameState
-    @Environment(\.dismiss) private var dismiss
-    @State private var expandedBlueprints: Set<String> = []
-    
-    var body: some View {
-        NavigationView {
-            List {
-                ForEach(ConstructionBlueprint.allBlueprints, id: \.id) { blueprint in
-                    CollapsibleBlueprintView(
-                        blueprint: blueprint,
-                        gameState: gameState,
-                        isExpanded: expandedBlueprints.contains(blueprint.id),
-                        onToggle: {
-                            if expandedBlueprints.contains(blueprint.id) {
-                                expandedBlueprints.remove(blueprint.id)
-                            } else {
-                                expandedBlueprints.insert(blueprint.id)
-                            }
-                        },
-                        onStartConstruction: {
-                            gameState.startConstruction(blueprint: blueprint)
-                            dismiss()
-                        }
-                    )
-                }
-            }
-            .navigationTitle("Construction Blueprints")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
-    
-    private func hasEnoughResource(_ resourceType: ResourceType, _ requiredAmount: Double) -> Bool {
-        if let resource = gameState.resources.first(where: { $0.type == resourceType }) {
-            return resource.amount >= requiredAmount
-        }
-        return false
-    }
-    
-    private func getPlayerResourceAmount(_ resourceType: ResourceType) -> Double {
-        if let resource = gameState.resources.first(where: { $0.type == resourceType }) {
-            return resource.amount
-        }
-        return 0
-    }
-}
-
-// MARK: - Collapsible Blueprint View
-struct CollapsibleBlueprintView: View {
-    let blueprint: ConstructionBlueprint
-    @ObservedObject var gameState: GameState
-    let isExpanded: Bool
-    let onToggle: () -> Void
-    let onStartConstruction: () -> Void
-    
-    private var canAfford: Bool {
-        gameState.canAffordConstruction(blueprint: blueprint)
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Header with expand/collapse button
-            Button(action: onToggle) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(blueprint.name)
-                                .fontWeight(.medium)
-                                .foregroundColor(.white)
-                            Spacer()
-                            Text("\(blueprint.xpReward) XP")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundColor(.purple)
-                        }
-                        
-                        HStack {
-                            Text(blueprint.description)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Spacer()
-                            Text("\(Int(blueprint.duration))s")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        // Status line when collapsed
-                        if !isExpanded {
-                            HStack {
-                                Text(canAfford ? "Ready to Construct" : "Missing Requirements")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(canAfford ? .green : .red)
-                                Spacer()
-                            }
-                        }
-                    }
-                    
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
-            
-            // Expanded content
-            if isExpanded {
-                VStack(alignment: .leading, spacing: 4) {
-                    // Resource requirements with color coding
-                    ForEach(Array(blueprint.cost.keys.sorted(by: { $0.rawValue < $1.rawValue })), id: \.self) { resourceType in
-                        if let requiredAmount = blueprint.cost[resourceType] {
-                            HStack {
-                                Image(systemName: getResourceIcon(for: resourceType))
-                                    .foregroundColor(getResourceColor(for: resourceType))
-                                    .frame(width: 16)
-                                Text(resourceType.rawValue)
-                                    .font(.caption)
-                                    .foregroundColor(.white)
-                                Spacer()
-                                Text("(\(Int(getPlayerResourceAmount(resourceType)))/\(Int(requiredAmount)))")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(hasEnoughResource(resourceType, requiredAmount) ? .green : .red)
-                            }
-                        }
-                    }
-                    
-                    // Currency requirement with color coding
-                    HStack {
-                        Image(systemName: "star.circle")
-                            .foregroundColor(.yellow)
-                            .frame(width: 16)
-                        Text("Numins")
-                            .font(.caption)
-                            .foregroundColor(.white)
-                        Spacer()
-                        Text("(\(blueprint.currencyCost))")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(gameState.currency >= blueprint.currencyCost ? .green : .red)
-                    }
-                    
-                    // Start construction button
-                    Button(action: onStartConstruction) {
-                        HStack {
-                            Spacer()
-                            Text("Start Construction")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundColor(.white)
-                            Spacer()
-                        }
-                        .padding(.vertical, 8)
-                        .background(canAfford ? Color.blue : Color.gray)
-                        .cornerRadius(6)
-                    }
-                    .disabled(!canAfford)
-                }
-                .padding(.top, 4)
-            }
-        }
-        .opacity(canAfford ? 1.0 : 0.5)
-    }
-    
-    private func hasEnoughResource(_ resourceType: ResourceType, _ requiredAmount: Double) -> Bool {
-        if let resource = gameState.resources.first(where: { $0.type == resourceType }) {
-            return resource.amount >= requiredAmount
-        }
-        return false
-    }
-    
-    private func getPlayerResourceAmount(_ resourceType: ResourceType) -> Double {
-        if let resource = gameState.resources.first(where: { $0.type == resourceType }) {
-            return resource.amount
-        }
-        return 0
-    }
-    
-    private func getResourceIcon(for type: ResourceType) -> String {
-        switch type {
-        case .ironOre: return "cube.fill"
-        case .silicon: return "diamond.fill"
-        case .water: return "drop.fill"
-        case .oxygen: return "wind"
-        case .graphite: return "diamond.fill"
-        case .nitrogen: return "n.circle.fill"
-        case .phosphorus: return "p.circle.fill"
-        case .sulfur: return "s.circle.fill"
-        case .calcium: return "c.circle.fill"
-        case .magnesium: return "m.circle.fill"
-        case .helium3: return "h.circle.fill"
-        case .titanium: return "t.circle.fill"
-        case .aluminum: return "a.circle.fill"
-        case .nickel: return "n.circle.fill"
-        case .cobalt: return "c.circle.fill"
-        case .chromium: return "c.circle.fill"
-        case .vanadium: return "v.circle.fill"
-        case .manganese: return "m.circle.fill"
-        case .plasma: return "bolt.fill"
-        case .element: return "atom"
-        case .isotope: return "circle.dotted"
-        case .energy: return "bolt.circle.fill"
-        case .radiation: return "waveform"
-        case .heat: return "flame.fill"
-        case .light: return "sun.max.fill"
-        case .gravity: return "arrow.down.circle.fill"
-        case .magnetic: return "magnet"
-        case .solar: return "sun.max.circle.fill"
-        case .numins: return "star.circle"
-        
-        // Taragam-3 resources
-        case .hydrogen: return "h.circle.fill"
-        case .methane: return "flame"
-        case .ammonia: return "drop.triangle"
-        case .ice: return "snowflake"
-        case .crystals: return "diamond"
-        case .minerals: return "cube"
-        
-        // Abandoned Starship resources
-        case .scrapMetal: return "wrench.and.screwdriver"
-        case .electronics: return "cpu"
-        case .fuelCells: return "battery.100"
-        case .dataCores: return "externaldrive"
-        case .circuits: return "circle.grid.cross"
-        case .alloys: return "rectangle.stack"
-        case .components: return "gearshape.2"
-        case .techParts: return "gear"
-        case .batteries: return "battery.50"
-        case .wiring: return "cable.connector"
-        
-        // Ernest's Homestead resources
-        case .food: return "leaf"
-        case .textiles: return "tshirt"
-        case .tools: return "hammer"
-        case .medicine: return "cross.case"
-        case .seeds: return "seedling"
-        case .livestock: return "pawprint"
-        case .grain: return "leaf.circle"
-        case .vegetables: return "carrot"
-        case .herbs: return "leaf.arrow.circlepath"
-        case .supplies: return "shippingbox"
-        
-        // Koraxon resources
-        case .heavyElements: return "atom"
-        case .denseMatter: return "circle.fill"
-        case .compressedGas: return "cloud.fill"
-        case .exoticMatter: return "sparkles"
-        case .gravitons: return "arrow.down.circle"
-        case .darkEnergy: return "moon.stars"
-        case .neutronium: return "n.circle"
-        case .quarkMatter: return "q.circle"
-        case .strangeMatter: return "s.circle"
-        case .antimatter: return "minus.circle"
-        
-        // Taragon Beta resources
-        case .redPlasma: return "flame.circle"
-        case .infraredEnergy: return "thermometer"
-        case .stellarWind: return "wind"
-        case .magneticFields: return "magnifyingglass"
-        case .cosmicRays: return "rays"
-        case .photons: return "lightbulb"
-        case .particles: return "circle.dotted"
-        case .solarFlares: return "sun.max"
-        case .corona: return "sun.haze"
-        case .chromosphere: return "circle.hexagongrid"
-        
-        // Violis Alpha resources
-        case .stellarDust: return "sparkle"
-        case .cosmicDebris: return "trash"
-        case .microParticles: return "circle.grid.3x3"
-        case .spaceGas: return "cloud"
-        case .ionStreams: return "arrow.right"
-        case .electronFlow: return "e.circle"
-        case .protonBeams: return "p.circle"
-        case .neutronFlux: return "n.circle.fill"
-        case .gammaRays: return "g.circle"
-        case .xRays: return "x.circle"
-        
-        // Violis Outpost resources
-        case .researchData: return "doc.text"
-        case .labEquipment: return "flask"
-        case .samples: return "testtube.2"
-        case .experiments: return "beaker"
-        case .prototypes: return "cube.transparent"
-        case .blueprints: return "doc.plaintext"
-        case .formulas: return "function"
-        case .algorithms: return "chevron.left.forwardslash.chevron.right"
-        case .code: return "curlybraces"
-        case .documentation: return "book"
-        
-        // Rogue Wanderer resources
-        case .frozenGases: return "snowflake.circle"
-        case .iceCrystals: return "diamond.fill"
-        case .preservedMatter: return "cube.box"
-        case .ancientArtifacts: return "crown"
-        case .relics: return "building.columns"
-        case .fossils: return "leaf.fill"
-        case .rareElements: return "r.circle"
-        case .crystallineStructures: return "diamond.circle"
-        case .geologicalSamples: return "mountain.2"
-        
-        // Constructable items
-        case .steelPylons: return "building.2"
-        case .gears: return "gear"
-        case .laser: return "laser.burst"
-        case .circuitBoard: return "cpu"
-        case .cpu: return "cpu"
-        case .dataStorageUnit: return "externaldrive"
-        case .sensorArray: return "sensor.tag.radiowaves.forward"
-        case .lithiumIonBattery: return "battery.100"
-        case .fusionReactor: return "atom"
-        case .quantumComputer: return "cpu"
-        case .spaceStationModule: return "building.2.fill"
-        case .starshipHull: return "airplane"
-        case .terraformingArray: return "globe"
-        
-        // Additional resources
-        case .copper: return "circle.fill"
-        case .gold: return "star.fill"
-        case .lithium: return "battery.100"
-        }
-    }
-    
-    private func getResourceColor(for type: ResourceType) -> Color {
-        switch type {
-        case .ironOre: return .gray
-        case .silicon: return .purple
-        case .water: return .blue
-        case .oxygen: return .cyan
-        case .graphite: return .gray
-        case .nitrogen: return .green
-        case .phosphorus: return .orange
-        case .sulfur: return .yellow
-        case .calcium: return .white
-        case .magnesium: return .pink
-        case .helium3: return .blue
-        case .titanium: return .gray
-        case .aluminum: return .gray
-        case .nickel: return .gray
-        case .cobalt: return .blue
-        case .chromium: return .gray
-        case .vanadium: return .green
-        case .manganese: return .purple
-        case .plasma: return .red
-        case .element: return .purple
-        case .isotope: return .blue
-        case .energy: return .yellow
-        case .radiation: return .green
-        case .heat: return .red
-        case .light: return .yellow
-        case .gravity: return .gray
-        case .magnetic: return .blue
-        case .solar: return .orange
-        case .numins: return .yellow
-        
-        // Taragam-3 resources
-        case .hydrogen: return .cyan
-        case .methane: return .orange
-        case .ammonia: return .green
-        case .ice: return .blue
-        case .crystals: return .purple
-        case .minerals: return .brown
-        
-        // Abandoned Starship resources
-        case .scrapMetal: return .gray
-        case .electronics: return .blue
-        case .fuelCells: return .green
-        case .dataCores: return .purple
-        case .circuits: return .yellow
-        case .alloys: return .gray
-        case .components: return .orange
-        case .techParts: return .blue
-        case .batteries: return .green
-        case .wiring: return .red
-        
-        // Ernest's Homestead resources
-        case .food: return .green
-        case .textiles: return .blue
-        case .tools: return .gray
-        case .medicine: return .red
-        case .seeds: return .brown
-        case .livestock: return .orange
-        case .grain: return .yellow
-        case .vegetables: return .green
-        case .herbs: return .green
-        case .supplies: return .brown
-        
-        // Koraxon resources
-        case .heavyElements: return .purple
-        case .denseMatter: return .black
-        case .compressedGas: return .cyan
-        case .exoticMatter: return .purple
-        case .gravitons: return .blue
-        case .darkEnergy: return .black
-        case .neutronium: return .gray
-        case .quarkMatter: return .red
-        case .strangeMatter: return .purple
-        case .antimatter: return .white
-        
-        // Taragon Beta resources
-        case .redPlasma: return .red
-        case .infraredEnergy: return .red
-        case .stellarWind: return .cyan
-        case .magneticFields: return .blue
-        case .cosmicRays: return .purple
-        case .photons: return .yellow
-        case .particles: return .white
-        case .solarFlares: return .orange
-        case .corona: return .yellow
-        case .chromosphere: return .orange
-        
-        // Violis Alpha resources
-        case .stellarDust: return .gray
-        case .cosmicDebris: return .brown
-        case .microParticles: return .white
-        case .spaceGas: return .cyan
-        case .ionStreams: return .blue
-        case .electronFlow: return .yellow
-        case .protonBeams: return .red
-        case .neutronFlux: return .gray
-        case .gammaRays: return .green
-        case .xRays: return .purple
-        
-        // Violis Outpost resources
-        case .researchData: return .blue
-        case .labEquipment: return .gray
-        case .samples: return .green
-        case .experiments: return .purple
-        case .prototypes: return .cyan
-        case .blueprints: return .blue
-        case .formulas: return .orange
-        case .algorithms: return .red
-        case .code: return .green
-        case .documentation: return .brown
-        
-        // Rogue Wanderer resources
-        case .frozenGases: return .cyan
-        case .iceCrystals: return .blue
-        case .preservedMatter: return .gray
-        case .ancientArtifacts: return .yellow
-        case .relics: return .brown
-        case .fossils: return .brown
-        case .rareElements: return .purple
-        case .crystallineStructures: return .purple
-        case .geologicalSamples: return .brown
-        
-        // Constructable items
-        case .steelPylons: return .orange
-        case .gears: return .gray
-        case .laser: return .red
-        case .circuitBoard: return .green
-        case .cpu: return .blue
-        case .dataStorageUnit: return .purple
-        case .sensorArray: return .cyan
-        case .lithiumIonBattery: return .yellow
-        case .fusionReactor: return .red
-        case .quantumComputer: return .purple
-        case .spaceStationModule: return .blue
-        case .starshipHull: return .gray
-        case .terraformingArray: return .green
-        
-        // Additional resources
-        case .copper: return .orange
-        case .gold: return .yellow
-        case .lithium: return .gray
-        }
     }
 }
 
@@ -2547,7 +2074,7 @@ struct SmallBaySlotView: View {
                     collectCompletedItem()
                 } else if !isUnderConstruction {
                     // Start construction
-                    gameState.showConstructionMenu = true
+                    gameState.currentPage = .blueprints
                 }
             }
         }) {
@@ -2716,7 +2243,8 @@ struct MediumBaySlotView: View {
                     collectCompletedItem()
                 } else if !isUnderConstruction {
                     // Start construction
-                    gameState.showConstructionMenu = true
+                    gameState.selectedBaySizeForBlueprints = .medium
+                    gameState.currentPage = .blueprints
                 }
             }
         }) {
@@ -2885,7 +2413,8 @@ struct LargeBaySlotView: View {
                     collectCompletedItem()
                 } else if !isUnderConstruction {
                     // Start construction
-                    gameState.showConstructionMenu = true
+                    gameState.selectedBaySizeForBlueprints = .large
+                    gameState.currentPage = .blueprints
                 }
             }
         }) {
@@ -4600,6 +4129,329 @@ struct ObjectivesView: View {
                     }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Blueprints View
+struct BlueprintsView: View {
+    @ObservedObject var gameState: GameState
+    let initialBaySize: BaySize
+    @State private var selectedBaySize: BaySize
+    @State private var expandedBlueprints: Set<String> = []
+    
+    init(gameState: GameState, initialBaySize: BaySize = .small) {
+        self.gameState = gameState
+        self.initialBaySize = initialBaySize
+        self._selectedBaySize = State(initialValue: initialBaySize)
+        print("🔍 BlueprintsView init - initialBaySize: \(initialBaySize)")
+    }
+    
+    private var filteredBlueprints: [ConstructionBlueprint] {
+        let filtered = ConstructionBlueprint.allBlueprints.filter { $0.requiredBaySize == selectedBaySize }
+        print("🔍 Filtered blueprints for \(selectedBaySize): \(filtered.count) blueprints")
+        return filtered
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            let _ = print("🔍 BlueprintsView body - selectedBaySize: \(selectedBaySize), initialBaySize: \(initialBaySize)")
+            // Header
+            HStack {
+                Text("Construction Blueprints")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 16)
+            
+            // Bay Size Selector - Single Button with Three Sections
+            ZStack {
+                // Background with border
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.clear)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.gray, lineWidth: 1)
+                    )
+                
+                // Highlighted section background
+                HStack(spacing: 0) {
+                    ForEach(BaySize.allCases, id: \.self) { baySize in
+                        if selectedBaySize == baySize {
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.white)
+                                .frame(maxWidth: .infinity, maxHeight: 32)
+                        } else {
+                            Rectangle()
+                                .fill(Color.clear)
+                                .frame(maxWidth: .infinity, maxHeight: 32)
+                        }
+                    }
+                }
+                
+                // Button text overlay
+                HStack(spacing: 0) {
+                    ForEach(BaySize.allCases, id: \.self) { baySize in
+                        let _ = print("🔍 BaySize.allCases order: \(BaySize.allCases.map { $0.rawValue })")
+                        Button(action: {
+                            print("🔍 Button clicked - changing selectedBaySize from \(selectedBaySize) to \(baySize)")
+                            selectedBaySize = baySize
+                        }) {
+                            Text(baySize.rawValue)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(selectedBaySize == baySize ? .black : .white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 4)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+            }
+            .frame(height: 32)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            
+            // Blueprints List
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    ForEach(filteredBlueprints, id: \.id) { blueprint in
+                        BlueprintCardView(
+                            blueprint: blueprint,
+                            gameState: gameState,
+                            isExpanded: expandedBlueprints.contains(blueprint.id),
+                            onToggle: {
+                                if expandedBlueprints.contains(blueprint.id) {
+                                    expandedBlueprints.remove(blueprint.id)
+                                } else {
+                                    expandedBlueprints.insert(blueprint.id)
+                                }
+                            },
+                            onStartConstruction: {
+                                gameState.startConstruction(blueprint: blueprint)
+                            }
+                        )
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 100) // Space for bottom nav
+            }
+        }
+        .background(Color.black)
+    }
+}
+
+// MARK: - Blueprint Card View
+struct BlueprintCardView: View {
+    let blueprint: ConstructionBlueprint
+    @ObservedObject var gameState: GameState
+    let isExpanded: Bool
+    let onToggle: () -> Void
+    let onStartConstruction: () -> Void
+    
+    private var canAfford: Bool {
+        gameState.canAffordConstruction(blueprint: blueprint)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Header with expand/collapse button
+            Button(action: onToggle) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(blueprint.name)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                            Spacer()
+                            Text("\(blueprint.xpReward) XP")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.purple)
+                        }
+                        
+                        HStack {
+                            Text(blueprint.description)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(Int(blueprint.duration))s")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        // Status line when collapsed
+                        if !isExpanded {
+                            HStack {
+                                Text(canAfford ? "Ready to Construct" : "Missing Requirements")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(canAfford ? .green : .red)
+                                Spacer()
+                            }
+                        }
+                    }
+                    
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            // Expanded content
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 4) {
+                    // Resource requirements with color coding
+                    ForEach(Array(blueprint.cost.keys.sorted(by: { $0.rawValue < $1.rawValue })), id: \.self) { resourceType in
+                        if let requiredAmount = blueprint.cost[resourceType] {
+                            HStack {
+                                Image(systemName: getResourceIcon(for: resourceType))
+                                    .foregroundColor(getResourceColor(for: resourceType))
+                                    .frame(width: 16)
+                                Text(resourceType.rawValue)
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text("(\(Int(getPlayerResourceAmount(resourceType)))/\(Int(requiredAmount)))")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(hasEnoughResource(resourceType, requiredAmount) ? .green : .red)
+                            }
+                        }
+                    }
+                    
+                    // Currency requirement with color coding
+                    HStack {
+                        Image(systemName: "star.circle")
+                            .foregroundColor(.yellow)
+                            .frame(width: 16)
+                        Text("Numins")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                        Spacer()
+                        Text("(\(blueprint.currencyCost))")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(gameState.currency >= blueprint.currencyCost ? .green : .red)
+                    }
+                    
+                    // Start construction button
+                    Button(action: onStartConstruction) {
+                        HStack {
+                            Spacer()
+                            Text("Start Construction")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
+                        .background(canAfford ? Color.blue : Color.gray)
+                        .cornerRadius(6)
+                    }
+                    .disabled(!canAfford)
+                }
+                .padding(.top, 4)
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.gray.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray, lineWidth: 1)
+                )
+        )
+        .opacity(canAfford ? 1.0 : 0.5)
+    }
+    
+    private func hasEnoughResource(_ resourceType: ResourceType, _ requiredAmount: Double) -> Bool {
+        if let resource = gameState.resources.first(where: { $0.type == resourceType }) {
+            return resource.amount >= requiredAmount
+        }
+        return false
+    }
+    
+    private func getPlayerResourceAmount(_ resourceType: ResourceType) -> Double {
+        if let resource = gameState.resources.first(where: { $0.type == resourceType }) {
+            return resource.amount
+        }
+        return 0
+    }
+    
+    private func getResourceIcon(for type: ResourceType) -> String {
+        switch type {
+        case .ironOre: return "cube.fill"
+        case .silicon: return "diamond.fill"
+        case .water: return "drop.fill"
+        case .oxygen: return "wind"
+        case .graphite: return "diamond.fill"
+        case .nitrogen: return "n.circle.fill"
+        case .phosphorus: return "p.circle.fill"
+        case .sulfur: return "s.circle.fill"
+        case .calcium: return "c.circle.fill"
+        case .magnesium: return "m.circle.fill"
+        case .helium3: return "h.circle.fill"
+        case .titanium: return "t.circle.fill"
+        case .aluminum: return "a.circle.fill"
+        case .nickel: return "n.circle.fill"
+        case .cobalt: return "c.circle.fill"
+        case .chromium: return "c.circle.fill"
+        case .vanadium: return "v.circle.fill"
+        case .manganese: return "m.circle.fill"
+        case .plasma: return "bolt.fill"
+        case .element: return "atom"
+        case .isotope: return "circle.dotted"
+        case .energy: return "bolt.circle.fill"
+        case .radiation: return "waveform"
+        case .heat: return "flame.fill"
+        case .light: return "sun.max.fill"
+        case .gravity: return "arrow.down.circle.fill"
+        case .magnetic: return "magnet"
+        case .solar: return "sun.max.circle.fill"
+        case .numins: return "star.circle"
+        default: return "cube.fill"
+        }
+    }
+    
+    private func getResourceColor(for type: ResourceType) -> Color {
+        switch type {
+        case .ironOre: return .gray
+        case .silicon: return .blue
+        case .water: return .blue
+        case .oxygen: return .cyan
+        case .graphite: return .gray
+        case .nitrogen: return .purple
+        case .phosphorus: return .orange
+        case .sulfur: return .yellow
+        case .calcium: return .white
+        case .magnesium: return .green
+        case .helium3: return .cyan
+        case .titanium: return .gray
+        case .aluminum: return .gray
+        case .nickel: return .gray
+        case .cobalt: return .blue
+        case .chromium: return .gray
+        case .vanadium: return .green
+        case .manganese: return .purple
+        case .plasma: return .purple
+        case .element: return .yellow
+        case .isotope: return .orange
+        case .energy: return .yellow
+        case .radiation: return .red
+        case .heat: return .red
+        case .light: return .yellow
+        case .gravity: return .purple
+        case .magnetic: return .blue
+        case .solar: return .yellow
+        case .numins: return .purple
+        default: return .white
         }
     }
 }
