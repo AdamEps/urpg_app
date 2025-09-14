@@ -4161,6 +4161,7 @@ struct BlueprintsView: View {
     let initialBaySize: BaySize
     @State private var selectedBaySize: BaySize
     @State private var expandedBlueprints: Set<String> = []
+    @State private var showEnhancementAbilities = false
     
     init(gameState: GameState, initialBaySize: BaySize = .small) {
         self.gameState = gameState
@@ -4175,6 +4176,10 @@ struct BlueprintsView: View {
         return filtered
     }
     
+    private func hasUnlockedBay(of size: BaySize) -> Bool {
+        return gameState.constructionBays.contains { $0.size == size && $0.isUnlocked }
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             let _ = print("🔍 BlueprintsView body - selectedBaySize: \(selectedBaySize), initialBaySize: \(initialBaySize)")
@@ -4184,7 +4189,23 @@ struct BlueprintsView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
+                
                 Spacer()
+                
+                // Dev tool button for Enhancement Abilities
+                Button(action: {
+                    showEnhancementAbilities = true
+                }) {
+                    Text("DEV")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.red.opacity(0.8))
+                        .cornerRadius(4)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
@@ -4219,18 +4240,22 @@ struct BlueprintsView: View {
                 HStack(spacing: 0) {
                     ForEach(BaySize.allCases, id: \.self) { baySize in
                         let _ = print("🔍 BaySize.allCases order: \(BaySize.allCases.map { $0.rawValue })")
+                        let isUnlocked = hasUnlockedBay(of: baySize)
                         Button(action: {
-                            print("🔍 Button clicked - changing selectedBaySize from \(selectedBaySize) to \(baySize)")
-                            selectedBaySize = baySize
+                            if isUnlocked {
+                                print("🔍 Button clicked - changing selectedBaySize from \(selectedBaySize) to \(baySize)")
+                                selectedBaySize = baySize
+                            }
                         }) {
                             Text(baySize.rawValue)
                                 .font(.caption)
                                 .fontWeight(.medium)
-                                .foregroundColor(selectedBaySize == baySize ? .black : .white)
+                                .foregroundColor(selectedBaySize == baySize ? .black : (isUnlocked ? .white : .gray))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 4)
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .disabled(!isUnlocked)
                     }
                 }
             }
@@ -4264,6 +4289,9 @@ struct BlueprintsView: View {
             }
         }
         .background(Color.black)
+        .sheet(isPresented: $showEnhancementAbilities) {
+            EnhancementAbilitiesView()
+        }
     }
 }
 
@@ -4475,6 +4503,146 @@ struct BlueprintCardView: View {
         case .numins: return .purple
         default: return .white
         }
+    }
+}
+
+// MARK: - Enhancement Abilities View
+struct EnhancementAbilitiesView: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    private let enhancementAbilities = [
+        EnhancementAbility(
+            id: "excavator",
+            name: "Excavator",
+            description: "Increases resource collection efficiency by 25% when slotted on any screen. Provides bonus XP gain from resource collection activities.",
+            icon: "hammer.fill",
+            color: .brown,
+            discoveryCost: 500,
+            effectType: "Resource Collection Boost",
+            effectValue: "+25%"
+        ),
+        EnhancementAbility(
+            id: "laser-harvester",
+            name: "Laser Harvester",
+            description: "Automatically harvests resources from the current location every 30 seconds. Provides passive resource generation without manual tapping.",
+            icon: "laser.burst",
+            color: .red,
+            discoveryCost: 750,
+            effectType: "Passive Harvesting",
+            effectValue: "Every 30s"
+        ),
+        EnhancementAbility(
+            id: "virtual-almanac",
+            name: "Virtual Almanac",
+            description: "Reveals detailed information about all locations and their resource drop rates. Provides strategic insights for optimal resource collection.",
+            icon: "book.fill",
+            color: .purple,
+            discoveryCost: 1000,
+            effectType: "Location Intelligence",
+            effectValue: "Full Details"
+        )
+    ]
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Text("Enhancement Abilities")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(.blue)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
+                
+                // Abilities List
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(enhancementAbilities, id: \.id) { ability in
+                            EnhancementAbilityCard(ability: ability)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 100) // Space for navigation
+                }
+            }
+            .background(Color.black)
+        }
+    }
+}
+
+// MARK: - Enhancement Ability Model
+struct EnhancementAbility: Identifiable {
+    let id: String
+    let name: String
+    let description: String
+    let icon: String
+    let color: Color
+    let discoveryCost: Int
+    let effectType: String
+    let effectValue: String
+}
+
+// MARK: - Enhancement Ability Card
+struct EnhancementAbilityCard: View {
+    let ability: EnhancementAbility
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header
+            HStack {
+                Image(systemName: ability.icon)
+                    .font(.title2)
+                    .foregroundColor(ability.color)
+                    .frame(width: 30)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(ability.name)
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Text(ability.effectType)
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(ability.effectValue)
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
+                    
+                    Text("Discovery Cost: \(ability.discoveryCost)")
+                        .font(.caption2)
+                        .foregroundColor(.yellow)
+                }
+            }
+            
+            // Description
+            Text(ability.description)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16)
+        .background(Color.gray.opacity(0.1))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(ability.color.opacity(0.3), lineWidth: 1)
+        )
+        .cornerRadius(8)
     }
 }
 

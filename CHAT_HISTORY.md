@@ -6,6 +6,16 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-01-27 - Version 2.0.6 Release
+- **Request**: Commit as 2.0.6 and update app logo
+- **Solutions Implemented**: 
+  - Committed all current changes as version 2.0.6
+  - Updated app icon generation script to version 2.0.6
+  - Generated new app icon with version 2.0.6 branding
+  - Committed app icon updates
+  - Launched app to verify changes
+- **Status**: ✅ Completed - Version 2.0.6 successfully committed and app logo updated
+
 ### 2025-01-27 - Initial Setup
 - **Request**: Create backup system for development chats
 - **Solution**: Implemented automated chat log system with clear instructions for future sessions
@@ -122,6 +132,43 @@ This document tracks our development conversations and key decisions for the Uni
   - Set all as medium bay constructables with "Enhancement Item: Ability Unknown" descriptions
   - Added blueprints to allBlueprints array for availability in game
 - **Status**: ✅ Complete - App launched for testing
+
+## 2025-01-27 - Blueprint Button Improvements & Dev Tool
+
+### User Requests:
+1. **Grey out medium/large blueprint buttons when no unlocked bays** - If there isn't an unlocked medium bay, make the medium blueprints button greyed out. Same for large.
+2. **Add dev tool option to Constructables page** - Let's add a dev tool option to Constructables page, to see all Enhancement Abilities.
+
+### Implementation:
+1. **Blueprint Button Greying**:
+   - Added `hasUnlockedBay(of size: BaySize)` helper function to check if any bay of a specific size is unlocked
+   - Modified bay size selector buttons to:
+     - Show grey text when no bays of that size are unlocked
+     - Disable button interaction when no bays are unlocked
+     - Only allow selection of unlocked bay sizes
+   - Only the first small bay is unlocked by default, so medium and large buttons will be greyed out initially
+
+2. **Enhancement Abilities Dev Tool**:
+   - Added "DEV" button to BlueprintsView header (red background, similar to existing dev buttons)
+   - Created `EnhancementAbilitiesView` with detailed information about all 3 enhancement abilities:
+     - **Excavator**: +25% resource collection efficiency, 500 discovery cost
+     - **Laser Harvester**: Passive harvesting every 30s, 750 discovery cost  
+     - **Virtual Almanac**: Location intelligence with full details, 1000 discovery cost
+   - Each ability card shows icon, name, effect type, effect value, discovery cost, and description
+   - Added proper navigation with "Done" button to dismiss the sheet
+   - Used consistent styling with the rest of the app (black background, proper colors)
+
+### Technical Details:
+- Modified `BlueprintsView` to include state for showing enhancement abilities sheet
+- Added `EnhancementAbility` model struct for ability data
+- Created `EnhancementAbilityCard` view component for displaying individual abilities
+- Used sheet presentation for the dev tool to maintain navigation flow
+- All enhancement abilities are defined as medium bay constructables as per previous implementation
+
+### Status:
+- ✅ **Blueprint Button Greying**: Complete - Medium and large buttons are greyed out when no bays of that size are unlocked
+- ✅ **Enhancement Abilities Dev Tool**: Complete - Added comprehensive dev tool showing all enhancement abilities with detailed information
+- ✅ **App Testing**: Launched app to verify changes work correctly
 
 ---
 
