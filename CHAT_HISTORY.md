@@ -421,4 +421,40 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 - ✅ **App Testing**: Complete - Successfully built and launched on iPhone
 - ✅ **Version 2.0.10**: Complete - All changes implemented and tested
 
+## Chat Session - September 15, 2025 (v2.0.12)
+
+### User Requests:
+1. **Star Map Navigation Bug Fix**: Fixed bottom nav star map button behavior
+   - Star map button should only go to location view from Shop/Construction/Resources/Cards
+   - Star map button should do nothing when already in star map view
+   - Only telescope should take you to star map from location view
+
+2. **Location Popouts Visibility**: Fixed right side popouts showing in star map
+   - Location resource popouts should only show in location view, not star map
+   - Tap counter popouts should only show in location view, not star map
+
+3. **Telescope Button Enhancement**: Improved telescope navigation
+   - Replaced telescope with left arrow at highest zoom level (Multi-Systems view)
+   - Left arrow takes you back to current location instead of cycling through views
+
+4. **Telescope Flicker Fix**: Fixed visual flicker when clicking telescope from location
+   - Reordered operations to set zoom level before changing page
+   - Eliminated brief flash of Multi-System view before Star System view
+
+### Technical Changes:
+- **GameState.swift**: Added `starMapViaTelescope` tracking property
+- **ContentView.swift**: 
+  - Updated bottom nav star map button logic
+  - Fixed location popout visibility conditions
+  - Replaced telescope with left arrow at constellation level
+  - Fixed telescope button operation order
+  - Added starMapViaTelescope reset to all navigation buttons
+
+### Results:
+- ✅ **Star Map Navigation**: Complete - Button behavior fixed
+- ✅ **Location Popouts**: Complete - Only show in location view
+- ✅ **Telescope Enhancement**: Complete - Left arrow at highest level
+- ✅ **Flicker Fix**: Complete - Smooth telescope navigation
+- ✅ **Version 2.0.12**: Complete - All changes implemented and tested
+
 ---
