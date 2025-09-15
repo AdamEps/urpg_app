@@ -2135,6 +2135,40 @@ struct ConstructionPageView: View {
                 )
                 .zIndex(1000)
             }
+            
+            // Enhancement slots overlay - positioned at bottom without affecting layout
+            VStack {
+                Spacer()
+                
+                // Enhancement button - always visible
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        gameState.showConstructionSlots.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Enhancements")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.black)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Enhancement slots - shown conditionally with animation
+                if gameState.showConstructionSlots {
+                    ConstructionSlotsView(gameState: gameState)
+                        .padding(.bottom, 10) // Position just above navigation bar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

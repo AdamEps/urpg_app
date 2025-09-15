@@ -54,7 +54,7 @@ def create_app_icon(version="2.0.6", size=1024):
     return img
 
 def main():
-    version = "2.0.6"  # Current version
+    version = "1.994"  # Current version
     
     # Create the app icon
     print(f"Creating app icon for version {version}...")

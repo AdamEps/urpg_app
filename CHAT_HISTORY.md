@@ -6,6 +6,18 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-01-14 - Construction Bay Enhancements Popup
+- **Request**: Add Enhancements popup to Construction Bay page using the same popup as other pages
+- **Solutions Implemented**: 
+  - Added showConstructionSlots state variable to GameState
+  - Created ConstructionSlotsView and ConstructionSlotView components following the same pattern as other slots views
+  - Modified ConstructionView to include Enhancements popup with proper positioning and animation
+  - Ensures consistency with other pages that have Enhancement popups
+  - Tested implementation by building and launching app on simulator
+  - Committed changes with descriptive commit message
+  - Updated app icon to version 1.994
+- **Status**: ✅ Completed - Construction Bay page now has Enhancements popup matching other pages
+
 ### 2025-01-27 - Version 2.0.6 Release
 - **Request**: Commit as 2.0.6 and update app logo
 - **Solutions Implemented**: 
