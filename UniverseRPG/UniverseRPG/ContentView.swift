@@ -3513,6 +3513,21 @@ struct OrbitalRing: View {
     }
 }
 
+struct EllipticalOrbitalRing: View {
+    let radiusX: Double
+    let radiusY: Double
+    let isActive: Bool
+    
+    var body: some View {
+        Ellipse()
+            .stroke(
+                isActive ? Color.white.opacity(0.6) : Color.gray.opacity(0.3),
+                lineWidth: isActive ? 2 : 1
+            )
+            .frame(width: radiusX * 2, height: radiusY * 2)
+    }
+}
+
 struct StarSymbol: View {
     let starType: StarType
     let isSelected: Bool
@@ -3552,7 +3567,16 @@ struct SolarSystemView: View {
                 let centerX = geometry.size.width / 2
                 let centerY = geometry.size.height / 2
                 
-                // Orbital rings (exclude stars and moons)
+                // Additional orbital rings for visual enhancement (keeping just 2)
+                // 1 ring between Taragam-7 (100) and star (0) - at 50
+                OrbitalRing(radius: 50, isActive: false)
+                    .position(x: centerX, y: centerY)
+                
+                // 1 ring between Taragam-7 (100) and Taragam-3 (220) - at 160
+                EllipticalOrbitalRing(radiusX: 160, radiusY: 140, isActive: false)
+                    .position(x: centerX, y: centerY)
+                
+                // Orbital rings for actual celestial bodies (exclude stars and moons)
                 ForEach(Array(starSystem.locations.enumerated()), id: \.offset) { index, location in
                     if location.kind != .star && location.kind != .moon {
                         let radius = calculateOrbitalRadius(for: location, at: index)
@@ -3640,6 +3664,7 @@ struct SolarSystemView: View {
                     }
                 }
                 
+                
                 // Telescope button (consistent position - top left)
                 VStack {
                     HStack {
@@ -3658,6 +3683,40 @@ struct SolarSystemView: View {
                     Spacer()
                 }
                 .padding(.top)
+            }
+            
+            // Enhancement slots overlay - positioned at bottom without affecting layout
+            VStack {
+                Spacer()
+                
+                // Enhancement button - always visible
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        gameState.showStarMapSlots.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Location")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.black)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Enhancement slots - shown conditionally with animation
+                if gameState.showStarMapSlots {
+                    StarMapSlotsView(gameState: gameState)
+                        .padding(.bottom, 10) // Position just above navigation bar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
         }
     }
@@ -3759,6 +3818,40 @@ struct ConstellationView: View {
                     Spacer()
                 }
                 .padding(.top)
+            }
+            
+            // Enhancement slots overlay - positioned at bottom without affecting layout
+            VStack {
+                Spacer()
+                
+                // Enhancement button - always visible
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        gameState.showStarMapSlots.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Location")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.black)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Enhancement slots - shown conditionally with animation
+                if gameState.showStarMapSlots {
+                    StarMapSlotsView(gameState: gameState)
+                        .padding(.bottom, 10) // Position just above navigation bar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
         }
     }
@@ -4990,7 +5083,52 @@ struct BlueprintCardView: View {
     }
 }
 
+// MARK: - Star Map Slots View
+struct StarMapSlotsView: View {
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("TEST")
+                .font(.title2)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Color.black.opacity(0.6))
+        .cornerRadius(12)
+        .padding(.horizontal, 16)
+    }
+}
+
+struct StarMapSlotView: View {
+    let slotIndex: Int
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .frame(width: 60, height: 80)
+                .overlay(
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
+                        
+                        Text("Slot \(slotIndex + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
+                )
+        }
+    }
+}
+
 // MARK: - Enhancement Abilities View
+
 struct EnhancementAbilitiesView: View {
     @Environment(\.dismiss) private var dismiss
     

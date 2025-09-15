@@ -6,6 +6,19 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-15 - Star Map Enhancement Slots Implementation
+- **Request**: Add Enhancements popup to star map screens with "Location" instead of "Enhancements"
+- **Solutions Implemented**:
+  - Identified existing Enhancements popup pattern used across all 5 main pages (Location, Construction, Resources, Shop, Cards)
+  - Found the exact code structure: enhancement button + 4-slot overlay system
+  - Added `@Published var showStarMapSlots = false` to GameState.swift
+  - Created `StarMapSlotsView` and `StarMapSlotView` components following the exact same pattern as other slot views
+  - Added enhancement slots overlay to both `SolarSystemView` and `ConstellationView` 
+  - Changed button text from "Enhancements" to "Location" as requested
+  - Maintained same positioning, animation, and styling as other pages
+  - Tested implementation by building and launching app on iPhone
+- **Status**: ✅ Completed - Star map screens now have Location enhancement slots matching other pages
+
 ### 2025-01-14 - Construction Bay Enhancements Popup (Fixed)
 - **Request**: Add Enhancements popup to Construction Bay page using the same popup as other pages
 - **Initial Issue**: Added Enhancements popup to wrong view (ConstructionView instead of ConstructionPageView)
