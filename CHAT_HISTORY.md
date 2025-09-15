@@ -360,4 +360,31 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 - ✅ **App Testing**: Complete - Successfully built and launched on iPhone
 - ✅ **Version 2.1.0**: Complete - All changes implemented and tested
 
+## Version 2.0.10 - Enhanced Star Map with Clickable Central Star
+
+**Date**: 2025-01-15
+
+### Changes Made:
+- **Central Star Navigation**: Made central star symbol clickable to navigate to Taragon Gamma location
+- **Orbital Positioning**: Adjusted outermost orbital ring to be closer to Taragam-3's orbit
+- **Abandoned Starship Placement**: Positioned Abandoned Starship above the star on the outer ring
+- **Moon Orbit Fix**: Fixed moon (Elcinto) positioning to orbit around Taragam-7 with small orbital ring
+- **Navigation Enhancement**: Improved hierarchical star map navigation with telescope button
+- **Visual Layout**: Enhanced visual layout of Taragon Gamma solar system
+
+### Technical Details:
+- Wrapped central `StarSymbol` in `Button` with proper action handling
+- Added special orbital angle calculation for Abandoned Starship positioning
+- Modified `calculateOrbitalRadius` function for better ring spacing
+- Enhanced `SolarSystemView` with conditional moon positioning logic
+- Updated app icon to version 2.0.10
+
+### Status:
+- ✅ **Central Star Button**: Complete - Central star now clickable
+- ✅ **Orbital Ring Adjustment**: Complete - Outermost ring positioned closer to Taragam-3
+- ✅ **Abandoned Starship Positioning**: Complete - Positioned above star
+- ✅ **Moon Orbit Fix**: Complete - Elcinto now orbits Taragam-7
+- ✅ **App Testing**: Complete - Successfully built and launched on iPhone
+- ✅ **Version 2.0.10**: Complete - All changes implemented and tested
+
 ---
