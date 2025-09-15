@@ -19,6 +19,18 @@ This document tracks our development conversations and key decisions for the Uni
   - Tested implementation by building and launching app on iPhone
 - **Status**: ✅ Completed - Star map screens now have Location enhancement slots matching other pages
 
+### 2025-09-15 - Star Map Location Popup Modification (Version 2.0.11)
+- **Request**: Remove 4 slots from "Location" popup in star map and add "TEST" placeholder text
+- **Solutions Implemented**:
+  - Modified `StarMapSlotsView` to remove the 4-slot ForEach loop
+  - Replaced slots with simple "TEST" placeholder text
+  - Preserved all existing styling, background, padding, and corner radius
+  - Left all other "Enhancements" popups on the 5 main pages completely unchanged
+  - Updated app icon to version 2.0.11
+  - Committed changes as version 2.0.11
+  - Tested app build and installation on iPhone
+- **Status**: ✅ Completed - Star map "Location" popup now shows "TEST" text instead of 4 slots
+
 ### 2025-01-14 - Construction Bay Enhancements Popup (Fixed)
 - **Request**: Add Enhancements popup to Construction Bay page using the same popup as other pages
 - **Initial Issue**: Added Enhancements popup to wrong view (ConstructionView instead of ConstructionPageView)
