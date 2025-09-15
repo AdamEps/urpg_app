@@ -1976,6 +1976,7 @@ enum AppPage: String, CaseIterable {
     case resources = "Resources"
     case cards = "Cards"
     case shop = "Shop"
+    case statistics = "Statistics"
 }
 
 // MARK: - Card System

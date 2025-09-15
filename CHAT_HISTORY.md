@@ -498,4 +498,24 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 - **Integration**: Updated `StarSymbol` to use custom view
 - **Design Consistency**: Matches the aesthetic of the custom planet views
 
+### Location Popup UI Redesign (v2.0.13):
+- **Removed Header Buttons**: Eliminated both "Location" header buttons from star map view
+- **Direct Icon Interaction**: Location icons now directly handle popup show/hide functionality
+- **Horizontal Layout Redesign**:
+  - Location name and system info positioned on the left side
+  - Action button ("Go"/"Return Here") right-justified on the right side
+  - Full-width popup with 16px horizontal padding for proper spacing
+- **Improved UX**: Cleaner interface with better use of horizontal space
+- **App Icon Update**: Updated to version 2.0.13
+
+### Statistics and Objectives UI Integration (v2.0.14):
+- **Main UI Integration**: Moved Statistics and Objectives from popup to main UI section
+- **New StatisticsAndObjectivesView**: Created dedicated view without NavigationView wrapper
+- **Page Navigation**: Added statistics page to AppPage enum and main game area switch
+- **Button Updates**: Updated objectives button to navigate to statistics page instead of showing sheet
+- **Bottom Navigation**: Added statistics button to bottom navigation bar
+- **Sheet Removal**: Removed sheet presentation for objectives popup
+- **Preserved Content**: Maintained exact same content and functionality as original popup
+- **App Icon Update**: Updated to version 2.0.14
+
 ---

@@ -175,6 +175,8 @@ struct ContentView: View {
                         CardsView(gameState: gameState)
                     case .shop:
                         ShopView(gameState: gameState)
+                    case .statistics:
+                        StatisticsAndObjectivesView(gameState: gameState)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -426,7 +428,7 @@ struct TopBarView: View {
                 )
                 
                 Button(action: {
-                    gameState.showObjectives.toggle()
+                    gameState.currentPage = .statistics
                 }) {
                     Image(systemName: "target")
                         .foregroundColor(.white)
@@ -1954,7 +1956,8 @@ struct BottomNavigationView: View {
                     // If we're in star map, do nothing
                     return
                 } else if gameState.currentPage == .shop || gameState.currentPage == .construction || 
-                         gameState.currentPage == .resources || gameState.currentPage == .cards {
+                         gameState.currentPage == .resources || gameState.currentPage == .cards || 
+                         gameState.currentPage == .statistics {
                     // Go to location view from these pages only
                     gameState.currentPage = .location
                     gameState.starMapViaTelescope = false
@@ -1991,9 +1994,6 @@ struct BottomNavigationView: View {
         .padding(.horizontal)
         .padding(.vertical, 16)
         .background(Color.gray.opacity(0.3))
-        .sheet(isPresented: $gameState.showObjectives) {
-            ObjectivesView(gameState: gameState)
-        }
     }
 }
 
@@ -3907,10 +3907,15 @@ struct ConstellationView: View {
                         gameState.zoomIntoStarSystem(starSystem)
                     }) {
                         VStack(spacing: 4) {
-                            StarSymbol(
-                                starType: starSystem.starType,
-                                isSelected: false
-                            )
+                            // Use MiniStarSystemView for Taragon Gamma, StarSymbol for others
+                            if starSystem.name == "Taragon Gamma" {
+                                MiniStarSystemView(gameState: gameState, starSystem: starSystem)
+                            } else {
+                                StarSymbol(
+                                    starType: starSystem.starType,
+                                    isSelected: false
+                                )
+                            }
                             Text(starSystem.name)
                                 .font(.caption)
                                 .foregroundColor(.white)
@@ -4515,7 +4520,354 @@ struct CardSlotView: View {
     }
 }
 
-// MARK: - Objectives View
+// MARK: - Statistics and Objectives View (Main UI)
+struct StatisticsAndObjectivesView: View {
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                    // Gameplay Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Gameplay")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        // Total Experience Gained Tracker
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Total Experience Gained")
+                                    .font(.headline)
+                                Text("All XP earned from gameplay")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("\(gameState.totalXPGained)")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.purple)
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(Color.purple.opacity(0.1))
+                        .cornerRadius(8)
+                        
+                        // Total Taps Tracker (collapsible)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                gameState.showTapDetails.toggle()
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Total Taps")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("All location taps combined")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(gameState.totalTapsCount)")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.blue)
+                                    
+                                    Image(systemName: gameState.showTapDetails ? "chevron.up" : "chevron.down")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
+                            
+                            // Expanded details
+                            if gameState.showTapDetails {
+                                ForEach(gameState.availableLocations, id: \.id) { location in
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(location.name)
+                                                .font(.subheadline)
+                                            Text("\(location.system) • \(location.kind.rawValue)")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(gameState.locationTapCounts[location.id, default: 0])")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.blue)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.gray.opacity(0.05))
+                                    .cornerRadius(6)
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Resources Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Resources")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        // Idle Collection Tracker (collapsible)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                gameState.showIdleCollectionDetails.toggle()
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Idle Collection")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("Resources collected while away")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(gameState.totalIdleCollectionCount)")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.blue)
+                                    
+                                    Image(systemName: gameState.showIdleCollectionDetails ? "chevron.up" : "chevron.down")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(8)
+                            
+                            // Expanded details
+                            if gameState.showIdleCollectionDetails {
+                                ForEach(gameState.availableLocations, id: \.id) { location in
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(location.name)
+                                                .font(.subheadline)
+                                            Text("\(location.system) • \(location.kind.rawValue)")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(gameState.locationIdleCollectionCounts[location.id, default: 0])")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.blue)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.blue.opacity(0.05))
+                                    .cornerRadius(6)
+                                }
+                            }
+                        }
+                        
+                        // Numins Tracker
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Numins")
+                                    .font(.headline)
+                                Text("The currency of the cosmos!")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text(gameState.getFormattedNumins())
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.yellow)
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(Color.yellow.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    
+                    // Construction Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Construction")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        // Total Constructions Tracker (collapsible)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                gameState.showConstructionDetails.toggle()
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Total Constructions")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("All constructions completed")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(gameState.totalConstructionsCompleted)")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.orange)
+                                    
+                                    Image(systemName: gameState.showConstructionDetails ? "chevron.up" : "chevron.down")
+                                        .foregroundColor(.orange)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(8)
+                            
+                            // Expanded details
+                            if gameState.showConstructionDetails {
+                                VStack(spacing: 8) {
+                                    HStack {
+                                        Text("Small Constructions")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text("\(gameState.smallConstructionsCompleted)")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.orange)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.orange.opacity(0.05))
+                                    .cornerRadius(6)
+                                    
+                                    HStack {
+                                        Text("Medium Constructions")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text("\(gameState.mediumConstructionsCompleted)")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.orange)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.orange.opacity(0.05))
+                                    .cornerRadius(6)
+                                    
+                                    HStack {
+                                        Text("Large Constructions")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text("\(gameState.largeConstructionsCompleted)")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.orange)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.orange.opacity(0.05))
+                                    .cornerRadius(6)
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Cards Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Cards")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        // Total Cards Tracker (collapsible)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                gameState.showCardsDetails.toggle()
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Total Cards Collected")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("All card copies collected")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(gameState.getTotalCardsCollected())")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.purple)
+                                    
+                                    Image(systemName: gameState.showCardsDetails ? "chevron.up" : "chevron.down")
+                                        .foregroundColor(.purple)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.purple.opacity(0.1))
+                            .cornerRadius(8)
+                            
+                            // Expanded details
+                            if gameState.showCardsDetails {
+                                VStack(spacing: 8) {
+                                    ForEach(CardClass.allCases, id: \.self) { cardClass in
+                                        HStack {
+                                            Text("\(cardClass.rawValue) Cards")
+                                                .font(.subheadline)
+                                            Spacer()
+                                            Text("\(gameState.getCardsCollectedForClass(cardClass))")
+                                                .font(.callout)
+                                                .fontWeight(.medium)
+                                                .foregroundColor(.purple)
+                                        }
+                                        .padding(.vertical, 6)
+                                        .padding(.horizontal, 16)
+                                        .background(Color.purple.opacity(0.05))
+                                        .cornerRadius(6)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Coming Soon Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Coming Soon")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        Text("More objectives and achievements will be added in future updates!")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding()
+            }
+        }
+    }
+
+// MARK: - Objectives View (Popup - kept for reference)
 struct ObjectivesView: View {
     @ObservedObject var gameState: GameState
     @Environment(\.dismiss) private var dismiss
@@ -5273,6 +5625,100 @@ struct StarMapSlotsView: View {
         .padding(.vertical, 12)
         .background(Color.black.opacity(0.6))
         .cornerRadius(12)
+    }
+}
+
+// MARK: - Mini Star System View
+struct MiniStarSystemView: View {
+    @ObservedObject var gameState: GameState
+    let starSystem: StarSystem
+    
+    var body: some View {
+        ZStack {
+            // Mini orbital rings (scaled down)
+            ForEach(Array(starSystem.locations.enumerated()), id: \.offset) { index, location in
+                if location.kind != .star && location.kind != .moon {
+                    let radius = calculateMiniOrbitalRadius(for: location, at: index) * 0.3 // Scale down
+                    Circle()
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 0.5)
+                        .frame(width: radius * 2, height: radius * 2)
+                }
+            }
+            
+            // Central star (scaled down)
+            StarSymbol(
+                starType: starSystem.starType,
+                isSelected: false
+            )
+            .scaleEffect(0.4) // Scale down the star
+            
+            // Celestial bodies in their orbital positions (scaled down)
+            ForEach(Array(starSystem.locations.enumerated()), id: \.element.id) { index, location in
+                if location.kind != .star {
+                    Group {
+                        if location.kind == .moon {
+                            // Special positioning for moon - close to its parent planet
+                            let parentIndex = starSystem.locations.firstIndex { $0.name == "Taragam-7" } ?? 0
+                            let parentRadius = calculateMiniOrbitalRadius(for: starSystem.locations[parentIndex], at: parentIndex) * 0.3
+                            let parentAngle = calculateMiniOrbitalAngle(for: parentIndex, total: starSystem.locations.count)
+                            let parentX = parentRadius * cos(parentAngle)
+                            let parentY = parentRadius * sin(parentAngle)
+                            
+                            // Position moon close to parent with small offset
+                            let moonOffset = 8.0 // Scaled down offset
+                            let moonAngle = parentAngle + 0.3
+                            let x = parentX + moonOffset * cos(moonAngle)
+                            let y = parentY + moonOffset * sin(moonAngle)
+                            
+                            CelestialBodySymbol(
+                                location: location,
+                                isSelected: false,
+                                onTap: {}
+                            )
+                            .scaleEffect(0.3) // Scale down
+                            .offset(x: x, y: y)
+                        } else {
+                            // Normal orbital positioning for planets, ships, etc.
+                            let radius = calculateMiniOrbitalRadius(for: location, at: index) * 0.3
+                            let angle = calculateMiniOrbitalAngle(for: index, total: starSystem.locations.count)
+                            let x = radius * cos(angle)
+                            let y = radius * sin(angle)
+                            
+                            CelestialBodySymbol(
+                                location: location,
+                                isSelected: false,
+                                onTap: {}
+                            )
+                            .scaleEffect(0.3) // Scale down
+                            .offset(x: x, y: y)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(width: 60, height: 60) // Fixed size for mini view
+    }
+    
+    private func calculateMiniOrbitalRadius(for location: Location, at index: Int) -> Double {
+        // Base radius with some variation based on location type
+        let baseRadius = 100.0
+        let typeMultiplier: Double = {
+            switch location.kind {
+            case .moon: return 0.7
+            case .planet: return 1.0
+            case .ship: return 1.2
+            case .star: return 0.0
+            case .anomaly: return 1.1
+            case .dwarf: return 0.8
+            case .rogue: return 1.3
+            }
+        }()
+        return baseRadius * typeMultiplier
+    }
+    
+    private func calculateMiniOrbitalAngle(for index: Int, total: Int) -> Double {
+        // Distribute locations evenly around the star
+        return (Double(index) / Double(total)) * 2 * .pi
     }
 }
 
