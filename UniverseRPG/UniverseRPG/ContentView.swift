@@ -1434,23 +1434,63 @@ struct ConstructionView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Construction Bays")
-                .font(.headline)
+        ZStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Construction Bays")
+                        .font(.headline)
+                    
+                    if gameState.constructionBays.isEmpty {
+                        Text("No construction bays available")
+                            .foregroundColor(.secondary)
+                            .italic()
+                    } else {
+                        ForEach(gameState.constructionBays) { bay in
+                            ConstructionBayRow(bay: bay, gameState: gameState)
+                        }
+                    }
+                }
+                .padding()
+                .background(Color.green.opacity(0.1))
+                .cornerRadius(12)
+                .padding(.bottom, 80) // Position well above navigation bar
+            }
             
-            if gameState.constructionBays.isEmpty {
-                Text("No construction bays available")
-                    .foregroundColor(.secondary)
-                    .italic()
-            } else {
-                ForEach(gameState.constructionBays) { bay in
-                    ConstructionBayRow(bay: bay, gameState: gameState)
+            // Enhancement slots overlay - positioned at bottom without affecting layout
+            VStack {
+                Spacer()
+                
+                // Enhancement button - always visible
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        gameState.showConstructionSlots.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Enhancements")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.black)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Enhancement slots - shown conditionally with animation
+                if gameState.showConstructionSlots {
+                    ConstructionSlotsView(gameState: gameState)
+                        .padding(.bottom, 10) // Position just above navigation bar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
         }
-        .padding()
-        .background(Color.green.opacity(0.1))
-        .cornerRadius(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -1514,6 +1554,51 @@ struct ConstructionBayRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Construction Slots View
+struct ConstructionSlotsView: View {
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                ForEach(0..<4, id: \.self) { index in
+                    ConstructionSlotView(slotIndex: index, gameState: gameState)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Color.black.opacity(0.6))
+        .cornerRadius(12)
+        .padding(.horizontal, 16)
+    }
+}
+
+struct ConstructionSlotView: View {
+    let slotIndex: Int
+    @ObservedObject var gameState: GameState
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray.opacity(0.5), lineWidth: 2)
+                .frame(width: 60, height: 80)
+                .overlay(
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
+                        
+                        Text("Slot \(slotIndex + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
+                )
+        }
     }
 }
 

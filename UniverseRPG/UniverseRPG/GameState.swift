@@ -65,6 +65,7 @@ class GameState: ObservableObject {
     @Published var showResourcesSlots = false
     @Published var showShopSlots = false
     @Published var showCardsSlots = false
+    @Published var showConstructionSlots = false
     @Published var resourceSortOption: ResourceSortOption = .alphabetical
     @Published var resourceSortAscending: Bool = true
     @Published var selectedResourceForDetail: ResourceType?
