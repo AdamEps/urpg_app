@@ -189,7 +189,7 @@ struct ContentView: View {
                 Spacer()
                     .allowsHitTesting(false)
                 
-                if gameState.showLocationResources && (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
+                if gameState.showLocationResources && gameState.currentPage == .location {
                     HStack(alignment: .bottom, spacing: 0) {
                         Spacer()
                             .allowsHitTesting(false)
@@ -216,7 +216,7 @@ struct ContentView: View {
                     }
                     .padding(.trailing, 0)
                     .padding(.bottom, 80) // Position well above navigation bar
-                } else if (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
+                } else if gameState.currentPage == .location {
                     HStack {
                         Spacer()
                             .allowsHitTesting(false)
@@ -244,7 +244,7 @@ struct ContentView: View {
             
             // Tap counter pop out positioned below location name
             VStack {
-                if gameState.showTapCounter && (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
+                if gameState.showTapCounter && gameState.currentPage == .location {
                     HStack(alignment: .bottom, spacing: 0) {
                         Spacer()
                             .allowsHitTesting(false)
@@ -271,7 +271,7 @@ struct ContentView: View {
                     }
                     .padding(.trailing, 0)
                     .padding(.top, 100) // Position directly below top bar + location name
-                } else if (gameState.currentPage == .location || (gameState.currentPage == .starMap && !gameState.showingLocationList)) {
+                } else if gameState.currentPage == .location {
                     HStack {
                         Spacer()
                             .allowsHitTesting(false)
@@ -543,9 +543,7 @@ struct LocationView: View {
                 HStack {
                     Button(action: {
                         print("🔭 TELESCOPE BUTTON TAPPED!")
-                        gameState.currentPage = .starMap
-                        gameState.showingLocationList = false
-                        // Start by zooming into the current location's solar system
+                        // Set zoom level BEFORE changing page to avoid flicker
                         if let constellation = gameState.getCurrentConstellation() {
                             let currentSystem = constellation.starSystems.first { starSystem in
                                 starSystem.locations.contains { $0.id == gameState.currentLocation.id }
@@ -556,6 +554,10 @@ struct LocationView: View {
                                 gameState.zoomOutToConstellation()
                             }
                         }
+                        // Now change the page after zoom level is set
+                        gameState.currentPage = .starMap
+                        gameState.showingLocationList = false
+                        gameState.starMapViaTelescope = true
                     }) {
                         Text("🔭")
                             .font(.largeTitle)
@@ -1569,6 +1571,7 @@ struct ConstructionBayRow: View {
                         print("🔍 Small bay clicked - setting selectedBaySizeForBlueprints to .small")
                         gameState.selectedBaySizeForBlueprints = .small
                         gameState.currentPage = .blueprints
+                        gameState.starMapViaTelescope = false
                     }
                     .buttonStyle(.bordered)
                     .foregroundColor(.green)
@@ -1926,6 +1929,7 @@ struct BottomNavigationView: View {
         HStack {
             Button(action: {
                 gameState.currentPage = .shop
+                gameState.starMapViaTelescope = false
             }) {
                 Image(systemName: "cart.fill")
                     .font(.title2)
@@ -1936,6 +1940,7 @@ struct BottomNavigationView: View {
             
             Button(action: {
                 gameState.currentPage = .construction
+                gameState.starMapViaTelescope = false
             }) {
                 Image(systemName: "hammer.fill")
                     .font(.title2)
@@ -1946,11 +1951,15 @@ struct BottomNavigationView: View {
             
             Button(action: {
                 if gameState.currentPage == .starMap {
-                    gameState.showingLocationList.toggle()
-                } else {
-                    gameState.currentPage = .starMap
-                    gameState.showingLocationList = false
+                    // If we're in star map, do nothing
+                    return
+                } else if gameState.currentPage == .shop || gameState.currentPage == .construction || 
+                         gameState.currentPage == .resources || gameState.currentPage == .cards {
+                    // Go to location view from these pages only
+                    gameState.currentPage = .location
+                    gameState.starMapViaTelescope = false
                 }
+                // Do nothing for other pages (like location, blueprints)
             }) {
                 Image(systemName: "globe")
                     .font(.title2)
@@ -1961,6 +1970,7 @@ struct BottomNavigationView: View {
             
             Button(action: {
                 gameState.currentPage = .resources
+                gameState.starMapViaTelescope = false
             }) {
                 Image(systemName: "cube.box.fill")
                     .font(.title2)
@@ -1971,6 +1981,7 @@ struct BottomNavigationView: View {
             
             Button(action: {
                 gameState.currentPage = .cards
+                gameState.starMapViaTelescope = false
             }) {
                 Image(systemName: "rectangle.stack.fill")
                     .font(.title2)
@@ -3592,9 +3603,15 @@ struct SolarSystemView: View {
                 Button(action: {
                     // Find the star location in this system
                     if let starLocation = starSystem.locations.first(where: { $0.kind == .star }) {
-                        gameState.changeLocation(to: starLocation)
-                        gameState.currentPage = .location
-                        gameState.showingLocationList = false
+                        // If clicking the same location that's already selected, close the popup
+                        if gameState.selectedLocationForPopup?.id == starLocation.id && gameState.showStarMapSlots {
+                            gameState.selectedLocationForPopup = nil
+                            gameState.showStarMapSlots = false
+                        } else {
+                            // Otherwise, show the popup for this location
+                            gameState.selectedLocationForPopup = starLocation
+                            gameState.showStarMapSlots = true
+                        }
                     }
                 }) {
                     StarSymbol(
@@ -3635,9 +3652,15 @@ struct SolarSystemView: View {
                                         location: location,
                                         isSelected: location.id == gameState.currentLocation.id,
                                         onTap: {
-                                            gameState.changeLocation(to: location)
-                                            gameState.currentPage = .location
-                                            gameState.showingLocationList = false
+                                            // If clicking the same location that's already selected, close the popup
+                                            if gameState.selectedLocationForPopup?.id == location.id && gameState.showStarMapSlots {
+                                                gameState.selectedLocationForPopup = nil
+                                                gameState.showStarMapSlots = false
+                                            } else {
+                                                // Otherwise, show the popup for this location
+                                                gameState.selectedLocationForPopup = location
+                                                gameState.showStarMapSlots = true
+                                            }
                                         }
                                     )
                                     .position(x: x, y: y)
@@ -3653,9 +3676,15 @@ struct SolarSystemView: View {
                                     location: location,
                                     isSelected: location.id == gameState.currentLocation.id,
                                     onTap: {
-                                        gameState.changeLocation(to: location)
-                                        gameState.currentPage = .location
-                                        gameState.showingLocationList = false
+                                        // If clicking the same location that's already selected, close the popup
+                                        if gameState.selectedLocationForPopup?.id == location.id && gameState.showStarMapSlots {
+                                            gameState.selectedLocationForPopup = nil
+                                            gameState.showStarMapSlots = false
+                                        } else {
+                                            // Otherwise, show the popup for this location
+                                            gameState.selectedLocationForPopup = location
+                                            gameState.showStarMapSlots = true
+                                        }
                                     }
                                 )
                                 .position(x: x, y: y)
@@ -3803,10 +3832,11 @@ struct ConstellationView: View {
                 VStack {
                     HStack {
                         Button(action: {
-                            // At constellation level, telescope goes back to location view
+                            // At constellation level, left arrow goes back to location view
                             gameState.currentPage = .location
+                            gameState.starMapViaTelescope = false
                         }) {
-                            Text("🔭")
+                            Image(systemName: "chevron.left")
                                 .font(.largeTitle)
                                 .foregroundColor(.white)
                         }
@@ -3898,8 +3928,15 @@ struct StarMapView: View {
             List {
                 ForEach(gameState.availableLocations, id: \.id) { location in
                     Button(action: {
-                        gameState.changeLocation(to: location)
-                        gameState.showingLocationList = false
+                        // If clicking the same location that's already selected, close the popup
+                        if gameState.selectedLocationForPopup?.id == location.id && gameState.showStarMapSlots {
+                            gameState.selectedLocationForPopup = nil
+                            gameState.showStarMapSlots = false
+                        } else {
+                            // Otherwise, show the popup for this location
+                            gameState.selectedLocationForPopup = location
+                            gameState.showStarMapSlots = true
+                        }
                     }) {
                         HStack {
                             VStack(alignment: .leading) {
@@ -3920,6 +3957,40 @@ struct StarMapView: View {
                 }
             }
             .listStyle(PlainListStyle())
+            
+            // Enhancement slots overlay - positioned at bottom without affecting layout
+            VStack {
+                Spacer()
+                
+                // Enhancement button - always visible
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        gameState.showStarMapSlots.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text("Location")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.black)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Enhancement slots - shown conditionally with animation
+                if gameState.showStarMapSlots {
+                    StarMapSlotsView(gameState: gameState)
+                        .padding(.bottom, 10) // Position just above navigation bar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
         }
     }
 }
@@ -5089,10 +5160,37 @@ struct StarMapSlotsView: View {
     
     var body: some View {
         VStack(spacing: 8) {
-            Text("TEST")
-                .font(.title2)
-                .fontWeight(.medium)
-                .foregroundColor(.white)
+            // Location popup content
+            if let selectedLocation = gameState.selectedLocationForPopup {
+                VStack(spacing: 12) {
+                    Text(selectedLocation.name)
+                        .font(.title2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                    
+                    Text("\(selectedLocation.system) • \(selectedLocation.kind.rawValue)")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    
+                    Button(action: {
+                        gameState.changeLocation(to: selectedLocation)
+                        gameState.currentPage = .location
+                        gameState.showingLocationList = false
+                        gameState.selectedLocationForPopup = nil
+                        gameState.showStarMapSlots = false
+                    }) {
+                        Text(selectedLocation.id == gameState.currentLocation.id ? "Return Here" : "Go")
+                            .font(.headline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 8)
+                            .background(Color.blue)
+                            .cornerRadius(8)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)

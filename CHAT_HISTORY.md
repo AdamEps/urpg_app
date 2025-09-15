@@ -19,17 +19,26 @@ This document tracks our development conversations and key decisions for the Uni
   - Tested implementation by building and launching app on iPhone
 - **Status**: ✅ Completed - Star map screens now have Location enhancement slots matching other pages
 
-### 2025-09-15 - Star Map Location Popup Modification (Version 2.0.11)
-- **Request**: Remove 4 slots from "Location" popup in star map and add "TEST" placeholder text
+### 2025-09-15 - Star Map Location Popup Enhancement (Version 2.0.12)
+- **Request**: 
+  1. Remove "TEST" text from star map location popup
+  2. When clicking on any map symbol, show location popup with name and "Go" button instead of direct navigation
+  3. Clicking on the same location a second time should close the popup
+  4. If the selected location is the current location, button should say "Return Here" instead of "Go"
 - **Solutions Implemented**:
-  - Modified `StarMapSlotsView` to remove the 4-slot ForEach loop
-  - Replaced slots with simple "TEST" placeholder text
-  - Preserved all existing styling, background, padding, and corner radius
-  - Left all other "Enhancements" popups on the 5 main pages completely unchanged
-  - Updated app icon to version 2.0.11
-  - Committed changes as version 2.0.11
-  - Tested app build and installation on iPhone
-- **Status**: ✅ Completed - Star map "Location" popup now shows "TEST" text instead of 4 slots
+  - Removed "TEST" placeholder text from `StarMapSlotsView`
+  - Added `@Published var selectedLocationForPopup: Location?` to GameState for popup state management
+  - Updated `StarMapSlotsView` to display location name, system info, and dynamic button text
+  - Modified all star map symbol tap actions with toggle behavior:
+    - Central star button in `SolarSystemView`: Shows popup or closes if same location clicked
+    - `CelestialBodySymbol` components (planets, moons, ships): Toggle popup behavior
+    - Old star map list view: Toggle popup behavior
+  - Button text dynamically shows "Return Here" for current location, "Go" for other locations
+  - "Go"/"Return Here" button performs the actual location change and closes popup
+  - Added enhancement slots overlay to old star map view for consistency
+  - Updated `resetToDefaults()` method to include new popup state property
+  - Tested implementation by building and launching app on iPhone
+- **Status**: ✅ Completed - Star map symbols now show location popup with smart toggle behavior and contextual button text
 
 ### 2025-01-14 - Construction Bay Enhancements Popup (Fixed)
 - **Request**: Add Enhancements popup to Construction Bay page using the same popup as other pages

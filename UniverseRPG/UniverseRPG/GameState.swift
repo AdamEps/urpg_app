@@ -116,6 +116,7 @@ class GameState: ObservableObject {
     @Published var showCardsSlots = false
     @Published var showConstructionSlots = false
     @Published var showStarMapSlots = false
+    @Published var selectedLocationForPopup: Location?
     @Published var resourceSortOption: ResourceSortOption = .alphabetical
     @Published var resourceSortAscending: Bool = true
     @Published var selectedResourceForDetail: ResourceType?
@@ -136,6 +137,7 @@ class GameState: ObservableObject {
         self.ownedCards = fresh.ownedCards
         self.currentPage = fresh.currentPage
         self.showingLocationList = fresh.showingLocationList
+        self.starMapViaTelescope = fresh.starMapViaTelescope
         self.currentLocationTapCount = fresh.currentLocationTapCount
         self.locationTapCounts = fresh.locationTapCounts
         self.totalTapsCount = fresh.totalTapsCount
@@ -149,6 +151,7 @@ class GameState: ObservableObject {
         self.largeConstructionsCompleted = fresh.largeConstructionsCompleted
         self.maxStorageCapacity = fresh.maxStorageCapacity
         self.showLocationResources = fresh.showLocationResources
+        self.selectedLocationForPopup = fresh.selectedLocationForPopup
         print("🔄 Game state reset to defaults")
     }
     
@@ -202,6 +205,7 @@ class GameState: ObservableObject {
     // Navigation state
     @Published var currentPage: AppPage = .starMap
     @Published var showingLocationList: Bool = false
+    @Published var starMapViaTelescope: Bool = false
     
     // Star Map hierarchy state
     @Published var starMapZoomLevel: StarMapZoomLevel = .constellation
