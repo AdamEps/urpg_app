@@ -6,17 +6,19 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
-### 2025-01-14 - Construction Bay Enhancements Popup
+### 2025-01-14 - Construction Bay Enhancements Popup (Fixed)
 - **Request**: Add Enhancements popup to Construction Bay page using the same popup as other pages
+- **Initial Issue**: Added Enhancements popup to wrong view (ConstructionView instead of ConstructionPageView)
 - **Solutions Implemented**: 
   - Added showConstructionSlots state variable to GameState
   - Created ConstructionSlotsView and ConstructionSlotView components following the same pattern as other slots views
-  - Modified ConstructionView to include Enhancements popup with proper positioning and animation
-  - Ensures consistency with other pages that have Enhancement popups
+  - Initially modified ConstructionView, but discovered navigation uses ConstructionPageView
+  - Fixed by adding Enhancements popup to ConstructionPageView (the actual page used in navigation)
+  - Added proper positioning and animation consistent with other pages
   - Tested implementation by building and launching app on simulator
   - Committed changes with descriptive commit message
   - Updated app icon to version 1.994
-- **Status**: ✅ Completed - Construction Bay page now has Enhancements popup matching other pages
+- **Status**: ✅ Completed - Construction Bay page now correctly shows Enhancements popup matching other pages
 
 ### 2025-01-27 - Version 2.0.6 Release
 - **Request**: Commit as 2.0.6 and update app logo
@@ -181,6 +183,42 @@ This document tracks our development conversations and key decisions for the Uni
 - ✅ **Blueprint Button Greying**: Complete - Medium and large buttons are greyed out when no bays of that size are unlocked
 - ✅ **Enhancement Abilities Dev Tool**: Complete - Added comprehensive dev tool showing all enhancement abilities with detailed information
 - ✅ **App Testing**: Launched app to verify changes work correctly
+
+## 2025-01-27 - Telescope Navigation Enhancement
+
+### User Requests:
+1. **Add telescope icon button to location view** - Add a white telescope icon button in the top right of location view, below the name header
+2. **Modify star map navigation** - Replace the toggle behavior of the star map button so it only goes to location view, not the location list
+3. **Telescope button functionality** - The telescope button should show the location list (StarMapView) instead of the star map button
+
+### Implementation:
+1. **Telescope Button Addition**:
+   - Added telescope icon button to LocationView header (top right, below name)
+   - Used `Image(systemName: "telescope")` with white color and title2 font size
+   - Positioned in HStack with proper spacing alongside location name
+   - Button action navigates to starMap page with showingLocationList = true
+
+2. **Star Map Button Modification**:
+   - Removed toggle behavior from star map button in BottomNavigationView
+   - Star map button now only goes to location view (showingLocationList = false)
+   - Simplified button action to always set currentPage = .starMap and showingLocationList = false
+
+3. **Navigation Flow Changes**:
+   - **Before**: Star map button toggled between location view and location list
+   - **After**: Star map button goes to location view, telescope button shows location list
+   - Maintains existing StarMapView functionality for location selection
+
+### Technical Details:
+- Modified `LocationView` header HStack to include telescope button
+- Updated `BottomNavigationView` star map button action
+- No changes needed to `StarMapView` as it already handles location selection correctly
+- Telescope button uses same navigation pattern as other buttons
+
+### Status:
+- ✅ **Telescope Button**: Complete - Added white telescope icon to location view header
+- ✅ **Star Map Navigation**: Complete - Modified to only go to location view
+- ✅ **Telescope Functionality**: Complete - Telescope button shows location list
+- ✅ **App Testing**: Launched app to verify new navigation flow works correctly
 
 ---
 

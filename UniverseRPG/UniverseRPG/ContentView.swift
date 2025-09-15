@@ -538,6 +538,24 @@ struct LocationView: View {
                 .padding(.vertical, 8)
                 .background(Color.black.opacity(0.3))
                 
+                // Telescope button below header on left side (where the black box is in the image)
+                HStack {
+                    Button(action: {
+                        print("🔭 TELESCOPE BUTTON TAPPED!")
+                        gameState.currentPage = .starMap
+                        gameState.showingLocationList = true
+                    }) {
+                        Text("🔭")
+                            .font(.largeTitle)
+                            .foregroundColor(.white)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                
                 Spacer()
                 
                 // Centered clickable location (positioned based on tap counter visibility)
@@ -3382,7 +3400,7 @@ struct CardDetailView: View {
                         .foregroundColor(.blue)
                     
                     Text("Coming Soon")
-                        .font(.title)
+                        .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                     
@@ -3474,7 +3492,7 @@ struct ShopView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     Text("Shop Coming Soon!")
-                        .font(.title)
+                        .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.primary)
                     
@@ -3766,7 +3784,7 @@ struct CardSlotView: View {
                         .frame(height: 80)
                         .overlay(
                             Image(systemName: getCardIcon(for: cardDef.id))
-                                .font(.title)
+                                .font(.largeTitle)
                                 .foregroundColor(cardClassColor)
                         )
                         .padding(.horizontal, 4)
@@ -3828,7 +3846,7 @@ struct CardSlotView: View {
                         .frame(height: 80)
                         .overlay(
                             Image(systemName: "plus")
-                                .font(.title)
+                                .font(.largeTitle)
                                 .foregroundColor(cardClassColor.opacity(0.5))
                         )
                         .padding(.horizontal, 4)
