@@ -3475,11 +3475,20 @@ struct CelestialBodySymbol: View {
                     .fill(isSelected ? Color.blue.opacity(0.3) : Color.clear)
                     .frame(width: 60, height: 60)
                 
-                // Celestial body symbol
-                Image(systemName: symbolForLocation(location))
-                    .font(.title2)
-                    .foregroundColor(colorForLocation(location))
-                    .scaleEffect(isSelected ? 1.2 : 1.0)
+                // Special planet views for specific locations
+                if location.name == "Taragam-7" {
+                    Taragam7PlanetView(isSelected: isSelected)
+                } else if location.name == "Elcinto" {
+                    ElcintoMoonView(isSelected: isSelected)
+                } else if location.name == "Taragam-3" {
+                    Taragam3PlanetView(isSelected: isSelected)
+                } else {
+                    // Celestial body symbol for other locations
+                    Image(systemName: symbolForLocation(location))
+                        .font(.title2)
+                        .foregroundColor(colorForLocation(location))
+                        .scaleEffect(isSelected ? 1.2 : 1.0)
+                }
             }
         }
         .buttonStyle(PlainButtonStyle())
@@ -3506,6 +3515,126 @@ struct CelestialBodySymbol: View {
         case .anomaly: return .purple
         case .dwarf: return .white
         case .rogue: return .red
+        }
+    }
+}
+
+struct Taragam7PlanetView: View {
+    let isSelected: Bool
+    
+    var body: some View {
+        // Main planet body with blue/green gradient
+        Circle()
+            .fill(
+                RadialGradient(
+                    gradient: Gradient(colors: [
+                        Color.blue.opacity(0.9),
+                        Color.cyan.opacity(0.7),
+                        Color.green.opacity(0.6)
+                    ]),
+                    center: .topLeading,
+                    startRadius: 0,
+                    endRadius: 20
+                )
+            )
+            .frame(width: 24, height: 24)
+            .scaleEffect(isSelected ? 1.2 : 1.0)
+    }
+}
+
+struct ElcintoMoonView: View {
+    let isSelected: Bool
+    
+    var body: some View {
+        // Main moon body with yellow/brown gradient
+        Circle()
+            .fill(
+                RadialGradient(
+                    gradient: Gradient(colors: [
+                        Color.yellow.opacity(0.9),
+                        Color.orange.opacity(0.7),
+                        Color.brown.opacity(0.6)
+                    ]),
+                    center: .topLeading,
+                    startRadius: 0,
+                    endRadius: 12
+                )
+            )
+            .frame(width: 18, height: 18) // Smaller than planet
+            .scaleEffect(isSelected ? 1.2 : 1.0)
+    }
+}
+
+struct Taragam3PlanetView: View {
+    let isSelected: Bool
+    
+    var body: some View {
+        ZStack {
+            // Planetary ring
+            Circle()
+                .stroke(Color.white.opacity(0.6), lineWidth: 2)
+                .frame(width: 32, height: 32)
+                .scaleEffect(isSelected ? 1.2 : 1.0)
+            
+            // Main planet body with blue/white gradient
+            Circle()
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: [
+                            Color.blue.opacity(0.9),
+                            Color.cyan.opacity(0.8),
+                            Color.white.opacity(0.7)
+                        ]),
+                        center: .topLeading,
+                        startRadius: 0,
+                        endRadius: 20
+                    )
+                )
+                .frame(width: 24, height: 24)
+                .scaleEffect(isSelected ? 1.2 : 1.0)
+        }
+    }
+}
+
+struct CustomStarView: View {
+    let starType: StarType
+    let isSelected: Bool
+    
+    var body: some View {
+        ZStack {
+            // Outer glow effect
+            Circle()
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: [
+                            starType.color.opacity(0.4),
+                            starType.color.opacity(0.1),
+                            Color.clear
+                        ]),
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 40
+                    )
+                )
+                .frame(width: 80, height: 80)
+                .scaleEffect(isSelected ? 1.3 : 1.0)
+            
+            // Main star body with gradient
+            Circle()
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: [
+                            Color.white.opacity(0.9),
+                            starType.color.opacity(0.8),
+                            starType.color.opacity(0.6)
+                        ]),
+                        center: .topLeading,
+                        startRadius: 0,
+                        endRadius: 30
+                    )
+                )
+                .frame(width: 60, height: 60)
+                .scaleEffect(isSelected ? 1.2 : 1.0)
         }
     }
 }
@@ -3544,21 +3673,7 @@ struct StarSymbol: View {
     let isSelected: Bool
     
     var body: some View {
-        ZStack {
-            // Glow effect for selected star
-            if isSelected {
-                Circle()
-                    .fill(starType.color.opacity(0.3))
-                    .frame(width: 80, height: 80)
-                    .blur(radius: 10)
-            }
-            
-            // Star symbol
-            Image(systemName: starType.symbol)
-                .font(.largeTitle)
-                .foregroundColor(starType.color)
-                .scaleEffect(isSelected ? 1.3 : 1.0)
-        }
+        CustomStarView(starType: starType, isSelected: isSelected)
     }
 }
 
@@ -3718,28 +3833,6 @@ struct SolarSystemView: View {
             VStack {
                 Spacer()
                 
-                // Enhancement button - always visible
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        gameState.showStarMapSlots.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Location")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(Color.black)
-                    .cornerRadius(8)
-                    .padding(.horizontal, 16)
-                }
-                .buttonStyle(PlainButtonStyle())
-                
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showStarMapSlots {
                     StarMapSlotsView(gameState: gameState)
@@ -3853,28 +3946,6 @@ struct ConstellationView: View {
             // Enhancement slots overlay - positioned at bottom without affecting layout
             VStack {
                 Spacer()
-                
-                // Enhancement button - always visible
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        gameState.showStarMapSlots.toggle()
-                    }
-                }) {
-                    HStack {
-                        Text("Location")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(Color.black)
-                    .cornerRadius(8)
-                    .padding(.horizontal, 16)
-                }
-                .buttonStyle(PlainButtonStyle())
                 
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showStarMapSlots {
@@ -5162,16 +5233,22 @@ struct StarMapSlotsView: View {
         VStack(spacing: 8) {
             // Location popup content
             if let selectedLocation = gameState.selectedLocationForPopup {
-                VStack(spacing: 12) {
-                    Text(selectedLocation.name)
-                        .font(.title2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
+                HStack {
+                    // Left side - Location info
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(selectedLocation.name)
+                            .font(.title2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        
+                        Text("\(selectedLocation.system) • \(selectedLocation.kind.rawValue)")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
                     
-                    Text("\(selectedLocation.system) • \(selectedLocation.kind.rawValue)")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    Spacer()
                     
+                    // Right side - Button
                     Button(action: {
                         gameState.changeLocation(to: selectedLocation)
                         gameState.currentPage = .location
@@ -5192,11 +5269,10 @@ struct StarMapSlotsView: View {
                 }
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(Color.black.opacity(0.6))
         .cornerRadius(12)
-        .padding(.horizontal, 16)
     }
 }
 

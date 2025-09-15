@@ -54,7 +54,7 @@ def create_app_icon(version="2.0.11", size=1024):
     return img
 
 def main():
-    version = "2.0.11"  # Default version (will be overridden by update script)
+    version = "2.0.12"  # Default version (will be overridden by update script)
     
     # Create the app icon
     print(f"Creating app icon for version {version}...")
