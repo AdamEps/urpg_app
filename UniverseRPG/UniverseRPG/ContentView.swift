@@ -166,7 +166,8 @@ struct ContentView: View {
                         if gameState.showingLocationList {
                             StarMapView(gameState: gameState)
                         } else {
-                            LocationView(gameState: gameState)
+                            // Show hierarchical star map when not showing location list
+                            StarMapView(gameState: gameState)
                         }
                     case .resources:
                         ResourcesPageView(gameState: gameState)
@@ -543,7 +544,18 @@ struct LocationView: View {
                     Button(action: {
                         print("🔭 TELESCOPE BUTTON TAPPED!")
                         gameState.currentPage = .starMap
-                        gameState.showingLocationList = true
+                        gameState.showingLocationList = false
+                        // Start by zooming into the current location's solar system
+                        if let constellation = gameState.getCurrentConstellation() {
+                            let currentSystem = constellation.starSystems.first { starSystem in
+                                starSystem.locations.contains { $0.id == gameState.currentLocation.id }
+                            }
+                            if let system = currentSystem {
+                                gameState.zoomIntoStarSystem(system)
+                            } else {
+                                gameState.zoomOutToConstellation()
+                            }
+                        }
                     }) {
                         Text("🔭")
                             .font(.largeTitle)
@@ -3437,11 +3449,346 @@ struct CardDetailView: View {
     }
 }
 
+// MARK: - Star Map Visual Components
+
+struct CelestialBodySymbol: View {
+    let location: Location
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            ZStack {
+                // Background circle for better visibility
+                Circle()
+                    .fill(isSelected ? Color.blue.opacity(0.3) : Color.clear)
+                    .frame(width: 60, height: 60)
+                
+                // Celestial body symbol
+                Image(systemName: symbolForLocation(location))
+                    .font(.title2)
+                    .foregroundColor(colorForLocation(location))
+                    .scaleEffect(isSelected ? 1.2 : 1.0)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    private func symbolForLocation(_ location: Location) -> String {
+        switch location.kind {
+        case .planet: return "circle.fill"
+        case .moon: return "moon.fill"
+        case .star: return "sun.max.fill"
+        case .ship: return "diamond.fill"
+        case .anomaly: return "exclamationmark.triangle.fill"
+        case .dwarf: return "circle.dotted"
+        case .rogue: return "questionmark.circle.fill"
+        }
+    }
+    
+    private func colorForLocation(_ location: Location) -> Color {
+        switch location.kind {
+        case .planet: return .blue
+        case .moon: return .gray
+        case .star: return .yellow
+        case .ship: return .green
+        case .anomaly: return .purple
+        case .dwarf: return .white
+        case .rogue: return .red
+        }
+    }
+}
+
+struct OrbitalRing: View {
+    let radius: Double
+    let isActive: Bool
+    
+    var body: some View {
+        Circle()
+            .stroke(
+                isActive ? Color.white.opacity(0.6) : Color.gray.opacity(0.3),
+                lineWidth: isActive ? 2 : 1
+            )
+            .frame(width: radius * 2, height: radius * 2)
+    }
+}
+
+struct StarSymbol: View {
+    let starType: StarType
+    let isSelected: Bool
+    
+    var body: some View {
+        ZStack {
+            // Glow effect for selected star
+            if isSelected {
+                Circle()
+                    .fill(starType.color.opacity(0.3))
+                    .frame(width: 80, height: 80)
+                    .blur(radius: 10)
+            }
+            
+            // Star symbol
+            Image(systemName: starType.symbol)
+                .font(.largeTitle)
+                .foregroundColor(starType.color)
+                .scaleEffect(isSelected ? 1.3 : 1.0)
+        }
+    }
+}
+
+// MARK: - Solar System View
+struct SolarSystemView: View {
+    @ObservedObject var gameState: GameState
+    let starSystem: StarSystem
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // Background
+                Color.black
+                    .ignoresSafeArea()
+                
+                // Center point for the star system
+                let centerX = geometry.size.width / 2
+                let centerY = geometry.size.height / 2
+                
+                // Orbital rings (exclude stars and moons)
+                ForEach(Array(starSystem.locations.enumerated()), id: \.offset) { index, location in
+                    if location.kind != .star && location.kind != .moon {
+                        let radius = calculateOrbitalRadius(for: location, at: index)
+                        OrbitalRing(
+                            radius: radius,
+                            isActive: location.id == gameState.currentLocation.id
+                        )
+                        .position(x: centerX, y: centerY)
+                    }
+                }
+                
+                // Central star (clickable)
+                Button(action: {
+                    // Find the star location in this system
+                    if let starLocation = starSystem.locations.first(where: { $0.kind == .star }) {
+                        gameState.changeLocation(to: starLocation)
+                        gameState.currentPage = .location
+                        gameState.showingLocationList = false
+                    }
+                }) {
+                    StarSymbol(
+                        starType: starSystem.starType,
+                        isSelected: false
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+                .position(x: centerX, y: centerY)
+                
+                // Celestial bodies in their orbital positions
+                ForEach(Array(starSystem.locations.enumerated()), id: \.element.id) { index, location in
+                    if location.kind != .star {
+                        Group {
+                            if location.kind == .moon {
+                                // Special positioning for moon - close to Taragam-7
+                                let taragam7Index = starSystem.locations.firstIndex { $0.name == "Taragam-7" } ?? 0
+                                let taragam7Radius = calculateOrbitalRadius(for: starSystem.locations[taragam7Index], at: taragam7Index)
+                                let taragam7Angle = calculateOrbitalAngle(for: taragam7Index, total: starSystem.locations.count)
+                                let taragam7X = centerX + taragam7Radius * cos(taragam7Angle)
+                                let taragam7Y = centerY + taragam7Radius * sin(taragam7Angle)
+                                
+                                // Position moon close to Taragam-7 with small offset
+                                let moonOffset = 40.0
+                                let moonAngle = taragam7Angle + 0.3 // Small angular offset
+                                let x = taragam7X + moonOffset * cos(moonAngle)
+                                let y = taragam7Y + moonOffset * sin(moonAngle)
+                                
+                                ZStack {
+                                    // Small orbital ring around Taragam-7 for the moon
+                                    Circle()
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                        .frame(width: moonOffset * 2, height: moonOffset * 2)
+                                        .position(x: taragam7X, y: taragam7Y)
+                                    
+                                    // Moon symbol
+                                    CelestialBodySymbol(
+                                        location: location,
+                                        isSelected: location.id == gameState.currentLocation.id,
+                                        onTap: {
+                                            gameState.changeLocation(to: location)
+                                            gameState.currentPage = .location
+                                            gameState.showingLocationList = false
+                                        }
+                                    )
+                                    .position(x: x, y: y)
+                                }
+                            } else {
+                                // Normal orbital positioning for planets, ships, etc.
+                                let radius = calculateOrbitalRadius(for: location, at: index)
+                                let angle = calculateOrbitalAngle(for: location, at: index, total: starSystem.locations.count)
+                                let x = centerX + radius * cos(angle)
+                                let y = centerY + radius * sin(angle)
+                                
+                                CelestialBodySymbol(
+                                    location: location,
+                                    isSelected: location.id == gameState.currentLocation.id,
+                                    onTap: {
+                                        gameState.changeLocation(to: location)
+                                        gameState.currentPage = .location
+                                        gameState.showingLocationList = false
+                                    }
+                                )
+                                .position(x: x, y: y)
+                            }
+                        }
+                    }
+                }
+                
+                // Telescope button (consistent position - top left)
+                VStack {
+                    HStack {
+                        Button(action: {
+                            gameState.zoomOutToConstellation()
+                        }) {
+                            Text("🔭")
+                                .font(.largeTitle)
+                                .foregroundColor(.white)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.leading)
+                        
+                        Spacer()
+                    }
+                    Spacer()
+                }
+                .padding(.top)
+            }
+        }
+    }
+    
+    private func calculateOrbitalRadius(for location: Location, at index: Int) -> Double {
+        // Base radius with some variation based on location type
+        let baseRadius = 100.0
+        let typeMultiplier: Double = {
+            switch location.kind {
+            case .moon: return 0.7
+            case .planet: return 1.0
+            case .ship: return 1.0  // Ships now use same multiplier as planets
+            case .anomaly: return 1.6
+            default: return 1.0
+            }
+        }()
+        
+        // Special positioning for Abandoned Starship - just outside Taragam-3
+        if location.name == "Abandoned Starship" {
+            return 100.0 + (2 * 60.0) + 30.0  // Taragam-3's radius + small offset
+        }
+        
+        return baseRadius + (Double(index) * 60.0) * typeMultiplier
+    }
+    
+    private func calculateOrbitalAngle(for index: Int, total: Int) -> Double {
+        // Distribute locations evenly around the star
+        return (Double(index) / Double(total)) * 2 * .pi
+    }
+    
+    private func calculateOrbitalAngle(for location: Location, at index: Int, total: Int) -> Double {
+        // Special positioning for Abandoned Starship - above the star
+        if location.name == "Abandoned Starship" {
+            return -Double.pi / 2  // 90 degrees above (top)
+        }
+        
+        // Distribute other locations evenly around the star
+        return (Double(index) / Double(total)) * 2 * .pi
+    }
+}
+
+// MARK: - Constellation View
+struct ConstellationView: View {
+    @ObservedObject var gameState: GameState
+    let constellation: Constellation
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // Background
+                Color.black
+                    .ignoresSafeArea()
+                
+                // Center point
+                let centerX = geometry.size.width / 2
+                let centerY = geometry.size.height / 2
+                
+                // Star systems
+                ForEach(Array(constellation.starSystems.enumerated()), id: \.element.id) { index, starSystem in
+                    let angle = calculateSystemAngle(for: index, total: constellation.starSystems.count)
+                    let distance = 150.0 + (Double(index) * 50.0)
+                    let x = centerX + distance * cos(angle)
+                    let y = centerY + distance * sin(angle)
+                    
+                    Button(action: {
+                        gameState.zoomIntoStarSystem(starSystem)
+                    }) {
+                        VStack(spacing: 4) {
+                            StarSymbol(
+                                starType: starSystem.starType,
+                                isSelected: false
+                            )
+                            Text(starSystem.name)
+                                .font(.caption)
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .position(x: x, y: y)
+                }
+                
+                // Telescope button (consistent position - top left)
+                VStack {
+                    HStack {
+                        Button(action: {
+                            // At constellation level, telescope goes back to location view
+                            gameState.currentPage = .location
+                        }) {
+                            Text("🔭")
+                                .font(.largeTitle)
+                                .foregroundColor(.white)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.leading)
+                        
+                        Spacer()
+                    }
+                    Spacer()
+                }
+                .padding(.top)
+            }
+        }
+    }
+    
+    private func calculateSystemAngle(for index: Int, total: Int) -> Double {
+        return (Double(index) / Double(total)) * 2 * .pi
+    }
+}
+
 // MARK: - Placeholder Views
 struct StarMapView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
+        Group {
+            switch gameState.starMapZoomLevel {
+            case .constellation:
+                if let constellation = gameState.getCurrentConstellation() {
+                    ConstellationView(gameState: gameState, constellation: constellation)
+                } else {
+                    // Fallback to old list view
+                    oldStarMapView
+                }
+            case .solarSystem(let starSystem):
+                SolarSystemView(gameState: gameState, starSystem: starSystem)
+            }
+        }
+    }
+    
+    private var oldStarMapView: some View {
         VStack {
             // Page header
             HStack {

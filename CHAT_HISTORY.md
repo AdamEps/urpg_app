@@ -222,4 +222,142 @@ This document tracks our development conversations and key decisions for the Uni
 
 ---
 
+## 2025-01-27 - App Logo Versioning Fix (v2.0.101)
+
+### User Requests:
+1. **Fix app logo versioning system** - Logo was always updating to version 1.994 instead of correct commit version
+2. **Ensure rule compliance** - "Update the app logo with the correct commit version after each commit" rule wasn't working
+
+### Problem Analysis:
+- **Root Cause**: `update_app_icon.sh` script had hardcoded default version of "1.994"
+- **Secondary Issue**: `generate_app_icon.py` also had hardcoded version "1.994" 
+- **Impact**: Every commit would update logo to 1.994 regardless of actual commit count
+
+### Implementation:
+1. **Enhanced update_app_icon.sh**:
+   - Added auto-detection logic when no version parameter provided
+   - Uses `git rev-list --count HEAD` to get actual commit count
+   - Creates version format "2.0.X" where X is commit count
+   - Added informative logging for auto-detected vs provided versions
+
+2. **Updated generate_app_icon.py**:
+   - Changed default version from "1.994" to "2.0.0" 
+   - Added comment indicating version will be overridden by update script
+
+3. **Testing & Verification**:
+   - Tested auto-detection: correctly identified version 2.0.101 (101 commits)
+   - Generated new app icon with correct version number
+   - Launched app to verify new logo appears
+
+### Technical Details:
+- **Version Format**: 2.0.X where X = git commit count
+- **Auto-detection**: Only triggers when no version parameter provided
+- **Backward Compatibility**: Still accepts manual version parameter
+- **Logging**: Clear feedback about version source (auto-detected vs provided)
+
+### Status:
+- ✅ **Version Detection**: Complete - Auto-detects correct version from git commit count
+- ✅ **Logo Generation**: Complete - Generated logo with version 2.0.101
+- ✅ **Rule Compliance**: Complete - Logo now updates to correct commit version
+- ✅ **App Testing**: Launched app to verify new logo appears correctly
+
+---
+
 *This file should be maintained during each development session. Each new conversation should start by reading this file and adding a new entry.*
+
+## 2025-01-27 - Telescope Button Visibility Fix (v2.0.9)
+
+### User Requests:
+1. **Fix telescope button visibility** - The telescope button wasn't showing up on screen
+2. **Commit as version 2.0.9** - Commit all changes with proper versioning
+
+### Implementation:
+1. **Telescope Button Visibility Fix**:
+   - **Problem**: `Image(systemName: "telescope")` SF Symbol wasn't available in iOS version
+   - **Solution**: Replaced with telescope emoji `Text("🔭")` for guaranteed visibility
+   - **Font Size**: Changed from `.title` to `.largeTitle` for better visibility
+   - **Color**: Maintained white color as requested
+   - **Position**: Kept below header on left side as specified
+
+2. **Version 2.0.9 Release**:
+   - Updated app icon generation script to version 2.0.9
+   - Generated new app icon with version 2.0.9 branding
+   - Committed all changes with descriptive commit message
+   - Updated CHAT_HISTORY.md with session details
+
+### Technical Details:
+- Used `sed` command to replace `Image(systemName: "telescope")` with `Text("🔭")`
+- Updated font size from `.title` to `.largeTitle` for better visibility
+- Maintained all existing functionality and positioning
+- App successfully builds and launches with visible telescope button
+
+### Status:
+- ✅ **Telescope Visibility**: Complete - Telescope emoji (🔭) now visible below header on left side
+- ✅ **Version 2.0.9**: Complete - All changes committed with proper versioning
+- ✅ **App Icon Update**: Complete - App icon updated to version 2.0.9
+- ✅ **App Testing**: Launched app to verify telescope button is now visible and functional
+
+---
+
+## 2025-01-27 - Hierarchical Star Map System Implementation (v2.1.0)
+
+### Goal:
+Transform the star map from a simple list into a hierarchical, visual star map system with:
+- Symbolic black and white 2D visualization
+- Orbital rings showing planetary positions
+- Clickable celestial body symbols
+- Hierarchical navigation (Constellation → Solar System → Location)
+- Telescope functionality for zooming between levels
+
+### Implementation:
+
+1. **Data Model Creation**:
+   - Added `Constellation`, `StarSystem`, and `StarType` models
+   - Created `StarMapZoomLevel` enum for navigation state
+   - Added star map hierarchy state to `GameState`
+
+2. **Visual Components**:
+   - `CelestialBodySymbol`: Clickable symbols for planets, moons, ships, etc.
+   - `OrbitalRing`: Faint circular rings showing orbital paths
+   - `StarSymbol`: Central star with different types (main sequence, red giant, etc.)
+   - Color-coded symbols: Blue planets, gray moons, green ships, yellow stars
+
+3. **View Implementation**:
+   - `SolarSystemView`: Shows individual star system with orbital mechanics
+   - `ConstellationView`: Shows multiple star systems in constellation
+   - `StarMapView`: Main view that switches between hierarchy levels
+   - Maintained fallback to old list view for compatibility
+
+4. **Navigation System**:
+   - `zoomIntoStarSystem()`: Zoom in to see individual solar system
+   - `zoomOutToConstellation()`: Zoom out to see multiple star systems
+   - Telescope button integration for hierarchical navigation
+   - Smooth animations between zoom levels
+
+5. **Taragon Gamma System**:
+   - First 5 locations organized in orbital positions:
+     - Taragam-7 (planet) + Elcinto (moon)
+     - Taragam-3 (ice planet with rings)
+     - Abandoned Starship (derelict vessel)
+     - Repaired Starship (fixed vessel)
+   - Central main sequence star
+   - Orbital rings showing planetary positions
+
+### Technical Details:
+- Used `GeometryReader` for precise positioning
+- Calculated orbital positions using trigonometry
+- Maintained existing location selection functionality
+- Added smooth animations with `withAnimation`
+- Preserved all existing game mechanics
+
+### Status:
+- ✅ **Data Models**: Complete - Hierarchical star map data structure
+- ✅ **Visual Components**: Complete - Symbolic celestial body representations
+- ✅ **Solar System View**: Complete - Orbital mechanics for Taragon Gamma
+- ✅ **Constellation View**: Complete - Multiple star system display
+- ✅ **Zoom Navigation**: Complete - Smooth transitions between levels
+- ✅ **Telescope Integration**: Complete - Hierarchical navigation via telescope
+- ✅ **App Testing**: Complete - Successfully built and launched on iPhone
+- ✅ **Version 2.1.0**: Complete - All changes implemented and tested
+
+---

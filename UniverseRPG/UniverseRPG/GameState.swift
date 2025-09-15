@@ -42,6 +42,55 @@ enum ResourceRarity: String, CaseIterable {
     }
 }
 
+// MARK: - Star Map Hierarchy Models
+struct Constellation: Identifiable {
+    let id: String
+    let name: String
+    let starSystems: [StarSystem]
+}
+
+struct StarSystem: Identifiable {
+    let id: String
+    let name: String
+    let starType: StarType
+    let locations: [Location]
+    let orbitalRadius: Double // For visual positioning
+}
+
+enum StarType: String, CaseIterable {
+    case mainSequence = "Main Sequence"
+    case redGiant = "Red Giant"
+    case whiteDwarf = "White Dwarf"
+    case neutron = "Neutron Star"
+    case blackHole = "Black Hole"
+    
+    var symbol: String {
+        switch self {
+        case .mainSequence: return "sun.max.fill"
+        case .redGiant: return "sun.max"
+        case .whiteDwarf: return "circle.fill"
+        case .neutron: return "circle.dotted"
+        case .blackHole: return "circle.circle.fill"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .mainSequence: return .yellow
+        case .redGiant: return .red
+        case .whiteDwarf: return .white
+        case .neutron: return .blue
+        case .blackHole: return .black
+        }
+    }
+}
+
+// MARK: - Star Map View State
+enum StarMapZoomLevel {
+    case constellation
+    case solarSystem(StarSystem)
+}
+
 // MARK: - Game State
 class GameState: ObservableObject {
     @Published var currentLocation: Location
@@ -152,6 +201,11 @@ class GameState: ObservableObject {
     // Navigation state
     @Published var currentPage: AppPage = .starMap
     @Published var showingLocationList: Bool = false
+    
+    // Star Map hierarchy state
+    @Published var starMapZoomLevel: StarMapZoomLevel = .constellation
+    @Published var constellations: [Constellation] = []
+    @Published var currentStarSystem: StarSystem?
     
     // Idle collection tracking - now uses dynamic chance-based system
     
@@ -274,6 +328,9 @@ class GameState: ObservableObject {
                 unlockRequirements: ["Exotic Matter: 30", "Research Data: 50"]
             )
         ]
+        
+        // Initialize star map hierarchy after locations are populated
+        self.constellations = initializeStarMapHierarchy()
         
         // Initialize construction bays (start with 4 Small bays, 2 Medium bays, 1 Large bay)
         self.constructionBays = [
@@ -1820,6 +1877,65 @@ class GameState: ObservableObject {
                 getAllCardDefinitions().first { $0.id == userCard.cardId }?.cardClass == cardClass
             }
             .reduce(0) { $0 + $1.copies }
+    }
+    
+    // MARK: - Star Map Hierarchy Methods
+    
+    private func initializeStarMapHierarchy() -> [Constellation] {
+        // Create Taragon Gamma system with the first 5 locations
+        let taragonGammaLocations = availableLocations.filter { $0.system == "Taragon Gamma" }
+        
+        let taragonGammaSystem = StarSystem(
+            id: "taragon-gamma",
+            name: "Taragon Gamma",
+            starType: .mainSequence,
+            locations: taragonGammaLocations,
+            orbitalRadius: 200.0
+        )
+        
+        // Create other systems (for future expansion)
+        let taragonBetaSystem = StarSystem(
+            id: "taragon-beta",
+            name: "Taragon Beta",
+            starType: .redGiant,
+            locations: availableLocations.filter { $0.system == "Taragon Beta" },
+            orbitalRadius: 300.0
+        )
+        
+        let violisSystem = StarSystem(
+            id: "violis",
+            name: "Violis",
+            starType: .whiteDwarf,
+            locations: availableLocations.filter { $0.system == "Violis" },
+            orbitalRadius: 150.0
+        )
+        
+        // Create constellation containing all systems
+        let localConstellation = Constellation(
+            id: "local-constellation",
+            name: "Local Constellation",
+            starSystems: [taragonGammaSystem, taragonBetaSystem, violisSystem]
+        )
+        
+        return [localConstellation]
+    }
+    
+    func zoomIntoStarSystem(_ starSystem: StarSystem) {
+        withAnimation(.easeInOut(duration: 0.5)) {
+            starMapZoomLevel = .solarSystem(starSystem)
+            currentStarSystem = starSystem
+        }
+    }
+    
+    func zoomOutToConstellation() {
+        withAnimation(.easeInOut(duration: 0.5)) {
+            starMapZoomLevel = .constellation
+            currentStarSystem = nil
+        }
+    }
+    
+    func getCurrentConstellation() -> Constellation? {
+        return constellations.first
     }
 }
 
