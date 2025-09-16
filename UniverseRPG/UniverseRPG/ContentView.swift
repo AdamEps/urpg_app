@@ -3862,6 +3862,8 @@ struct SolarSystemView: View {
                         Button(action: {
                             if gameState.isTelescopeUnlocked() {
                                 gameState.zoomOutToConstellation()
+                            } else {
+                                gameState.showTelescopeLockedMessage()
                             }
                         }) {
                             Text("🔭")
@@ -3872,11 +3874,13 @@ struct SolarSystemView: View {
                         .padding(.leading)
                         .opacity(gameState.isTelescopeUnlocked() ? 1.0 : 0.5)
                         
-                        if !gameState.isTelescopeUnlocked() {
+                        if gameState.showTelescopeLockedMessage {
                             Text("Unlock Conditions Not Met")
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.red)
                                 .padding(.leading, 8)
+                                .transition(.opacity)
+                                .animation(.easeInOut(duration: 0.3), value: gameState.showTelescopeLockedMessage)
                         }
                         
                         Spacer()
@@ -5839,6 +5843,21 @@ struct BlueprintCardView: View {
 struct StarMapSlotsView: View {
     @ObservedObject var gameState: GameState
     
+    private func getLockedLocationName(_ location: Location) -> String {
+        switch location.name {
+        case "Elcinto":
+            return "Un-named Moon"
+        case "Taragam-3":
+            return "Un-named Planet"
+        case "Targon Gamma":
+            return "Un-named Star"
+        case "Abandoned Starship":
+            return "Unidentifed Object"
+        default:
+            return "Undiscovered Location"
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 8) {
             // Location popup content
@@ -5848,7 +5867,7 @@ struct StarMapSlotsView: View {
                 HStack {
                     // Left side - Location info
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(isUnlocked ? selectedLocation.name : "Undiscovered Location")
+                        Text(isUnlocked ? selectedLocation.name : getLockedLocationName(selectedLocation))
                             .font(.title2)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
@@ -5871,7 +5890,7 @@ struct StarMapSlotsView: View {
                         gameState.showStarMapSlots = false
                     }) {
                         Text(isUnlocked ? (selectedLocation.id == gameState.currentLocation.id ? "Return Here" : "Go") : "Unlock Conditions Not Met")
-                            .font(.headline)
+                            .font(isUnlocked ? .headline : .caption2)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
                             .padding(.horizontal, 24)

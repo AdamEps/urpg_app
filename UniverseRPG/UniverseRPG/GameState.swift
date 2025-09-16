@@ -1549,6 +1549,7 @@ class GameState: ObservableObject {
     @Published var devToolBuildableWithoutIngredients = false
     @Published var devToolUnlockAllLocations = false
     @Published var showStarMapDevToolsDropdown = false
+    @Published var showTelescopeLockedMessage = false
     
     func unlockAllConstructionBays() {
         for i in 0..<constructionBays.count {
@@ -1700,6 +1701,14 @@ class GameState: ObservableObject {
     func isTelescopeUnlocked() -> Bool {
         // Telescope is unlocked if all locations are unlocked OR if we're not in Taragon Gamma system
         return devToolUnlockAllLocations || currentLocation.system != "Taragon Gamma"
+    }
+    
+    func showTelescopeLockedMessage() {
+        showTelescopeLockedMessage = true
+        // Hide the message after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.showTelescopeLockedMessage = false
+        }
     }
     
     func getModifiedDropTable() -> [(ResourceType, Double)] {

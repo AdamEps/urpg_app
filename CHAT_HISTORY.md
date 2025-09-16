@@ -550,9 +550,15 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 ### Location Unlocking System (v2.0.19):
 - **Location Locking**: All locations except Taragam-7 are now temporarily greyed out and locked
 - **Visual Feedback**: Locked locations show in grayscale with reduced opacity (50%)
-- **Undiscovered Popup**: Clicking locked locations shows "Undiscovered Location" with "Details Unknown" and "Unlock Conditions Not Met" button
+- **Custom Locked Names**: Locked locations show specific names:
+  - Elcinto → "Un-named Moon"
+  - Taragam-3 → "Un-named Planet" 
+  - Targon Gamma → "Un-named Star"
+  - Abandoned Starship → "Unidentifed Object"
+- **Undiscovered Popup**: Clicking locked locations shows custom popup with "Details Unknown" and "Unlock Conditions Not Met" button
+- **Smaller Button Text**: "Unlock Conditions Not Met" button text uses smaller font (.caption2)
 - **Telescope Locking**: Telescope button in Taragon Gamma system is greyed out when locations are locked
-- **Telescope Message**: Shows "Unlock Conditions Not Met" message next to locked telescope button
+- **Temporary Telescope Message**: Clicking locked telescope shows "Unlock Conditions Not Met" message for 2 seconds then disappears
 - **Dev Tool Integration**: Added red DEV button to star map (opposite side from telescope)
 - **Unlock Toggle**: Dev tool dropdown includes "Unlock All Locations" toggle switch
 - **Full Unlock**: Toggle unlocks all locations and telescope, restoring normal game appearance
