@@ -551,9 +551,9 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 - **Location Locking**: All locations except Taragam-7 are now temporarily greyed out and locked
 - **Visual Feedback**: Locked locations show in grayscale with reduced opacity (50%)
 - **Custom Locked Names**: Locked locations show specific names:
-  - Elcinto → "Un-named Moon"
-  - Taragam-3 → "Un-named Planet" 
-  - Targon Gamma → "Un-named Star"
+  - Elcinto → "Unlisted Moon"
+  - Taragam-3 → "Unlisted Planet" 
+  - Targon Gamma → "Unlisted Star"
   - Abandoned Starship → "Unidentifed Object"
 - **Undiscovered Popup**: Clicking locked locations shows custom popup with "Details Unknown" and "Unlock Conditions Not Met" button
 - **Smaller Button Text**: "Unlock Conditions Not Met" button text uses smaller font (.caption2)

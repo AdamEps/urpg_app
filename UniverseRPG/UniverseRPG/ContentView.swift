@@ -5849,7 +5849,7 @@ struct StarMapSlotsView: View {
             return "Unlisted Moon"
         case "Taragam-3":
             return "Unlisted Planet"
-        case "Targon Gamma":
+        case "Taragon Gamma":
             return "Unlisted Star"
         case "Abandoned Starship":
             return "Unidentifed Object"
