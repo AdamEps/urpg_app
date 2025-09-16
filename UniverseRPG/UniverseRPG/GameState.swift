@@ -871,10 +871,6 @@ class GameState: ObservableObject {
         }
     }
     
-    private func isLocationUnlocked(_ location: Location) -> Bool {
-        // For now, all locations are unlocked
-        return true
-    }
     
     private func canUnlockLocation(_ location: Location) -> Bool {
         // Check if player has enough resources to unlock location
