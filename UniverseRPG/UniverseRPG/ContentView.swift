@@ -428,10 +428,10 @@ struct TopBarView: View {
                 )
                 
                 Button(action: {
-                    gameState.currentPage = .statistics
+                    gameState.toggleStatisticsPage()
                 }) {
                     Image(systemName: "target")
-                        .foregroundColor(.white)
+                        .foregroundColor(gameState.currentPage == .statistics ? .blue : .white)
                 }
                 
                 Spacer()
@@ -1961,8 +1961,12 @@ struct BottomNavigationView: View {
                     // Go to location view from these pages only
                     gameState.currentPage = .location
                     gameState.starMapViaTelescope = false
+                } else if gameState.currentPage == .blueprints {
+                    // Go to star map from blueprints page
+                    gameState.currentPage = .starMap
+                    gameState.starMapViaTelescope = false
                 }
-                // Do nothing for other pages (like location, blueprints)
+                // Do nothing for other pages (like location)
             }) {
                 Image(systemName: "globe")
                     .font(.title2)
@@ -4602,7 +4606,7 @@ struct StatisticsAndObjectivesView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 8) {
                 // Segmented Button for Objectives/Statistics
                 SegmentedButtonView(
                     labels: ["Objectives", "Statistics"],

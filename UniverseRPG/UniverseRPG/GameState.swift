@@ -136,6 +136,7 @@ class GameState: ObservableObject {
         self.availableLocations = fresh.availableLocations
         self.ownedCards = fresh.ownedCards
         self.currentPage = fresh.currentPage
+        self.previousPage = fresh.previousPage
         self.showingLocationList = fresh.showingLocationList
         self.starMapViaTelescope = fresh.starMapViaTelescope
         self.currentLocationTapCount = fresh.currentLocationTapCount
@@ -204,6 +205,7 @@ class GameState: ObservableObject {
     
     // Navigation state
     @Published var currentPage: AppPage = .starMap
+    @Published var previousPage: AppPage = .starMap
     @Published var showingLocationList: Bool = false
     @Published var starMapViaTelescope: Bool = false
     
@@ -788,8 +790,22 @@ class GameState: ObservableObject {
         
         constructionBays[bayIndex].currentConstruction = construction
         
+        // Navigate to construction page to show the new construction
+        currentPage = .construction
+        
         // Trigger auto-save
         gameStateManager?.triggerAutoSave()
+    }
+    
+    func toggleStatisticsPage() {
+        if currentPage == .statistics {
+            // If we're on statistics page, go back to previous page
+            currentPage = previousPage
+        } else {
+            // If we're on any other page, remember current page and go to statistics
+            previousPage = currentPage
+            currentPage = .statistics
+        }
     }
     
     func canAffordConstruction(blueprint: ConstructionBlueprint) -> Bool {
