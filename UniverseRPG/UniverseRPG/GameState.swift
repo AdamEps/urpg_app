@@ -116,6 +116,10 @@ class GameState: ObservableObject {
     @Published var showCardsSlots = false
     @Published var showConstructionSlots = false
     @Published var showStarMapSlots = false
+    
+    // Enhancement slot selection state
+    @Published var selectedSlotIndex: Int? = nil
+    @Published var selectedSlotType: String = "Cards" // "Cards" or "Items"
     @Published var selectedLocationForPopup: Location?
     @Published var resourceSortOption: ResourceSortOption = .alphabetical
     @Published var resourceSortAscending: Bool = true
