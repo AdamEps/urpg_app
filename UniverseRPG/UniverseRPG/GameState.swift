@@ -1703,7 +1703,7 @@ class GameState: ObservableObject {
         return devToolUnlockAllLocations || currentLocation.system != "Taragon Gamma"
     }
     
-    func showTelescopeLockedMessage() {
+    func displayTelescopeLockedMessage() {
         showTelescopeLockedMessage = true
         // Hide the message after 2 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {

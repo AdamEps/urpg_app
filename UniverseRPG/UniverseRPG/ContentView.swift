@@ -3863,7 +3863,7 @@ struct SolarSystemView: View {
                             if gameState.isTelescopeUnlocked() {
                                 gameState.zoomOutToConstellation()
                             } else {
-                                gameState.showTelescopeLockedMessage()
+                                gameState.displayTelescopeLockedMessage()
                             }
                         }) {
                             Text("🔭")
