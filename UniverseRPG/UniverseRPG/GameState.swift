@@ -1551,6 +1551,8 @@ class GameState: ObservableObject {
     @Published var showDevToolsDropdown = false
     @Published var devToolUnlockAllBays = false
     @Published var devToolBuildableWithoutIngredients = false
+    @Published var devToolUnlockAllLocations = false
+    @Published var showStarMapDevToolsDropdown = false
     
     func unlockAllConstructionBays() {
         for i in 0..<constructionBays.count {
@@ -1675,6 +1677,33 @@ class GameState: ObservableObject {
             }
         }
         print("🔧 DEV TOOL - All constructions completed instantly!")
+    }
+    
+    // MARK: - Location Unlocking System
+    
+    func isLocationUnlocked(_ location: Location) -> Bool {
+        // Taragam-7 is always unlocked (starter planet)
+        if location.id == "taragam-7" {
+            return true
+        }
+        
+        // If dev tool is enabled, all locations are unlocked
+        if devToolUnlockAllLocations {
+            return true
+        }
+        
+        // For now, all other locations are locked unless dev tool is enabled
+        return false
+    }
+    
+    func toggleLocationUnlock() {
+        devToolUnlockAllLocations.toggle()
+        print("🔧 DEV TOOL - Toggle location unlock called, new state: \(devToolUnlockAllLocations)")
+    }
+    
+    func isTelescopeUnlocked() -> Bool {
+        // Telescope is unlocked if all locations are unlocked OR if we're not in Taragon Gamma system
+        return devToolUnlockAllLocations || currentLocation.system != "Taragon Gamma"
     }
     
     func getModifiedDropTable() -> [(ResourceType, Double)] {

@@ -547,4 +547,16 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 - **User Experience**: Improved overall navigation flow and user experience
 - **App Icon Update**: Updated to version 2.0.18
 
+### Location Unlocking System (v2.0.19):
+- **Location Locking**: All locations except Taragam-7 are now temporarily greyed out and locked
+- **Visual Feedback**: Locked locations show in grayscale with reduced opacity (50%)
+- **Undiscovered Popup**: Clicking locked locations shows "Undiscovered Location" with "Details Unknown" and "Unlock Conditions Not Met" button
+- **Telescope Locking**: Telescope button in Taragon Gamma system is greyed out when locations are locked
+- **Telescope Message**: Shows "Unlock Conditions Not Met" message next to locked telescope button
+- **Dev Tool Integration**: Added red DEV button to star map (opposite side from telescope)
+- **Unlock Toggle**: Dev tool dropdown includes "Unlock All Locations" toggle switch
+- **Full Unlock**: Toggle unlocks all locations and telescope, restoring normal game appearance
+- **Starter Planet**: Taragam-7 remains always unlocked as the starting location
+- **App Icon Update**: Updated to version 2.0.19
+
 ---

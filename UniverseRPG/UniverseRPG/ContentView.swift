@@ -1946,7 +1946,7 @@ struct BottomNavigationView: View {
             }) {
                 Image(systemName: "hammer.fill")
                     .font(.title2)
-                    .foregroundColor(gameState.currentPage == .construction ? .blue : .white)
+                    .foregroundColor((gameState.currentPage == .construction || gameState.currentPage == .blueprints) ? .blue : .white)
             }
             
             Spacer()
@@ -1970,7 +1970,7 @@ struct BottomNavigationView: View {
             }) {
                 Image(systemName: "globe")
                     .font(.title2)
-                    .foregroundColor(gameState.currentPage == .starMap ? .blue : .white)
+                    .foregroundColor((gameState.currentPage == .starMap || gameState.currentPage == .location) ? .blue : .white)
             }
             
             Spacer()
@@ -3470,8 +3470,18 @@ struct CelestialBodySymbol: View {
     let location: Location
     let isSelected: Bool
     let onTap: () -> Void
+    let gameState: GameState?
+    
+    init(location: Location, isSelected: Bool, onTap: @escaping () -> Void, gameState: GameState? = nil) {
+        self.location = location
+        self.isSelected = isSelected
+        self.onTap = onTap
+        self.gameState = gameState
+    }
     
     var body: some View {
+        let isUnlocked = gameState?.isLocationUnlocked(location) ?? true
+        
         Button(action: onTap) {
             ZStack {
                 // Background circle for better visibility
@@ -3481,21 +3491,22 @@ struct CelestialBodySymbol: View {
                 
                 // Special planet views for specific locations
                 if location.name == "Taragam-7" {
-                    Taragam7PlanetView(isSelected: isSelected)
+                    Taragam7PlanetView(isSelected: isSelected, isUnlocked: isUnlocked)
                 } else if location.name == "Elcinto" {
-                    ElcintoMoonView(isSelected: isSelected)
+                    ElcintoMoonView(isSelected: isSelected, isUnlocked: isUnlocked)
                 } else if location.name == "Taragam-3" {
-                    Taragam3PlanetView(isSelected: isSelected)
+                    Taragam3PlanetView(isSelected: isSelected, isUnlocked: isUnlocked)
                 } else {
                     // Celestial body symbol for other locations
                     Image(systemName: symbolForLocation(location))
                         .font(.title2)
-                        .foregroundColor(colorForLocation(location))
+                        .foregroundColor(isUnlocked ? colorForLocation(location) : .gray)
                         .scaleEffect(isSelected ? 1.2 : 1.0)
                 }
             }
         }
         .buttonStyle(PlainButtonStyle())
+        .opacity(isUnlocked ? 1.0 : 0.5)
     }
     
     private func symbolForLocation(_ location: Location) -> String {
@@ -3525,16 +3536,26 @@ struct CelestialBodySymbol: View {
 
 struct Taragam7PlanetView: View {
     let isSelected: Bool
+    let isUnlocked: Bool
+    
+    init(isSelected: Bool, isUnlocked: Bool = true) {
+        self.isSelected = isSelected
+        self.isUnlocked = isUnlocked
+    }
     
     var body: some View {
         // Main planet body with blue/green gradient
         Circle()
             .fill(
                 RadialGradient(
-                    gradient: Gradient(colors: [
+                    gradient: Gradient(colors: isUnlocked ? [
                         Color.blue.opacity(0.9),
                         Color.cyan.opacity(0.7),
                         Color.green.opacity(0.6)
+                    ] : [
+                        Color.gray.opacity(0.9),
+                        Color.gray.opacity(0.7),
+                        Color.gray.opacity(0.6)
                     ]),
                     center: .topLeading,
                     startRadius: 0,
@@ -3548,16 +3569,26 @@ struct Taragam7PlanetView: View {
 
 struct ElcintoMoonView: View {
     let isSelected: Bool
+    let isUnlocked: Bool
+    
+    init(isSelected: Bool, isUnlocked: Bool = true) {
+        self.isSelected = isSelected
+        self.isUnlocked = isUnlocked
+    }
     
     var body: some View {
         // Main moon body with yellow/brown gradient
         Circle()
             .fill(
                 RadialGradient(
-                    gradient: Gradient(colors: [
+                    gradient: Gradient(colors: isUnlocked ? [
                         Color.yellow.opacity(0.9),
                         Color.orange.opacity(0.7),
                         Color.brown.opacity(0.6)
+                    ] : [
+                        Color.gray.opacity(0.9),
+                        Color.gray.opacity(0.7),
+                        Color.gray.opacity(0.6)
                     ]),
                     center: .topLeading,
                     startRadius: 0,
@@ -3571,12 +3602,18 @@ struct ElcintoMoonView: View {
 
 struct Taragam3PlanetView: View {
     let isSelected: Bool
+    let isUnlocked: Bool
+    
+    init(isSelected: Bool, isUnlocked: Bool = true) {
+        self.isSelected = isSelected
+        self.isUnlocked = isUnlocked
+    }
     
     var body: some View {
         ZStack {
             // Planetary ring
             Circle()
-                .stroke(Color.white.opacity(0.6), lineWidth: 2)
+                .stroke(isUnlocked ? Color.white.opacity(0.6) : Color.gray.opacity(0.6), lineWidth: 2)
                 .frame(width: 32, height: 32)
                 .scaleEffect(isSelected ? 1.2 : 1.0)
             
@@ -3584,10 +3621,14 @@ struct Taragam3PlanetView: View {
             Circle()
                 .fill(
                     RadialGradient(
-                        gradient: Gradient(colors: [
+                        gradient: Gradient(colors: isUnlocked ? [
                             Color.blue.opacity(0.9),
                             Color.cyan.opacity(0.8),
                             Color.white.opacity(0.7)
+                        ] : [
+                            Color.gray.opacity(0.9),
+                            Color.gray.opacity(0.8),
+                            Color.gray.opacity(0.7)
                         ]),
                         center: .topLeading,
                         startRadius: 0,
@@ -3780,7 +3821,8 @@ struct SolarSystemView: View {
                                                 gameState.selectedLocationForPopup = location
                                                 gameState.showStarMapSlots = true
                                             }
-                                        }
+                                        },
+                                        gameState: gameState
                                     )
                                     .position(x: x, y: y)
                                 }
@@ -3804,7 +3846,8 @@ struct SolarSystemView: View {
                                             gameState.selectedLocationForPopup = location
                                             gameState.showStarMapSlots = true
                                         }
-                                    }
+                                    },
+                                    gameState: gameState
                                 )
                                 .position(x: x, y: y)
                             }
@@ -3817,16 +3860,42 @@ struct SolarSystemView: View {
                 VStack {
                     HStack {
                         Button(action: {
-                            gameState.zoomOutToConstellation()
+                            if gameState.isTelescopeUnlocked() {
+                                gameState.zoomOutToConstellation()
+                            }
                         }) {
                             Text("🔭")
                                 .font(.largeTitle)
-                                .foregroundColor(.white)
+                                .foregroundColor(gameState.isTelescopeUnlocked() ? .white : .gray)
                         }
                         .buttonStyle(PlainButtonStyle())
                         .padding(.leading)
+                        .opacity(gameState.isTelescopeUnlocked() ? 1.0 : 0.5)
+                        
+                        if !gameState.isTelescopeUnlocked() {
+                            Text("Unlock Conditions Not Met")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                                .padding(.leading, 8)
+                        }
                         
                         Spacer()
+                        
+                        // Dev tool button (top right)
+                        Button(action: {
+                            gameState.showStarMapDevToolsDropdown.toggle()
+                        }) {
+                            Text("DEV")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.red.opacity(0.8))
+                                .cornerRadius(4)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.trailing)
                     }
                     Spacer()
                 }
@@ -3843,6 +3912,42 @@ struct SolarSystemView: View {
                         .padding(.bottom, 10) // Position just above navigation bar
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
+            }
+            
+            // Dev tools dropdown overlay
+            VStack {
+                HStack {
+                    Spacer()
+                    if gameState.showStarMapDevToolsDropdown {
+                        VStack(alignment: .leading, spacing: 8) {
+                            // Location Unlock Toggle
+                            HStack {
+                                Text("Unlock All Locations")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Toggle("", isOn: Binding(
+                                    get: { gameState.devToolUnlockAllLocations },
+                                    set: { _ in gameState.toggleLocationUnlock() }
+                                ))
+                                .toggleStyle(SwitchToggleStyle(tint: .green))
+                                .scaleEffect(0.8)
+                            }
+                        }
+                        .padding(12)
+                        .background(Color.black.opacity(0.9))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray, lineWidth: 1)
+                        )
+                        .frame(width: 200)
+                        .transition(.opacity.combined(with: .scale))
+                    }
+                }
+                .padding(.top, 60) // Position below the dev button
+                .padding(.trailing, 16)
+                Spacer()
             }
         }
     }
@@ -3946,6 +4051,22 @@ struct ConstellationView: View {
                         .padding(.leading)
                         
                         Spacer()
+                        
+                        // Dev tool button (top right)
+                        Button(action: {
+                            gameState.showStarMapDevToolsDropdown.toggle()
+                        }) {
+                            Text("DEV")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.red.opacity(0.8))
+                                .cornerRadius(4)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.trailing)
                     }
                     Spacer()
                 }
@@ -3962,6 +4083,42 @@ struct ConstellationView: View {
                         .padding(.bottom, 10) // Position just above navigation bar
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
+            }
+            
+            // Dev tools dropdown overlay
+            VStack {
+                HStack {
+                    Spacer()
+                    if gameState.showStarMapDevToolsDropdown {
+                        VStack(alignment: .leading, spacing: 8) {
+                            // Location Unlock Toggle
+                            HStack {
+                                Text("Unlock All Locations")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Toggle("", isOn: Binding(
+                                    get: { gameState.devToolUnlockAllLocations },
+                                    set: { _ in gameState.toggleLocationUnlock() }
+                                ))
+                                .toggleStyle(SwitchToggleStyle(tint: .green))
+                                .scaleEffect(0.8)
+                            }
+                        }
+                        .padding(12)
+                        .background(Color.black.opacity(0.9))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray, lineWidth: 1)
+                        )
+                        .frame(width: 200)
+                        .transition(.opacity.combined(with: .scale))
+                    }
+                }
+                .padding(.top, 60) // Position below the dev button
+                .padding(.trailing, 16)
+                Spacer()
             }
         }
     }
@@ -5686,15 +5843,17 @@ struct StarMapSlotsView: View {
         VStack(spacing: 8) {
             // Location popup content
             if let selectedLocation = gameState.selectedLocationForPopup {
+                let isUnlocked = gameState.isLocationUnlocked(selectedLocation)
+                
                 HStack {
                     // Left side - Location info
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(selectedLocation.name)
+                        Text(isUnlocked ? selectedLocation.name : "Undiscovered Location")
                             .font(.title2)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
                         
-                        Text("\(selectedLocation.system) • \(selectedLocation.kind.rawValue)")
+                        Text(isUnlocked ? "\(selectedLocation.system) • \(selectedLocation.kind.rawValue)" : "Details Unknown")
                             .font(.caption)
                             .foregroundColor(.gray)
                     }
@@ -5703,19 +5862,21 @@ struct StarMapSlotsView: View {
                     
                     // Right side - Button
                     Button(action: {
-                        gameState.changeLocation(to: selectedLocation)
-                        gameState.currentPage = .location
-                        gameState.showingLocationList = false
+                        if isUnlocked {
+                            gameState.changeLocation(to: selectedLocation)
+                            gameState.currentPage = .location
+                            gameState.showingLocationList = false
+                        }
                         gameState.selectedLocationForPopup = nil
                         gameState.showStarMapSlots = false
                     }) {
-                        Text(selectedLocation.id == gameState.currentLocation.id ? "Return Here" : "Go")
+                        Text(isUnlocked ? (selectedLocation.id == gameState.currentLocation.id ? "Return Here" : "Go") : "Unlock Conditions Not Met")
                             .font(.headline)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
                             .padding(.horizontal, 24)
                             .padding(.vertical, 8)
-                            .background(Color.blue)
+                            .background(isUnlocked ? Color.blue : Color.gray)
                             .cornerRadius(8)
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -5774,7 +5935,8 @@ struct MiniStarSystemView: View {
                             CelestialBodySymbol(
                                 location: location,
                                 isSelected: false,
-                                onTap: {}
+                                onTap: {},
+                                gameState: gameState
                             )
                             .scaleEffect(0.3) // Scale down
                             .offset(x: x, y: y)
@@ -5788,7 +5950,8 @@ struct MiniStarSystemView: View {
                             CelestialBodySymbol(
                                 location: location,
                                 isSelected: false,
-                                onTap: {}
+                                onTap: {},
+                                gameState: gameState
                             )
                             .scaleEffect(0.3) // Scale down
                             .offset(x: x, y: y)
