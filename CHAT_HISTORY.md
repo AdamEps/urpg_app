@@ -600,4 +600,15 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 - **Starter Planet**: Taragam-7 remains always unlocked as the starting location
 - **App Icon Update**: Updated to version 2.0.19
 
+### Version 2.0.23 - Enhanced Mini Card Design and Transparent Enhancements Buttons
+- **Mini Card Design**: Completely redesigned with colored borders and black interior
+- **Three-Section Layout**: Title (black), ability text (colored), level (black)
+- **Smart Ability Formatting**: Multi-line ability text with proper line breaks
+- **Color Matching**: Updated card colors to match exact hues from card page
+- **Level Display**: Changed from "T1" to "Lvl.1" format for better readability
+- **Scroll Area Fixes**: Fixed height and positioning issues for proper card visibility
+- **Transparent Buttons**: Made all Enhancements buttons transparent (30% opacity) across all pages
+- **Spacing Improvements**: Added proper padding and spacing for better visual hierarchy
+- **App Icon Update**: Updated to version 2.0.23
+
 ---
