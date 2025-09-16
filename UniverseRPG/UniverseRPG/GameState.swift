@@ -204,8 +204,8 @@ class GameState: ObservableObject {
     @Published var ownedCards: [UserCard] = []
     
     // Navigation state
-    @Published var currentPage: AppPage = .starMap
-    @Published var previousPage: AppPage = .starMap
+    @Published var currentPage: AppPage = .location
+    @Published var previousPage: AppPage = .location
     @Published var showingLocationList: Bool = false
     @Published var starMapViaTelescope: Bool = false
     

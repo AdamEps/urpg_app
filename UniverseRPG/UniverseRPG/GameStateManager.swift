@@ -681,14 +681,8 @@ class GameStateManager: ObservableObject {
         
         // Update navigation
         if let page = AppPage(rawValue: saveData.currentPage) {
-            // If the saved page is .location (which has no bottom nav button), 
-            // set it to .starMap instead so the navigation works properly
-            if page == .location {
-                gameState.currentPage = .starMap
-                gameState.showingLocationList = false
-            } else {
-                gameState.currentPage = page
-            }
+            // Allow .location page to be restored from save data
+            gameState.currentPage = page
         }
         
         // Explicitly trigger UI updates after applying save data
