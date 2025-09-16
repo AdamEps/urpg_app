@@ -4520,13 +4520,100 @@ struct CardSlotView: View {
     }
 }
 
+// MARK: - Segmented Button View
+struct SegmentedButtonView: View {
+    let labels: [String]
+    @Binding var selectedIndex: Int
+    let onSelectionChanged: (Int) -> Void
+    let isUnlocked: [Bool]
+    
+    init(
+        labels: [String],
+        selectedIndex: Binding<Int>,
+        onSelectionChanged: @escaping (Int) -> Void,
+        isUnlocked: [Bool]
+    ) {
+        self.labels = labels
+        self._selectedIndex = selectedIndex
+        self.onSelectionChanged = onSelectionChanged
+        self.isUnlocked = isUnlocked
+    }
+    
+    var body: some View {
+        ZStack {
+            // Background with border
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color.clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(Color.gray, lineWidth: 1)
+                )
+            
+            // Highlighted section background
+            HStack(spacing: 0) {
+                ForEach(0..<labels.count, id: \.self) { index in
+                    if selectedIndex == index {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.white)
+                            .frame(maxWidth: .infinity, maxHeight: 32)
+                    } else {
+                        Rectangle()
+                            .fill(Color.clear)
+                            .frame(maxWidth: .infinity, maxHeight: 32)
+                    }
+                }
+            }
+            
+            // Button text overlay
+            HStack(spacing: 0) {
+                ForEach(0..<labels.count, id: \.self) { index in
+                    let isButtonUnlocked = index < isUnlocked.count ? isUnlocked[index] : true
+                    
+                    Button(action: {
+                        if isButtonUnlocked {
+                            selectedIndex = index
+                            onSelectionChanged(index)
+                        }
+                    }) {
+                        Text(labels[index])
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(
+                                selectedIndex == index ? .black : 
+                                (isButtonUnlocked ? .white : .gray)
+                            )
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 4)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .disabled(!isButtonUnlocked)
+                }
+            }
+        }
+        .frame(height: 32)
+    }
+}
+
 // MARK: - Statistics and Objectives View (Main UI)
 struct StatisticsAndObjectivesView: View {
     @ObservedObject var gameState: GameState
+    @State private var selectedTabIndex = 1 // Default to Statistics (index 1)
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                // Segmented Button for Objectives/Statistics
+                SegmentedButtonView(
+                    labels: ["Objectives", "Statistics"],
+                    selectedIndex: $selectedTabIndex,
+                    onSelectionChanged: { index in
+                        // Handle tab selection if needed
+                    },
+                    isUnlocked: [true, true]
+                )
+                
+                // Show content based on selected tab
+                if selectedTabIndex == 1 { // Statistics tab
                     // Gameplay Section
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Gameplay")
@@ -4850,22 +4937,13 @@ struct StatisticsAndObjectivesView: View {
                             }
                         }
                     }
-                    
-                    // Coming Soon Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Coming Soon")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        
-                        Text("More objectives and achievements will be added in future updates!")
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                    }
-                }
+                } // End of Statistics tab content
+                
+                } // End of main VStack
                 .padding()
-            }
-        }
-    }
+            } // End of ScrollView
+        } // End of body
+    } // End of StatisticsAndObjectivesView struct
 
 // MARK: - Objectives View (Popup - kept for reference)
 struct ObjectivesView: View {
