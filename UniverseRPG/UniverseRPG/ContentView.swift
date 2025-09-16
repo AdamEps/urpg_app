@@ -5846,11 +5846,11 @@ struct StarMapSlotsView: View {
     private func getLockedLocationName(_ location: Location) -> String {
         switch location.name {
         case "Elcinto":
-            return "Un-named Moon"
+            return "Unlisted Moon"
         case "Taragam-3":
-            return "Un-named Planet"
+            return "Unlisted Planet"
         case "Targon Gamma":
-            return "Un-named Star"
+            return "Unlisted Star"
         case "Abandoned Starship":
             return "Unidentifed Object"
         default:

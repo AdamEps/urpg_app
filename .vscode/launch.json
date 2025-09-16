@@ -5,10 +5,19 @@
             "name": "🚀 Launch UniverseRPG on iPhone",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/UniverseRPG/UniverseRPG.xcodeproj",
-            "args": [],
+            "program": "/bin/bash",
+            "args": ["${workspaceFolder}/launch_app.sh"],
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "🚀 Launch UniverseRPG on iPhone",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "name": "🚀 Launch UniverseRPG on Simulator",
+            "type": "lldb",
+            "request": "launch",
+            "program": "/bin/bash",
+            "args": ["${workspaceFolder}/launch_simulator.sh"],
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
         }
