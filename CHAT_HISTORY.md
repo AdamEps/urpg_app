@@ -529,4 +529,13 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 - **Preserved Content**: Maintained exact same content and functionality as original popup
 - **App Icon Update**: Updated to version 2.0.14
 
+### SegmentedButtonView Integration (v2.0.16):
+- **SegmentedButtonView Added**: Added segmented button above 'Gameplay' header with 'Objectives' and 'Statistics' tabs
+- **Padding Optimization**: Removed built-in padding from SegmentedButtonView to use page's existing padding
+- **Content Organization**: All existing statistics content now part of Statistics tab (default selected)
+- **Clean UI**: Removed 'Coming Soon' section at bottom of page
+- **Code Structure**: Fixed struct conformance and missing closing braces
+- **Future Ready**: Segmented button prepared for future Objectives content
+- **App Icon Update**: Updated to version 2.0.16
+
 ---

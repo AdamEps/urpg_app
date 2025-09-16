@@ -4598,6 +4598,7 @@ struct SegmentedButtonView: View {
 struct StatisticsAndObjectivesView: View {
     @ObservedObject var gameState: GameState
     @State private var selectedTabIndex = 1 // Default to Statistics (index 1)
+    @State private var selectedObjectivesTabIndex = 0 // Default to Daily (index 0)
     
     var body: some View {
         ScrollView {
@@ -4613,7 +4614,25 @@ struct StatisticsAndObjectivesView: View {
                 )
                 
                 // Show content based on selected tab
-                if selectedTabIndex == 1 { // Statistics tab
+                if selectedTabIndex == 0 { // Objectives tab
+                    // Second Segmented Button for Objectives subcategories
+                    SegmentedButtonView(
+                        labels: ["Daily", "Seasonal", "∞"],
+                        selectedIndex: $selectedObjectivesTabIndex,
+                        onSelectionChanged: { index in
+                            // Handle objectives subcategory selection if needed
+                        },
+                        isUnlocked: [true, true, true]
+                    )
+                    
+                    // Objectives content will go here
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Objectives Coming Soon")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.secondary)
+                    }
+                } else if selectedTabIndex == 1 { // Statistics tab
                     // Gameplay Section
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Gameplay")
