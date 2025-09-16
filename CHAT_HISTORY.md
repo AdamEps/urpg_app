@@ -6,6 +6,17 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-01-14 - App Restoration and Recovery (Version 2.0.15)
+- **Request**: Restore the app to the previous commit, then recover the lost changes
+- **Solutions Implemented**:
+  - Initially used `git reset --hard c3f566b` to restore to previous commit "2.0.13: Remove location popup header buttons and redesign with horizontal layout"
+  - Used `git reflog` to identify the original commit `ff3bcb1` (v2.0.14: Statistics and Objectives UI Integration)
+  - Successfully recovered all lost changes using `git reset --hard ff3bcb1`
+  - Verified app functionality by building and launching on iPhone
+  - Updated CHAT_HISTORY.md with restoration and recovery details
+  - Prepared for v2.0.15 commit with all features intact
+- **Status**: ✅ Completed - App successfully restored to v2.0.14 with all Statistics and Objectives UI features recovered
+
 ### 2025-09-15 - Star Map Enhancement Slots Implementation
 - **Request**: Add Enhancements popup to star map screens with "Location" instead of "Enhancements"
 - **Solutions Implemented**:
