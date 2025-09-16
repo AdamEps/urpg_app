@@ -204,7 +204,7 @@ struct ContentView: View {
                                 .font(.title2)
                                 .foregroundColor(.white)
                                 .padding(8)
-                                .background(Color.black)
+                                .background(Color.black.opacity(0.3))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
                                         .stroke(Color.gray, lineWidth: 1)
@@ -231,7 +231,7 @@ struct ContentView: View {
                                 .font(.title2)
                                 .foregroundColor(.white)
                                 .padding(8)
-                                .background(Color.black)
+                                .background(Color.black.opacity(0.3))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
                                         .stroke(Color.gray, lineWidth: 1)
@@ -259,7 +259,7 @@ struct ContentView: View {
                                 .font(.title2)
                                 .foregroundColor(.white)
                                 .padding(8)
-                                .background(Color.black)
+                                .background(Color.black.opacity(0.3))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
                                         .stroke(Color.gray, lineWidth: 1)
@@ -286,7 +286,7 @@ struct ContentView: View {
                                 .font(.title2)
                                 .foregroundColor(.white)
                                 .padding(8)
-                                .background(Color.black)
+                                .background(Color.black.opacity(0.3))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
                                         .stroke(Color.gray, lineWidth: 1)
@@ -732,7 +732,7 @@ struct LocationView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black)
+                    .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
                     .padding(.horizontal, 16)
                 }
@@ -795,8 +795,10 @@ struct LocationSlotsView: View {
                                 .padding()
                         }
                     }
+                    .padding(.leading, 2) // Add 2pts to the left
+                    .padding(.vertical, 4) // Add 4pts above and below inside scroll area
                 }
-                .frame(height: 80) // Same height as slots
+                .frame(height: 88) // Perfect height: cards (80) + padding (8) = 88
                 .background(Color.black.opacity(0.4))
                 .cornerRadius(8)
                 
@@ -841,8 +843,13 @@ struct LocationSlotView: View {
     var body: some View {
         Button(action: {
             print("enhancementsLocationSlot\(slotIndex + 1) tapped!")
-            gameState.selectedSlotIndex = slotIndex
-            gameState.selectedSlotType = "Cards" // Default to Cards
+            // If the same slot is clicked again, deselect it
+            if gameState.selectedSlotIndex == slotIndex {
+                gameState.selectedSlotIndex = nil
+            } else {
+                gameState.selectedSlotIndex = slotIndex
+                gameState.selectedSlotType = "Cards" // Default to Cards
+            }
         }) {
             VStack(spacing: 4) {
                 // Slot container
@@ -883,35 +890,58 @@ struct CompactCardView: View {
             print("Selected card: \(userCard.cardId)")
             // TODO: Implement card selection for slot
         }) {
-            VStack(spacing: 2) {
-                // Card container
+            VStack(spacing: 0) {
+                // Card container with colored border and black interior
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(getCardColor().opacity(0.8))
+                    .stroke(getCardColor(), lineWidth: 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.black)
+                    )
                     .frame(width: 60, height: 80)
                     .overlay(
-                        VStack(spacing: 2) {
-                            // Card name (abbreviated)
-                            Text(getAbbreviatedName(getCardName()))
-                                .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
+                        VStack(spacing: 0) {
+                            // Top black area for card name
+                            VStack {
+                                Text(getAbbreviatedName(getCardName()))
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
+                            }
+                            .frame(height: 20)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.black.opacity(0.3))
                             
-                            // Card ability (abbreviated)
-                            Text(getAbbreviatedAbility(getCardAbility()))
-                                .font(.caption2)
-                                .foregroundColor(.white.opacity(0.8))
-                                .multilineTextAlignment(.center)
-                                .lineLimit(3)
+                            // Colored interior area for abilities
+                            VStack(spacing: 1) {
+                                ForEach(getAbilityLines(), id: \.self) { line in
+                                    Text(line)
+                                        .font(.caption2)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.center)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.6)
+                                }
+                            }
+                            .frame(height: 40)
+                            .frame(maxWidth: .infinity)
+                            .background(getCardColor().opacity(0.8))
                             
-                            // Card level
-                            Text("Lv.\(userCard.tier)")
-                                .font(.caption2)
-                                .fontWeight(.medium)
-                                .foregroundColor(.white)
+                            // Bottom black area for level
+                            VStack {
+                                Text("Lvl.\(userCard.tier)")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                            }
+                            .frame(height: 20)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.black.opacity(0.3))
                         }
-                        .padding(4)
                     )
             }
         }
@@ -941,52 +971,101 @@ struct CompactCardView: View {
     
     private func getCardColor() -> Color {
         if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
-            // Use card class to determine color since there's no rarity system
+            // Use exact colors from card page
             switch cardDef.cardClass {
             case .explorer:
                 return .blue
             case .progression:
-                return .green
+                return .purple
             case .constructor:
                 return .orange
             case .collector:
-                return .purple
+                return .green
             case .trader:
                 return .yellow
             case .card:
-                return .gray
+                return .red
             }
         }
         return .gray
     }
     
     private func getAbbreviatedName(_ name: String) -> String {
-        // Create abbreviations for common card names
+        // Create abbreviations for common card names - single line only
         let abbreviations: [String: String] = [
-            "Astro Prospector": "Astro Prosp",
-            "Deep Scan": "Deep Scan",
-            "Resource Efficiency": "Res. Eff.",
-            "Mining Mastery": "Mining Mast",
-            "Exploration Boost": "Expl. Boost",
-            "Lucky Strike": "Lucky Strike",
-            "Rare Finder": "Rare Finder",
-            "XP Collector": "XP Collector"
+            "Astro Prospector": "AP",
+            "Deep Scan": "DS",
+            "Resource Efficiency": "RE",
+            "Mining Mastery": "MM",
+            "Exploration Boost": "EB",
+            "Lucky Strike": "LS",
+            "Rare Finder": "RF",
+            "XP Collector": "XC"
         ]
-        return abbreviations[name] ?? String(name.prefix(8))
+        return abbreviations[name] ?? String(name.prefix(2))
+    }
+    
+    private func getAbilityLines() -> [String] {
+        let cardName = getCardName()
+        let description = getCardAbility().lowercased()
+        
+        // Format abilities as requested with each word on different line
+        if cardName.contains("Astro Prospector") {
+            return ["[+x%]", "Tap", "Yield"]
+        } else if cardName.contains("Deep Scan") {
+            return ["[+x%]", "Rare", "Items"]
+        } else if cardName.contains("Mining Mastery") {
+            return ["[+x%]", "XP", "Gain"]
+        } else if description.contains("yield") && description.contains("tap") {
+            return ["[+x%]", "Tap", "Yield"]
+        } else if description.contains("rare") && description.contains("chance") {
+            return ["[+x%]", "Rare", "Items"]
+        } else if description.contains("xp") {
+            return ["[+x%]", "XP", "Gain"]
+        } else if description.contains("speed") {
+            return ["[+x%]", "Action", "Speed"]
+        } else if description.contains("efficiency") {
+            return ["[+x%]", "Better", "Efficiency"]
+        } else if description.contains("bonus") {
+            return ["[+x%]", "Bonus", "Rewards"]
+        } else {
+            // Fallback to first few words
+            let words = getCardAbility().components(separatedBy: " ")
+            if words.count >= 3 {
+                return ["[+x%]", words[0], words[1]]
+            } else if words.count == 2 {
+                return ["[+x%]", words[0], words[1]]
+            } else {
+                return ["[+x%]", words.first ?? "Ability", ""]
+            }
+        }
     }
     
     private func getAbbreviatedAbility(_ ability: String) -> String {
-        // Abbreviate common ability text
-        let abbreviated = ability
-            .replacingOccurrences(of: "Increases", with: "+")
-            .replacingOccurrences(of: "Decreases", with: "-")
-            .replacingOccurrences(of: "resource collection", with: "res. collect")
-            .replacingOccurrences(of: "construction time", with: "build time")
-            .replacingOccurrences(of: "efficiency", with: "eff.")
-            .replacingOccurrences(of: "by", with: "")
-            .replacingOccurrences(of: "  ", with: " ")
+        // Simplify ability text for compact display
+        let description = ability.lowercased()
         
-        return String(abbreviated.prefix(20))
+        // Extract key information and make it more concise
+        if description.contains("yield") && description.contains("tap") {
+            return "More yield on tap"
+        } else if description.contains("rare") && description.contains("chance") {
+            return "Better rare drops"
+        } else if description.contains("xp") {
+            return "More XP gain"
+        } else if description.contains("speed") {
+            return "Faster actions"
+        } else if description.contains("efficiency") {
+            return "Better efficiency"
+        } else if description.contains("bonus") {
+            return "Bonus rewards"
+        } else {
+            // Fallback to first few words
+            let words = ability.components(separatedBy: " ")
+            if words.count > 3 {
+                return words.prefix(3).joined(separator: " ")
+            }
+            return ability
+        }
     }
 }
 
@@ -1718,7 +1797,7 @@ struct ConstructionView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black)
+                    .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
                     .padding(.horizontal, 16)
                 }
@@ -2422,7 +2501,7 @@ struct ConstructionPageView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black)
+                    .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
                     .padding(.horizontal, 16)
                 }
@@ -3175,7 +3254,7 @@ struct ResourcesPageView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black)
+                    .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
                     .padding(.horizontal, 16)
                 }
@@ -4440,7 +4519,7 @@ struct StarMapView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black)
+                    .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
                     .padding(.horizontal, 16)
                 }
@@ -4502,7 +4581,7 @@ struct ShopView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black)
+                    .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
                     .padding(.horizontal, 16)
                 }
@@ -4619,7 +4698,7 @@ struct CardsView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black)
+                    .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
                     .padding(.horizontal, 16)
                 }
