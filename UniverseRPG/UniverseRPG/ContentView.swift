@@ -713,7 +713,7 @@ struct LocationView: View {
             }
             
             // Enhancement slots overlay - positioned at bottom without affecting layout
-            VStack {
+            VStack(spacing: 0) {
                 Spacer()
                 
                 // Enhancement button - always visible
@@ -741,7 +741,6 @@ struct LocationView: View {
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showLocationSlots {
                     LocationSlotsView(gameState: gameState)
-                        .padding(.bottom, 10) // Position just above navigation bar
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -796,12 +795,10 @@ struct LocationSlotsView: View {
                                 .padding()
                         }
                     }
-                    .padding(.horizontal, 16)
                 }
                 .frame(height: 80) // Same height as slots
                 .background(Color.black.opacity(0.4))
                 .cornerRadius(8)
-                .padding(.horizontal, 20)
                 
                 // Segmented control for Cards/Items
                 Picker("Type", selection: $gameState.selectedSlotType) {
@@ -809,7 +806,6 @@ struct LocationSlotsView: View {
                     Text("Items").tag("Items")
                 }
                 .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal, 20)
             }
             
             // Slots
@@ -819,11 +815,10 @@ struct LocationSlotsView: View {
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 12)
         .background(Color.black.opacity(0.6))
         .cornerRadius(12)
-        .padding(.horizontal, 16)
     }
     
     private func getAvailableCards() -> [UserCard] {
