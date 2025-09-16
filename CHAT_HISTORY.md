@@ -538,4 +538,13 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 - **Future Ready**: Segmented button prepared for future Objectives content
 - **App Icon Update**: Updated to version 2.0.16
 
+### Navigation Improvements (v2.0.18):
+- **StarMap Button Fix**: Fixed starMap button navigation from blueprints page - now properly navigates to star map
+- **Construction Navigation**: Added automatic navigation to construction page when starting construction from blueprints
+- **Statistics Toggle**: Implemented statistics button toggle functionality with previous page tracking
+- **Previous Page Tracking**: Added previousPage property to GameState to remember where user came from
+- **Visual Feedback**: Statistics button now shows blue color when active, white when not
+- **User Experience**: Improved overall navigation flow and user experience
+- **App Icon Update**: Updated to version 2.0.18
+
 ---
