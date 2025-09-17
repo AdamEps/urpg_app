@@ -454,7 +454,7 @@ class GameState: ObservableObject {
     
     private func performIdleResourceCollection() {
         // Idle resource collection: 10% chance every second based on current location's drop table
-        let dropTable = getModifiedDropTable()
+        let dropTable = getIdleDropTable()
         let selectedResource = selectResourceFromDropTable(dropTable)
         
         // Get card multiplier for idle yield (NOT affected by tap yield cards)
@@ -539,7 +539,7 @@ class GameState: ObservableObject {
     
     func tapLocation() {
         // Active tapping mechanic - gives immediate resources based on drop table percentages
-        let dropTable = getLocationDropTable()
+        let dropTable = getModifiedDropTable()
         let selectedResource = selectResourceFromDropTable(dropTable)
         
         // Get card multiplier for tap yield
@@ -1524,7 +1524,7 @@ class GameState: ObservableObject {
     // MARK: - Resource Rarity System
     
     func getResourceRarity(for resourceType: ResourceType) -> ResourceRarity {
-        let dropTable = getLocationDropTable()
+        let dropTable = getModifiedDropTable()
         
         // Find the resource in the drop table
         guard dropTable.contains(where: { $0.0 == resourceType }) else {
@@ -1553,7 +1553,7 @@ class GameState: ObservableObject {
     }
     
     func getResourcesByRarity(_ rarity: ResourceRarity) -> [ResourceType] {
-        let dropTable = getLocationDropTable()
+        let dropTable = getModifiedDropTable()
         let sortedResources = dropTable.sorted { $0.1 > $1.1 }
         
         switch rarity {
@@ -1737,8 +1737,12 @@ class GameState: ObservableObject {
     func getModifiedDropTable() -> [(ResourceType, Double)] {
         let baseDropTable = getLocationDropTable()
         
-        // Check if Deep Scan card is active and get its level
-        guard let deepScanCard = getUserCard(for: "deep-scan"),
+        // Check if Deep Scan card is slotted on the Location page
+        let equippedLocationCards = getEquippedCardsForPage("Location").compactMap { $0 }
+        
+        // Find Deep Scan card among slotted cards
+        guard let deepScanCardId = equippedLocationCards.first(where: { $0 == "deep-scan" }),
+              let deepScanCard = getUserCard(for: deepScanCardId),
               let cardDef = getAllCardDefinitions().first(where: { $0.id == "deep-scan" }) else {
             return baseDropTable
         }
@@ -1746,9 +1750,10 @@ class GameState: ObservableObject {
         let tierIndex = deepScanCard.tier - 1
         let rareBiasPerLevel = cardDef.tiers[tierIndex].value
         
-        // Get resources by rarity
-        let commonResources = getResourcesByRarity(.common)
-        let rareResources = getResourcesByRarity(.rare)
+        // Get the 3 rare resources (last 3 in the drop table)
+        let rareResources = Array(baseDropTable.suffix(3).map { $0.0 })
+        // Get the 4 common resources (first 4 in the drop table)
+        let commonResources = Array(baseDropTable.prefix(4).map { $0.0 })
         
         // Calculate total rare bias (3 rare resources × bias per level)
         let totalRareBias = rareBiasPerLevel * 3.0
@@ -1768,20 +1773,17 @@ class GameState: ObservableObject {
                 let reductionPerCommon = totalRareBias / 4.0
                 newPercentage = max(0, newPercentage - reductionPerCommon)
             }
+            // Uncommon resources (middle 3) remain unchanged
             
             modifiedTable.append((resourceType, newPercentage))
         }
         
-        // Normalize to ensure total is 100%
-        let totalPercentage = modifiedTable.reduce(0) { $0 + $1.1 }
-        if totalPercentage > 0 {
-            let normalizationFactor = 100.0 / totalPercentage
-            modifiedTable = modifiedTable.map { (resource, percentage) in
-                (resource, percentage * normalizationFactor)
-            }
-        }
-        
         return modifiedTable
+    }
+    
+    func getIdleDropTable() -> [(ResourceType, Double)] {
+        // Idle collection always uses base drop table (no card modifications)
+        return getLocationDropTable()
     }
     
     // MARK: - Card System Functions

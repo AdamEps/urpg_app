@@ -1537,40 +1537,63 @@ struct LocationResourceListView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            // Available Resources Section
-            VStack(alignment: .leading, spacing: 2) {
+            // Header with Tap/Idle columns
+            HStack {
                 Text("Available Resources")
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.white)
-                    .padding(.bottom, 2)
                 
-                ForEach(gameState.getLocationDropTable(), id: \.0) { resourceType, percentage in
-                    HStack(spacing: 2) {
-                        // Resource icon
-                        Image(systemName: getResourceIcon(for: resourceType))
-                            .foregroundColor(getResourceColor(for: resourceType))
-                            .frame(width: 16)
-                            .font(.caption)
-                        
-                        // Resource name
-                        Text(resourceType.rawValue)
-                            .font(.caption2)
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                        
-                        // Percentage
-                        Text("\(Int(percentage))%")
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                    }
-                    .padding(.vertical, 1)
+                Spacer()
+                
+                Text("Tap")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .frame(width: 60, alignment: .center)
+                
+                Text("Idle (10%/sec)")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .frame(width: 60, alignment: .center)
+            }
+            .padding(.bottom, 2)
+            
+            // Resource rows with Tap/Idle columns
+            ForEach(gameState.getModifiedDropTable(), id: \.0) { resourceType, percentage in
+                HStack(spacing: 2) {
+                    // Resource icon
+                    Image(systemName: getResourceIcon(for: resourceType))
+                        .foregroundColor(getResourceColor(for: resourceType))
+                        .frame(width: 16)
+                        .font(.caption)
+                    
+                    // Resource name
+                    Text(resourceType.rawValue)
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    // Tap percentage
+                    Text("\(String(format: "%.1f", percentage))%")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .frame(width: 60, alignment: .center)
+                    
+                    // Idle percentage (always 0% for resources)
+                    Text("0.0%")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.gray)
+                        .frame(width: 60, alignment: .center)
                 }
+                .padding(.vertical, 1)
             }
             
-            // Additional Chances Section (Tap-based)
+            // Additional Chances Section
             VStack(alignment: .leading, spacing: 2) {
                 Text("Additional Chances")
                     .font(.caption)
@@ -1591,6 +1614,7 @@ struct LocationResourceListView: View {
                     
                     Spacer()
                     
+                    // Tap Numins
                     let numinsRange = gameState.getCurrentTapNuminsRange()
                     let numinsChance = gameState.getCurrentTapNuminsChance()
                     let numinsChanceText = numinsChance < 1.0 ? String(format: "%.1f", numinsChance) : "\(Int(numinsChance))"
@@ -1598,10 +1622,21 @@ struct LocationResourceListView: View {
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
+                        .frame(width: 60, alignment: .center)
+                    
+                    // Idle Numins
+                    let idleNuminsRange = gameState.getCurrentIdleNuminsRange()
+                    let idleNuminsChance = gameState.getCurrentIdleNuminsChance()
+                    let idleNuminsChanceText = idleNuminsChance < 1.0 ? String(format: "%.1f", idleNuminsChance) : "\(Int(idleNuminsChance))"
+                    Text("\(idleNuminsChanceText)% (\(idleNuminsRange.min)-\(idleNuminsRange.max))")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .frame(width: 60, alignment: .center)
                 }
                 .padding(.vertical, 1)
                 
-                // XP chance
+                // XP chance (Tap only)
                 HStack(spacing: 2) {
                     Image(systemName: "star.circle.fill")
                         .foregroundColor(.blue)
@@ -1614,16 +1649,25 @@ struct LocationResourceListView: View {
                     
                     Spacer()
                     
+                    // Tap XP
                     let xpChance = gameState.getCurrentTapXPChance()
                     let xpChanceText = xpChance < 1.0 ? String(format: "%.1f", xpChance) : "\(Int(xpChance))"
                     Text("\(xpChanceText)% (\(gameState.getCurrentTapXPAmount()))")
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
+                        .frame(width: 60, alignment: .center)
+                    
+                    // Idle XP (0%)
+                    Text("0.0%")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.gray)
+                        .frame(width: 60, alignment: .center)
                 }
                 .padding(.vertical, 1)
                 
-                // Cards chance (only for Taragam-7)
+                // Cards chance (Tap only, only for Taragam-7)
                 if gameState.currentLocation.id == "taragam-7" {
                     HStack(spacing: 2) {
                         Image(systemName: "rectangle.stack.fill")
@@ -1637,6 +1681,7 @@ struct LocationResourceListView: View {
                         
                         Spacer()
                         
+                        // Tap Cards
                         let cardAbbrevs = gameState.getLocationCardAbbreviations()
                         let cardChance = gameState.getCurrentTapCardChance()
                         let cardChanceText = cardChance < 1.0 ? String(format: "%.1f", cardChance) : "\(Int(cardChance))"
@@ -1644,66 +1689,22 @@ struct LocationResourceListView: View {
                             .font(.caption2)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
+                            .frame(width: 60, alignment: .center)
+                        
+                        // Idle Cards (0%)
+                        Text("0.0%")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.gray)
+                            .frame(width: 60, alignment: .center)
                     }
                     .padding(.vertical, 1)
                 }
             }
             
-            // Idle Chances Section
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Idle Chances")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.green)
-                    .padding(.top, 4)
-                
-                // Idle resources chance
-                HStack(spacing: 2) {
-                    Image(systemName: "clock.fill")
-                        .foregroundColor(.green)
-                        .frame(width: 16)
-                        .font(.caption)
-                    
-                    Text("Resources")
-                        .font(.caption2)
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    let idleResourceChance = gameState.getCurrentIdleResourceChance()
-                    let idleResourceChanceText = idleResourceChance < 1.0 ? String(format: "%.1f", idleResourceChance) : "\(Int(idleResourceChance))"
-                    Text("\(idleResourceChanceText)%/sec")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                }
-                .padding(.vertical, 1)
-                
-                // Idle Numins chance
-                HStack(spacing: 2) {
-                    Image(systemName: "star.circle")
-                        .foregroundColor(.yellow)
-                        .frame(width: 16)
-                        .font(.caption)
-                    
-                    Text("Numins")
-                        .font(.caption2)
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    let idleNuminsRange = gameState.getCurrentIdleNuminsRange()
-                    let idleNuminsChance = gameState.getCurrentIdleNuminsChance()
-                    let idleNuminsChanceText = idleNuminsChance < 1.0 ? String(format: "%.1f", idleNuminsChance) : "\(Int(idleNuminsChance))"
-                    Text("\(idleNuminsChanceText)%/sec (\(idleNuminsRange.min)-\(idleNuminsRange.max))")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                }
-                .padding(.vertical, 1)
-            }
         }
-        .padding(8)
+        .padding(12)
+        .frame(minWidth: 280)
         .background(Color.black)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
