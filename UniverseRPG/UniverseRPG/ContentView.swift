@@ -187,61 +187,55 @@ struct ContentView: View {
             }
             
             // Resource pop out positioned above bottom navigation
-            VStack {
-                Spacer()
-                    .allowsHitTesting(false)
-                
-                if gameState.showLocationResources && gameState.currentPage == .location {
-                    HStack(alignment: .bottom, spacing: 0) {
-                        Spacer()
-                            .allowsHitTesting(false)
-                        
-                        // Toggle button on left side of resource box when open
-                        Button(action: {
-                            gameState.showLocationResources.toggle()
-                        }) {
-                            Image(systemName: "chevron.right")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                                .padding(8)
-                                .background(Color.black.opacity(0.3))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color.gray, lineWidth: 1)
-                                )
-                                .cornerRadius(6)
-                        }
-                        
-                        // Resource box
-                        LocationResourceListView(gameState: gameState)
-                            .frame(width: UIScreen.main.bounds.width * 0.5)
+            if gameState.showLocationResources && gameState.currentPage == .location {
+                HStack(spacing: 0) {
+                    Spacer()
+                        .allowsHitTesting(false)
+                    
+                    // Toggle button - right edge glued to left edge of popout
+                    Button(action: {
+                        gameState.showLocationResources.toggle()
+                    }) {
+                        Image(systemName: "chevron.right")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(Color.black.opacity(0.3))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.gray, lineWidth: 1)
+                            )
+                            .cornerRadius(6)
                     }
-                    .padding(.trailing, 0)
-                    .padding(.bottom, 80) // Position well above navigation bar
-                } else if gameState.currentPage == .location {
-                    HStack {
-                        Spacer()
-                            .allowsHitTesting(false)
-                        
-                        // Toggle button on right side of screen when closed
-                        Button(action: {
-                            gameState.showLocationResources.toggle()
-                        }) {
-                            Image(systemName: "chevron.left")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                                .padding(8)
-                                .background(Color.black.opacity(0.3))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color.gray, lineWidth: 1)
-                                )
-                                .cornerRadius(6)
-                        }
-                    }
-                    .padding(.trailing, 0)
-                    .padding(.bottom, 80) // Position well above navigation bar
+                    
+                    // Resource box - compact window with proper boundaries
+                    LocationResourceListView(gameState: gameState)
                 }
+                    .padding(.trailing, 0)
+                    .padding(.bottom, 80) // Position well above navigation bar
+            } else if gameState.currentPage == .location {
+                HStack {
+                    Spacer()
+                        .allowsHitTesting(false)
+                    
+                    // Toggle button on right side of screen when closed
+                    Button(action: {
+                        gameState.showLocationResources.toggle()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(Color.black.opacity(0.3))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.gray, lineWidth: 1)
+                            )
+                            .cornerRadius(6)
+                    }
+                }
+                .padding(.trailing, 0)
+                .padding(.bottom, 80) // Position well above navigation bar
             }
             
             // Tap counter pop out positioned below location name
@@ -1536,175 +1530,124 @@ struct LocationResourceListView: View {
     @ObservedObject var gameState: GameState
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // Header with Tap/Idle columns
-            HStack {
-                Text("Available Resources")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                Text("Tap")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white)
-                    .frame(width: 60, alignment: .center)
-                
-                Text("Idle (10%/sec)")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white)
-                    .frame(width: 60, alignment: .center)
+        VStack(spacing: 0) {
+            // Header row
+            HStack(spacing: 4) {
+                Text("Available Resources").font(.caption).foregroundColor(.white).frame(width: 120, alignment: .leading)
+                Text("Tap").font(.caption).foregroundColor(.white).frame(width: 60, alignment: .center)
+                VStack(spacing: 0) {
+                    Text("Idle").font(.caption).foregroundColor(.white)
+                    Text("(10%/sec)").font(.caption2).foregroundColor(.gray)
+                }.frame(width: 60, alignment: .center)
             }
-            .padding(.bottom, 2)
+            .padding(.horizontal, 16) // Add horizontal padding to match the icon width
             
-            // Resource rows with Tap/Idle columns
+            // Resource rows - completely compact
             ForEach(gameState.getModifiedDropTable(), id: \.0) { resourceType, percentage in
-                HStack(spacing: 2) {
-                    // Resource icon
-                    Image(systemName: getResourceIcon(for: resourceType))
-                        .foregroundColor(getResourceColor(for: resourceType))
-                        .frame(width: 16)
-                        .font(.caption)
-                    
-                    // Resource name
-                    Text(resourceType.rawValue)
-                        .font(.caption2)
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    // Tap percentage
-                    Text("\(String(format: "%.1f", percentage))%")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .frame(width: 60, alignment: .center)
-                    
-                    // Idle percentage (always 0% for resources)
-                    Text("0.0%")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.gray)
-                        .frame(width: 60, alignment: .center)
+                HStack(spacing: 4) {
+                    Image(systemName: getResourceIcon(for: resourceType)).foregroundColor(getResourceColor(for: resourceType)).frame(width: 16).font(.caption)
+                    Text(resourceType.rawValue).font(.caption2).foregroundColor(.white).frame(width: 120, alignment: .leading)
+                    Text("\(String(format: "%.1f", percentage))%").font(.caption2).foregroundColor(.white).frame(width: 60, alignment: .center)
+                    Text("0.0%").font(.caption2).foregroundColor(.gray).frame(width: 60, alignment: .center)
                 }
-                .padding(.vertical, 1)
+                .frame(height: 10)
+                .padding(.horizontal, 16) // Add horizontal padding to match the header
             }
             
-            // Additional Chances Section
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Additional Chances")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.yellow)
-                    .padding(.top, 4)
+            // Additional Chances Section - completely compact
+            VStack(spacing: 0) {
+                Text("Additional Chances").font(.caption).foregroundColor(.yellow).frame(height: 12)
+                    .padding(.horizontal, 16) // Add horizontal padding to match other sections
                 
-                // Numins chance
-                HStack(spacing: 2) {
-                    Image(systemName: "star.circle")
-                        .foregroundColor(.yellow)
-                        .frame(width: 16)
-                        .font(.caption)
-                    
-                    Text("Numins")
-                        .font(.caption2)
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    // Tap Numins
+                // Numins chance - completely compact
+                HStack(spacing: 4) {
+                    Image(systemName: "star.circle").foregroundColor(.yellow).frame(width: 16).font(.caption)
+                    Text("Numins").font(.caption2).foregroundColor(.white).frame(width: 120, alignment: .leading)
                     let numinsRange = gameState.getCurrentTapNuminsRange()
                     let numinsChance = gameState.getCurrentTapNuminsChance()
                     let numinsChanceText = numinsChance < 1.0 ? String(format: "%.1f", numinsChance) : "\(Int(numinsChance))"
-                    Text("\(numinsChanceText)% (\(numinsRange.min)-\(numinsRange.max))")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .frame(width: 60, alignment: .center)
-                    
-                    // Idle Numins
+                    Text("\(numinsChanceText)% (\(numinsRange.min)-\(numinsRange.max))").font(.caption2).foregroundColor(.white).frame(width: 60, alignment: .center)
                     let idleNuminsRange = gameState.getCurrentIdleNuminsRange()
                     let idleNuminsChance = gameState.getCurrentIdleNuminsChance()
                     let idleNuminsChanceText = idleNuminsChance < 1.0 ? String(format: "%.1f", idleNuminsChance) : "\(Int(idleNuminsChance))"
-                    Text("\(idleNuminsChanceText)% (\(idleNuminsRange.min)-\(idleNuminsRange.max))")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .frame(width: 60, alignment: .center)
+                    Text("\(idleNuminsChanceText)% (\(idleNuminsRange.min)-\(idleNuminsRange.max))").font(.caption2).foregroundColor(.white).frame(width: 60, alignment: .center)
                 }
-                .padding(.vertical, 1)
+                .frame(height: 10)
+                .padding(.horizontal, 16) // Add horizontal padding to match other sections
                 
-                // XP chance (Tap only)
-                HStack(spacing: 2) {
-                    Image(systemName: "star.circle.fill")
-                        .foregroundColor(.blue)
-                        .frame(width: 16)
-                        .font(.caption)
-                    
-                    Text("XP")
-                        .font(.caption2)
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    // Tap XP
+                // XP chance - completely compact
+                HStack(spacing: 4) {
+                    Image(systemName: "star.circle.fill").foregroundColor(.blue).frame(width: 16).font(.caption)
+                    Text("XP").font(.caption2).foregroundColor(.white).frame(width: 120, alignment: .leading)
                     let xpChance = gameState.getCurrentTapXPChance()
                     let xpChanceText = xpChance < 1.0 ? String(format: "%.1f", xpChance) : "\(Int(xpChance))"
-                    Text("\(xpChanceText)% (\(gameState.getCurrentTapXPAmount()))")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .frame(width: 60, alignment: .center)
-                    
-                    // Idle XP (0%)
-                    Text("0.0%")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.gray)
-                        .frame(width: 60, alignment: .center)
+                    Text("\(xpChanceText)% (\(gameState.getCurrentTapXPAmount()))").font(.caption2).foregroundColor(.white).frame(width: 60, alignment: .center)
+                    Text("0.0%").font(.caption2).foregroundColor(.gray).frame(width: 60, alignment: .center)
                 }
-                .padding(.vertical, 1)
+                .frame(height: 10)
+                .padding(.horizontal, 16) // Add horizontal padding to match other sections
                 
                 // Cards chance (Tap only, only for Taragam-7)
                 if gameState.currentLocation.id == "taragam-7" {
-                    HStack(spacing: 2) {
-                        Image(systemName: "rectangle.stack.fill")
-                            .foregroundColor(.purple)
-                            .frame(width: 16)
-                            .font(.caption)
+                    VStack(spacing: 0) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "rectangle.stack.fill")
+                                .foregroundColor(.purple)
+                                .frame(width: 16)
+                                .font(.caption)
+                            
+                            Text("Cards")
+                                .font(.caption2)
+                                .foregroundColor(.white)
+                                .frame(width: 120, alignment: .leading)
+                            
+                            // Tap Cards
+                            let cardChance = gameState.getCurrentTapCardChance()
+                            let cardChanceText = cardChance < 1.0 ? String(format: "%.1f", cardChance) : "\(Int(cardChance))"
+                            Text("\(cardChanceText)%")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                                .frame(width: 60, alignment: .center)
+                            
+                            // Idle Cards (0%)
+                            Text("0.0%")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.gray)
+                                .frame(width: 60, alignment: .center)
+                        }
+                        .padding(.vertical, 1)
+                        .padding(.horizontal, 16) // Add horizontal padding to match other sections
                         
-                        Text("Cards")
-                            .font(.caption2)
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                        
-                        // Tap Cards
-                        let cardAbbrevs = gameState.getLocationCardAbbreviations()
-                        let cardChance = gameState.getCurrentTapCardChance()
-                        let cardChanceText = cardChance < 1.0 ? String(format: "%.1f", cardChance) : "\(Int(cardChance))"
-                        Text("\(cardChanceText)% (\(cardAbbrevs.joined(separator: ", ")))")
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .frame(width: 60, alignment: .center)
-                        
-                        // Idle Cards (0%)
-                        Text("0.0%")
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundColor(.gray)
-                            .frame(width: 60, alignment: .center)
+                        // Card abbreviations row
+                        HStack(spacing: 4) {
+                            Image(systemName: "rectangle.stack.fill")
+                                .foregroundColor(.clear) // Invisible icon for alignment
+                                .frame(width: 16)
+                                .font(.caption)
+                            
+                            let cardAbbrevs = gameState.getLocationCardAbbreviations()
+                            Text(cardAbbrevs.joined(separator: ", "))
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                                .frame(width: 120, alignment: .leading)
+                            
+                            // Empty spaces to maintain alignment
+                            Text("")
+                                .frame(width: 60, alignment: .center)
+                            
+                            Text("")
+                                .frame(width: 60, alignment: .center)
+                        }
+                        .padding(.horizontal, 16) // Add horizontal padding to match other sections
                     }
-                    .padding(.vertical, 1)
                 }
             }
             
         }
-        .padding(12)
-        .frame(minWidth: 280)
+        .padding(2)
+        .frame(maxWidth: 280)
         .background(Color.black)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
