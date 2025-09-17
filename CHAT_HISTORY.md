@@ -621,3 +621,33 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 - **App Icon Update**: Updated to version 2.0.23
 
 ---
+
+## 2025-09-17 - Deep Scan Card Implementation (v2.0.26)
+
+### **Deep Scan Card Functionality**
+- **Card Behavior**: +1% boost to each of the 3 rare resources when slotted on Location page
+- **Scope Limitation**: Only affects Tap collection, not Idle collection
+- **Percentage Redistribution**: Common resources reduced proportionally to maintain 100% total
+- **Card Slots**: Only active when slotted, not just owned
+
+### **Available Resources Popup Redesign**
+- **Wider Layout**: Increased popup width to 280px minimum for better readability
+- **Tap/Idle Columns**: Added clear column headers "Tap" and "Idle (10%/sec)"
+- **Decimal Precision**: Shows accurate percentages (e.g., "1.0%" instead of "1%")
+- **Resource Display**: Tap percentages (affected by cards), Idle always 0.0% for resources
+- **Numins Display**: Both Tap and Idle percentages with amounts shown
+- **XP/Cards Display**: Tap only (affected by cards), Idle 0.0%
+
+### **Code Improvements**
+- **Separate Drop Tables**: Created `getIdleDropTable()` for unmodified idle collection
+- **Card Detection**: Fixed to check only slotted cards on Location page
+- **UI Reorganization**: Removed redundant "Idle Chances" section
+- **Idle Rate Display**: Moved to header for better visibility
+
+### **Testing & Verification**
+- **Build Success**: All changes compile and run successfully
+- **Functionality Verified**: Deep Scan card properly modifies Tap percentages
+- **UI Validation**: Popup shows correct Tap/Idle separation
+- **App Icon Update**: Updated to version 2.0.26
+
+---
