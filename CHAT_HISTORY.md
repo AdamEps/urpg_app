@@ -622,6 +622,45 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 
 ---
 
+## 2025-09-17 - Resource Window Empty Space Fix (v2.0.27)
+
+### **Problem Identified**
+- **Issue**: Resource pop-out window had vast empty space at the top, above and below the header
+- **Root Cause**: `Color.clear.frame(width: 16)` invisible spacer was taking up unnecessary space in header row
+- **User Frustration**: Multiple previous attempts had made the issue worse, not better
+
+### **Solution Implemented**
+1. **Removed Color.clear Spacer**: Eliminated the invisible `Color.clear.frame(width: 16)` from header row
+2. **Added Consistent Padding**: Applied 16pt horizontal padding to all sections:
+   - Header row
+   - Resource rows
+   - Additional Chances section  
+   - Cards section (when applicable)
+3. **Fixed HStack Alignment**: Removed `.top` alignment from HStack to allow natural content-based sizing
+4. **Maintained Alignment**: Used consistent 16pt padding to match the icon width that was previously used for alignment
+
+### **Technical Changes**
+- **ContentView.swift**: 
+  - Removed `Color.clear.frame(width: 16)` from header row
+  - Added `.padding(.horizontal, 16)` to all resource window sections
+  - Changed `HStack(alignment: .top, spacing: 0)` to `HStack(spacing: 0)`
+  - Maintained all existing functionality and content
+
+### **Results**
+- ✅ **Empty Space Eliminated**: Resource window now sizes itself based on content only
+- ✅ **Consistent Padding**: All sections have proper 16pt horizontal padding
+- ✅ **Natural Sizing**: Window height determined by content + padding, no artificial constraints
+- ✅ **Proper Alignment**: All elements properly aligned without invisible spacers
+- ✅ **User Satisfaction**: Fixed the frustrating empty space issue that had been problematic
+
+### **Version 2.0.27 Release**
+- **Commit**: Successfully committed all changes with descriptive message
+- **App Icon**: Updated to version 2.0.27 using generate_app_icon.py script
+- **App Testing**: Launched app to verify fix works correctly
+- **Chat History**: Updated with complete session details
+
+---
+
 ## 2025-09-17 - Deep Scan Card Implementation (v2.0.26)
 
 ### **Deep Scan Card Functionality**
