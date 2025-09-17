@@ -799,8 +799,6 @@ struct LocationSlotsView: View {
                     .padding(.vertical, 4) // Add 4pts above and below inside scroll area
                 }
                 .frame(height: 88) // Perfect height: cards (80) + padding (8) = 88
-                .background(Color.black.opacity(0.4))
-                .cornerRadius(8)
                 
                 // Segmented control for Cards/Items
                 Picker("Type", selection: $gameState.selectedSlotType) {
@@ -819,13 +817,21 @@ struct LocationSlotsView: View {
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 12)
-        .background(Color.black.opacity(0.6))
+        .background(Color.black.opacity(0.3))
         .cornerRadius(12)
     }
     
     private func getAvailableCards() -> [UserCard] {
-        // Filter cards to show only explorer/progression class cards that are unlocked
+        // Get all equipped cards for the location page
+        let equippedCards = gameState.getEquippedCardsForPage("Location").compactMap { $0 }
+        
+        // Filter cards to show only explorer/progression class cards that are unlocked and not already equipped
         return gameState.ownedCards.filter { userCard in
+            // Skip if already equipped
+            if equippedCards.contains(userCard.cardId) {
+                return false
+            }
+            
             // Get the card definition to check class
             if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
                 return (cardDef.cardClass == .explorer || cardDef.cardClass == .progression)
@@ -840,34 +846,54 @@ struct LocationSlotView: View {
     @ObservedObject var gameState: GameState
     @State private var isPressed = false
     
+    var equippedCardId: String? {
+        gameState.getEquippedCard(slotIndex: slotIndex, page: "Location")
+    }
+    
     var body: some View {
         Button(action: {
             print("enhancementsLocationSlot\(slotIndex + 1) tapped!")
-            // If the same slot is clicked again, deselect it
-            if gameState.selectedSlotIndex == slotIndex {
-                gameState.selectedSlotIndex = nil
+            
+            if equippedCardId != nil {
+                // If slot has a card, unequip it
+                gameState.unequipCardFromSlot(slotIndex: slotIndex, page: "Location")
             } else {
-                gameState.selectedSlotIndex = slotIndex
-                gameState.selectedSlotType = "Cards" // Default to Cards
+                // If slot is empty, select it for equipping
+                if gameState.selectedSlotIndex == slotIndex {
+                    gameState.selectedSlotIndex = nil
+                } else {
+                    gameState.selectedSlotIndex = slotIndex
+                    gameState.selectedSlotType = "Cards" // Default to Cards
+                }
             }
         }) {
-            VStack(spacing: 4) {
-                // Slot container
-                RoundedRectangle(cornerRadius: 8)
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
                     .stroke(isPressed ? Color.blue : Color.gray.opacity(0.5), lineWidth: 2)
-                    .frame(width: 60, height: 80)
-                    .overlay(
-                        VStack {
-                            Image(systemName: "plus")
-                                .font(.title3)
-                                .foregroundColor(.gray.opacity(0.6))
-                            
-                            Text("Slot \(slotIndex + 1)")
-                                .font(.caption2)
-                                .foregroundColor(.gray.opacity(0.6))
+                .frame(width: 60, height: 80)
+                .overlay(
+                    Group {
+                        if let equippedCardId = equippedCardId {
+                            // Show equipped card as mini card overlay
+                            if let userCard = gameState.getUserCard(for: equippedCardId) {
+                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex)
+                            }
+                        } else {
+                            // Show empty slot
+                            VStack {
+                                Image(systemName: "plus")
+                                    .font(.title3)
+                                    .foregroundColor(.gray.opacity(0.6))
+                                
+                                Text("Slot \(slotIndex + 1)")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray.opacity(0.6))
+                            }
                         }
-                    )
-            }
+                    }
+                )
+        }
         }
         .buttonStyle(PlainButtonStyle())
         .scaleEffect(isPressed ? 0.95 : 1.0)
@@ -879,6 +905,214 @@ struct LocationSlotView: View {
     }
 }
 
+
+// MARK: - Slotted Card View
+struct SlottedCardView: View {
+    let userCard: UserCard
+    @ObservedObject var gameState: GameState
+    let slotIndex: Int
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button(action: {
+            print("Slotted card tapped: \(userCard.cardId)")
+            // Unequip the card from the slot
+            gameState.unequipCardFromSlot(slotIndex: slotIndex, page: "Location")
+        }) {
+            VStack(spacing: 0) {
+                // Card container with colored border and black interior
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(getCardColor(), lineWidth: 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.black)
+                    )
+                    .frame(width: 60, height: 80)
+                    .overlay(
+                        VStack(spacing: 0) {
+                            // Top black area for card name
+                            VStack {
+                                Text(getAbbreviatedName(getCardName()))
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
+                            }
+                            .frame(height: 20)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.black.opacity(0.3))
+                            
+                            // Middle colored area with symbol background and text overlay
+                            ZStack {
+                                // Card symbol as background
+                                Image(systemName: getCardIcon())
+                                    .font(.largeTitle)
+                                    .foregroundColor(getCardColor().opacity(0.3))
+                                
+                                // Ability text overlaid on symbol
+                                VStack(spacing: 1) {
+                                    ForEach(getAbilityLines(), id: \.self) { line in
+                                        Text(line)
+                                            .font(.caption2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.center)
+                                            .lineLimit(1)
+                                            .minimumScaleFactor(0.6)
+                                            .shadow(color: .black, radius: 1)
+                                    }
+                                }
+                            }
+                            .frame(height: 40)
+                            .frame(maxWidth: .infinity)
+                            .background(getCardColor().opacity(0.8))
+                            
+                            // Bottom black area for level/quantity
+                            VStack {
+                                Text("Lvl.\(userCard.tier)")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                            }
+                            .frame(height: 20)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.black.opacity(0.3))
+                        }
+                    )
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
+    }
+    
+    private func getCardName() -> String {
+        if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
+            return cardDef.name
+        }
+        return userCard.cardId
+    }
+    
+    private func getAbbreviatedName(_ name: String) -> String {
+        let abbreviations: [String: String] = [
+            "Astro Prospector": "AP",
+            "Deep Scan": "DS",
+            "Resource Efficiency": "RE",
+            "Mining Mastery": "MM",
+            "Exploration Boost": "EB",
+            "Lucky Strike": "LS",
+            "Rare Finder": "RF",
+            "XP Collector": "XC",
+            "Midas' Touch": "MT"
+        ]
+        return abbreviations[name] ?? String(name.prefix(2))
+    }
+    
+    private func getCardIcon() -> String {
+        switch userCard.cardId {
+        case "astro-prospector":
+            return "telescope.fill"
+        case "deep-scan":
+            return "waveform"
+        default:
+            return getCardClassIcon()
+        }
+    }
+    
+    private func getCardClassIcon() -> String {
+        if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
+            switch cardDef.cardClass {
+            case .explorer: return "telescope"
+            case .constructor: return "hammer"
+            case .collector: return "shippingbox"
+            case .progression: return "chart.line.uptrend.xyaxis"
+            case .trader: return "dollarsign.circle"
+            case .card: return "rectangle.stack"
+            }
+        }
+        return "questionmark"
+    }
+    
+    private func getCardColor() -> Color {
+        if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
+            switch cardDef.cardClass {
+            case .explorer:
+                return Color(red: 0.2, green: 0.4, blue: 0.9) // Matching blue
+            case .progression:
+                return Color(red: 0.6, green: 0.2, blue: 0.8) // Matching purple
+            case .constructor:
+                return .orange
+            case .collector:
+                return .green
+            case .trader:
+                return .yellow
+            case .card:
+                return .red
+            }
+        }
+        return .gray
+    }
+    
+    private func getAbilityLines() -> [String] {
+        let cardName = getCardName()
+        let ability = getCardAbility()
+        let percentage = getCardPercentage()
+        let percentageString = percentage > 0 ? "+\(Int(percentage * 100))%" : "\(Int(percentage * 100))%"
+        
+        // Format abilities as requested with each word on different line
+        if cardName.contains("Astro Prospector") {
+            return [percentageString, "Tap", "Yield"]
+        } else if cardName.contains("Deep Scan") {
+            return [percentageString, "Rare", "Items"]
+        } else if cardName.contains("Mining Mastery") {
+            return [percentageString, "XP", "Gain"]
+        } else if ability.contains("yield") && ability.contains("tap") {
+            return [percentageString, "Tap", "Yield"]
+        } else if ability.contains("rare") && ability.contains("chance") {
+            return [percentageString, "Rare", "Items"]
+        } else if ability.contains("xp") {
+            return [percentageString, "XP", "Gain"]
+        } else if ability.contains("speed") {
+            return [percentageString, "Action", "Speed"]
+        } else if ability.contains("efficiency") {
+            return [percentageString, "Better", "Efficiency"]
+        } else if ability.contains("bonus") {
+            return [percentageString, "Bonus", "Rewards"]
+        } else {
+            // Fallback to first few words
+            let words = ability.components(separatedBy: " ")
+            if words.count >= 3 {
+                return [percentageString, words[0], words[1]]
+            } else if words.count == 2 {
+                return [percentageString, words[0], words[1]]
+            } else {
+                return [percentageString, words.first ?? "Ability", ""]
+            }
+        }
+    }
+    
+    private func getCardAbility() -> String {
+        if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
+            // Use the card's general description since tiers don't have descriptions
+            return cardDef.description
+        }
+        return "Unknown ability"
+    }
+    
+    private func getCardPercentage() -> Double {
+        if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
+            let tierIndex = userCard.tier - 1
+            if tierIndex >= 0 && tierIndex < cardDef.tiers.count {
+                return cardDef.tiers[tierIndex].value
+            }
+        }
+        return 0.0
+    }
+}
+
 // MARK: - Compact Card View
 struct CompactCardView: View {
     let userCard: UserCard
@@ -886,10 +1120,15 @@ struct CompactCardView: View {
     @State private var isPressed = false
     
     var body: some View {
-        Button(action: {
-            print("Selected card: \(userCard.cardId)")
-            // TODO: Implement card selection for slot
-        }) {
+                Button(action: {
+                    print("Selected card: \(userCard.cardId)")
+                    // Equip the card to the selected slot
+                    if let selectedSlotIndex = gameState.selectedSlotIndex {
+                        gameState.equipCardToSlot(cardId: userCard.cardId, slotIndex: selectedSlotIndex, page: "Location")
+                        // Clear the selection to close the popup
+                        gameState.selectedSlotIndex = nil
+                    }
+                }) {
             VStack(spacing: 0) {
                 // Card container with colored border and black interior
                 RoundedRectangle(cornerRadius: 6)
@@ -915,16 +1154,25 @@ struct CompactCardView: View {
                             .frame(maxWidth: .infinity)
                             .background(Color.black.opacity(0.3))
                             
-                            // Colored interior area for abilities
-                            VStack(spacing: 1) {
-                                ForEach(getAbilityLines(), id: \.self) { line in
-                                    Text(line)
-                                        .font(.caption2)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.center)
-                                        .lineLimit(1)
-                                        .minimumScaleFactor(0.6)
+                            // Colored interior area with symbol background and text overlay
+                            ZStack {
+                                // Card symbol as background
+                                Image(systemName: getCardIcon())
+                                    .font(.largeTitle)
+                                    .foregroundColor(getCardColor().opacity(0.3))
+                                
+                                // Ability text overlaid on symbol
+                                VStack(spacing: 1) {
+                                    ForEach(getAbilityLines(), id: \.self) { line in
+                                        Text(line)
+                                            .font(.caption2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.center)
+                                            .lineLimit(1)
+                                            .minimumScaleFactor(0.6)
+                                            .shadow(color: .black, radius: 1)
+                                    }
                                 }
                             }
                             .frame(height: 40)
@@ -990,6 +1238,41 @@ struct CompactCardView: View {
         return .gray
     }
     
+    private func getCardIcon() -> String {
+        switch userCard.cardId {
+        case "astro-prospector":
+            return "telescope.fill"
+        case "deep-scan":
+            return "waveform"
+        default:
+            return getCardClassIcon()
+        }
+    }
+    
+    private func getCardClassIcon() -> String {
+        if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
+            switch cardDef.cardClass {
+            case .explorer: return "telescope"
+            case .constructor: return "hammer"
+            case .collector: return "shippingbox"
+            case .progression: return "chart.line.uptrend.xyaxis"
+            case .trader: return "dollarsign.circle"
+            case .card: return "rectangle.stack"
+            }
+        }
+        return "questionmark"
+    }
+    
+    private func getCardPercentage() -> Double {
+        if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
+            let tierIndex = userCard.tier - 1
+            if tierIndex >= 0 && tierIndex < cardDef.tiers.count {
+                return cardDef.tiers[tierIndex].value
+            }
+        }
+        return 0.0
+    }
+    
     private func getAbbreviatedName(_ name: String) -> String {
         // Create abbreviations for common card names - single line only
         let abbreviations: [String: String] = [
@@ -1000,7 +1283,8 @@ struct CompactCardView: View {
             "Exploration Boost": "EB",
             "Lucky Strike": "LS",
             "Rare Finder": "RF",
-            "XP Collector": "XC"
+            "XP Collector": "XC",
+            "Midas' Touch": "MT"
         ]
         return abbreviations[name] ?? String(name.prefix(2))
     }
@@ -1009,34 +1293,38 @@ struct CompactCardView: View {
         let cardName = getCardName()
         let description = getCardAbility().lowercased()
         
+        // Get the actual percentage value from the card data
+        let percentage = getCardPercentage()
+        let percentageString = "[+\(Int(percentage * 100))%]"
+        
         // Format abilities as requested with each word on different line
         if cardName.contains("Astro Prospector") {
-            return ["[+x%]", "Tap", "Yield"]
+            return [percentageString, "Tap", "Yield"]
         } else if cardName.contains("Deep Scan") {
-            return ["[+x%]", "Rare", "Items"]
+            return [percentageString, "Rare", "Items"]
         } else if cardName.contains("Mining Mastery") {
-            return ["[+x%]", "XP", "Gain"]
+            return [percentageString, "XP", "Gain"]
         } else if description.contains("yield") && description.contains("tap") {
-            return ["[+x%]", "Tap", "Yield"]
+            return [percentageString, "Tap", "Yield"]
         } else if description.contains("rare") && description.contains("chance") {
-            return ["[+x%]", "Rare", "Items"]
+            return [percentageString, "Rare", "Items"]
         } else if description.contains("xp") {
-            return ["[+x%]", "XP", "Gain"]
+            return [percentageString, "XP", "Gain"]
         } else if description.contains("speed") {
-            return ["[+x%]", "Action", "Speed"]
+            return [percentageString, "Action", "Speed"]
         } else if description.contains("efficiency") {
-            return ["[+x%]", "Better", "Efficiency"]
+            return [percentageString, "Better", "Efficiency"]
         } else if description.contains("bonus") {
-            return ["[+x%]", "Bonus", "Rewards"]
+            return [percentageString, "Bonus", "Rewards"]
         } else {
             // Fallback to first few words
             let words = getCardAbility().components(separatedBy: " ")
             if words.count >= 3 {
-                return ["[+x%]", words[0], words[1]]
+                return [percentageString, words[0], words[1]]
             } else if words.count == 2 {
-                return ["[+x%]", words[0], words[1]]
+                return [percentageString, words[0], words[1]]
             } else {
-                return ["[+x%]", words.first ?? "Ability", ""]
+                return [percentageString, words.first ?? "Ability", ""]
             }
         }
     }
@@ -1099,23 +1387,23 @@ struct ResourcesSlotView: View {
             print("enhancementsResourcesSlot\(slotIndex + 1) tapped!")
             // TODO: Implement slot functionality
         }) {
-            VStack(spacing: 4) {
-                // Slot container
-                RoundedRectangle(cornerRadius: 8)
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
                     .stroke(isPressed ? Color.blue : Color.gray.opacity(0.5), lineWidth: 2)
-                    .frame(width: 60, height: 80)
-                    .overlay(
-                        VStack {
-                            Image(systemName: "plus")
-                                .font(.title3)
-                                .foregroundColor(.gray.opacity(0.6))
-                            
-                            Text("Slot \(slotIndex + 1)")
-                                .font(.caption2)
-                                .foregroundColor(.gray.opacity(0.6))
-                        }
-                    )
-            }
+                .frame(width: 60, height: 80)
+                .overlay(
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
+                        
+                        Text("Slot \(slotIndex + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
+                )
+        }
         }
         .buttonStyle(PlainButtonStyle())
         .scaleEffect(isPressed ? 0.95 : 1.0)
@@ -1157,23 +1445,23 @@ struct ShopSlotView: View {
             print("enhancementsShopSlot\(slotIndex + 1) tapped!")
             // TODO: Implement slot functionality
         }) {
-            VStack(spacing: 4) {
-                // Slot container
-                RoundedRectangle(cornerRadius: 8)
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
                     .stroke(isPressed ? Color.blue : Color.gray.opacity(0.5), lineWidth: 2)
-                    .frame(width: 60, height: 80)
-                    .overlay(
-                        VStack {
-                            Image(systemName: "plus")
-                                .font(.title3)
-                                .foregroundColor(.gray.opacity(0.6))
-                            
-                            Text("Slot \(slotIndex + 1)")
-                                .font(.caption2)
-                                .foregroundColor(.gray.opacity(0.6))
-                        }
-                    )
-            }
+                .frame(width: 60, height: 80)
+                .overlay(
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
+                        
+                        Text("Slot \(slotIndex + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
+                )
+        }
         }
         .buttonStyle(PlainButtonStyle())
         .scaleEffect(isPressed ? 0.95 : 1.0)
@@ -1215,23 +1503,23 @@ struct CardsSlotView: View {
             print("enhancementsCardsSlot\(slotIndex + 1) tapped!")
             // TODO: Implement slot functionality
         }) {
-            VStack(spacing: 4) {
-                // Slot container
-                RoundedRectangle(cornerRadius: 8)
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
                     .stroke(isPressed ? Color.blue : Color.gray.opacity(0.5), lineWidth: 2)
-                    .frame(width: 60, height: 80)
-                    .overlay(
-                        VStack {
-                            Image(systemName: "plus")
-                                .font(.title3)
-                                .foregroundColor(.gray.opacity(0.6))
-                            
-                            Text("Slot \(slotIndex + 1)")
-                                .font(.caption2)
-                                .foregroundColor(.gray.opacity(0.6))
-                        }
-                    )
-            }
+                .frame(width: 60, height: 80)
+                .overlay(
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
+                        
+                        Text("Slot \(slotIndex + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
+                )
+        }
         }
         .buttonStyle(PlainButtonStyle())
         .scaleEffect(isPressed ? 0.95 : 1.0)
@@ -1909,23 +2197,23 @@ struct ConstructionSlotView: View {
             print("enhancementsConstructionSlot\(slotIndex + 1) tapped!")
             // TODO: Implement slot functionality
         }) {
-            VStack(spacing: 4) {
-                // Slot container
-                RoundedRectangle(cornerRadius: 8)
+        VStack(spacing: 4) {
+            // Slot container
+            RoundedRectangle(cornerRadius: 8)
                     .stroke(isPressed ? Color.blue : Color.gray.opacity(0.5), lineWidth: 2)
-                    .frame(width: 60, height: 80)
-                    .overlay(
-                        VStack {
-                            Image(systemName: "plus")
-                                .font(.title3)
-                                .foregroundColor(.gray.opacity(0.6))
-                            
-                            Text("Slot \(slotIndex + 1)")
-                                .font(.caption2)
-                                .foregroundColor(.gray.opacity(0.6))
-                        }
-                    )
-            }
+                .frame(width: 60, height: 80)
+                .overlay(
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundColor(.gray.opacity(0.6))
+                        
+                        Text("Slot \(slotIndex + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    }
+                )
+        }
         }
         .buttonStyle(PlainButtonStyle())
         .scaleEffect(isPressed ? 0.95 : 1.0)

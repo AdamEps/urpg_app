@@ -120,6 +120,13 @@ class GameState: ObservableObject {
     // Enhancement slot selection state
     @Published var selectedSlotIndex: Int? = nil
     @Published var selectedSlotType: String = "Cards" // "Cards" or "Items"
+    
+    // Equipped cards state - each page has 4 slots, each slot can hold a card ID
+    @Published var equippedLocationCards: [String?] = [nil, nil, nil, nil] // 4 slots for location page
+    @Published var equippedShopCards: [String?] = [nil, nil, nil, nil] // 4 slots for shop page
+    @Published var equippedCardsCards: [String?] = [nil, nil, nil, nil] // 4 slots for cards page
+    @Published var equippedResourcesCards: [String?] = [nil, nil, nil, nil] // 4 slots for resources page
+    @Published var equippedConstructionCards: [String?] = [nil, nil, nil, nil] // 4 slots for construction page
     @Published var selectedLocationForPopup: Location?
     @Published var resourceSortOption: ResourceSortOption = .alphabetical
     @Published var resourceSortAscending: Bool = true
@@ -530,27 +537,31 @@ class GameState: ObservableObject {
         let dropTable = getLocationDropTable()
         let selectedResource = selectResourceFromDropTable(dropTable)
         
+        // Get card multiplier for tap yield
+        let tapMultiplier = getTapYieldMultiplier()
+        let resourceAmount = tapMultiplier > 1.0 ? Int(tapMultiplier) : 1
+        
         // Check if we can add this resource (storage limit check)
-        guard canAddResource(selectedResource, amount: 1) else {
-            print("Storage full! Cannot collect \(selectedResource.rawValue)")
+        guard canAddResource(selectedResource, amount: resourceAmount) else {
+            print("Storage full! Cannot collect \(resourceAmount) \(selectedResource.rawValue)")
             return
         }
         
-        // Add 1 of the selected resource
+        // Add resources based on card multiplier
         if let existingIndex = resources.firstIndex(where: { $0.type == selectedResource }) {
             // Resource already exists, increment amount
-            resources[existingIndex].amount += 1
-            print("Collected 1 \(selectedResource.rawValue) - Total: \(resources[existingIndex].amount)")
+            resources[existingIndex].amount += Double(resourceAmount)
+            print("Collected \(resourceAmount) \(selectedResource.rawValue) (x\(String(format: "%.1f", tapMultiplier))) - Total: \(resources[existingIndex].amount)")
         } else {
             // Resource doesn't exist, create new entry
             let newResource = Resource(
                 type: selectedResource,
-                amount: 1,
+                amount: Double(resourceAmount),
                 icon: getResourceIcon(for: selectedResource),
                 color: getResourceColor(for: selectedResource)
             )
             resources.append(newResource)
-            print("Collected 1 \(selectedResource.rawValue) - First collection!")
+            print("Collected \(resourceAmount) \(selectedResource.rawValue) (x\(String(format: "%.1f", tapMultiplier))) - First collection!")
         }
         
         // Update tap counters
@@ -592,9 +603,11 @@ class GameState: ObservableObject {
             print("Bonus! Collected \(Int(numinsAmount)) Numins!")
         }
         
-        // Dynamic chance for XP from tapping
+        // Dynamic chance for XP from tapping (with XP multiplier)
         if Double.random(in: 0...100) <= getCurrentTapXPChance() {
-            addXP(getCurrentTapXPAmount())
+            let xpMultiplier = getXPGainMultiplier()
+            let xpAmount = Int(Double(getCurrentTapXPAmount()) * xpMultiplier)
+            addXP(xpAmount)
         }
         
         // Dynamic chance for card collection (only in Taragam-7 for now)
@@ -1671,7 +1684,7 @@ class GameState: ObservableObject {
     
     func completeAllConstructions() {
         for i in 0..<constructionBays.count {
-            if let construction = constructionBays[i].currentConstruction {
+            if constructionBays[i].currentConstruction != nil {
                 // Complete the construction by setting time remaining to 0
                 constructionBays[i].currentConstruction?.timeRemaining = 0
                 constructionBays[i].currentConstruction?.progress = 1.0
@@ -1936,6 +1949,153 @@ class GameState: ObservableObject {
                 getAllCardDefinitions().first { $0.id == userCard.cardId }?.cardClass == cardClass
             }
             .reduce(0) { $0 + $1.copies }
+    }
+    
+    // MARK: - Card Slotting Functions
+    
+    func equipCardToSlot(cardId: String, slotIndex: Int, page: String) {
+        guard slotIndex >= 0 && slotIndex < 4 else { return }
+        
+        switch page {
+        case "Location":
+            equippedLocationCards[slotIndex] = cardId
+        case "Shop":
+            equippedShopCards[slotIndex] = cardId
+        case "Cards":
+            equippedCardsCards[slotIndex] = cardId
+        case "Resources":
+            equippedResourcesCards[slotIndex] = cardId
+        case "Construction":
+            equippedConstructionCards[slotIndex] = cardId
+        default:
+            break
+        }
+        
+        print("Equipped card \(cardId) to \(page) slot \(slotIndex + 1)")
+    }
+    
+    func unequipCardFromSlot(slotIndex: Int, page: String) {
+        guard slotIndex >= 0 && slotIndex < 4 else { return }
+        
+        switch page {
+        case "Location":
+            equippedLocationCards[slotIndex] = nil
+        case "Shop":
+            equippedShopCards[slotIndex] = nil
+        case "Cards":
+            equippedCardsCards[slotIndex] = nil
+        case "Resources":
+            equippedResourcesCards[slotIndex] = nil
+        case "Construction":
+            equippedConstructionCards[slotIndex] = nil
+        default:
+            break
+        }
+        
+        print("Unequipped card from \(page) slot \(slotIndex + 1)")
+    }
+    
+    func getEquippedCard(slotIndex: Int, page: String) -> String? {
+        guard slotIndex >= 0 && slotIndex < 4 else { return nil }
+        
+        switch page {
+        case "Location":
+            return equippedLocationCards[slotIndex]
+        case "Shop":
+            return equippedShopCards[slotIndex]
+        case "Cards":
+            return equippedCardsCards[slotIndex]
+        case "Resources":
+            return equippedResourcesCards[slotIndex]
+        case "Construction":
+            return equippedConstructionCards[slotIndex]
+        default:
+            return nil
+        }
+    }
+    
+    func getEquippedCardsForPage(_ page: String) -> [String?] {
+        switch page {
+        case "Location":
+            return equippedLocationCards
+        case "Shop":
+            return equippedShopCards
+        case "Cards":
+            return equippedCardsCards
+        case "Resources":
+            return equippedResourcesCards
+        case "Construction":
+            return equippedConstructionCards
+        default:
+            return [nil, nil, nil, nil]
+        }
+    }
+    
+    // MARK: - Card Effect Functions
+    
+    func getCardEffectMultiplier(effectKey: String, page: String) -> Double {
+        let equippedCards = getEquippedCardsForPage(page).compactMap { $0 }
+        var totalMultiplier = 0.0
+        
+        for cardId in equippedCards {
+            if let userCard = getUserCard(for: cardId),
+               let cardDef = getAllCardDefinitions().first(where: { $0.id == cardId }),
+               cardDef.effectKey == effectKey {
+                
+                // Get the effect value for the card's current tier
+                let tierIndex = userCard.tier - 1 // Convert to 0-based index
+                if tierIndex >= 0 && tierIndex < cardDef.tiers.count {
+                    totalMultiplier += cardDef.tiers[tierIndex].value
+                }
+            }
+        }
+        
+        return totalMultiplier
+    }
+    
+    func getTapYieldMultiplier() -> Double {
+        // Check all pages that affect tap yield
+        let locationMultiplier = getCardEffectMultiplier(effectKey: "tapYieldMultiplier", page: "Location")
+        let resourcesMultiplier = getCardEffectMultiplier(effectKey: "tapYieldMultiplier", page: "Resources")
+        
+        return 1.0 + locationMultiplier + resourcesMultiplier
+    }
+    
+    func getRareItemBias() -> Double {
+        // Check all pages that affect rare item chances
+        let locationMultiplier = getCardEffectMultiplier(effectKey: "idleRareBias", page: "Location")
+        let resourcesMultiplier = getCardEffectMultiplier(effectKey: "idleRareBias", page: "Resources")
+        
+        return locationMultiplier + resourcesMultiplier
+    }
+    
+    func getXPGainMultiplier() -> Double {
+        // Check all pages for XP gain multipliers
+        let locationMultiplier = getCardEffectMultiplier(effectKey: "xpGainMultiplier", page: "Location")
+        let shopMultiplier = getCardEffectMultiplier(effectKey: "xpGainMultiplier", page: "Shop")
+        let cardsMultiplier = getCardEffectMultiplier(effectKey: "xpGainMultiplier", page: "Cards")
+        let resourcesMultiplier = getCardEffectMultiplier(effectKey: "xpGainMultiplier", page: "Resources")
+        let constructionMultiplier = getCardEffectMultiplier(effectKey: "xpGainMultiplier", page: "Construction")
+        
+        return 1.0 + locationMultiplier + shopMultiplier + cardsMultiplier + resourcesMultiplier + constructionMultiplier
+    }
+    
+    func getBuildTimeMultiplier() -> Double {
+        // Check construction page for build time reduction
+        let constructionMultiplier = getCardEffectMultiplier(effectKey: "buildTimeMultiplier", page: "Construction")
+        
+        return 1.0 + constructionMultiplier // This will be negative, so 1.0 + (-0.1) = 0.9 (10% faster)
+    }
+    
+    func getStorageCapacityBonus() -> Int {
+        // Check all pages for storage capacity bonuses
+        let locationBonus = getCardEffectMultiplier(effectKey: "storageCapBonus", page: "Location")
+        let shopBonus = getCardEffectMultiplier(effectKey: "storageCapBonus", page: "Shop")
+        let cardsBonus = getCardEffectMultiplier(effectKey: "storageCapBonus", page: "Cards")
+        let resourcesBonus = getCardEffectMultiplier(effectKey: "storageCapBonus", page: "Resources")
+        let constructionBonus = getCardEffectMultiplier(effectKey: "storageCapBonus", page: "Construction")
+        
+        return Int(locationBonus + shopBonus + cardsBonus + resourcesBonus + constructionBonus)
     }
     
     // MARK: - Star Map Hierarchy Methods
