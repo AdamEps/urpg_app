@@ -203,6 +203,7 @@ class GameState: ObservableObject {
     
     // Visual feedback
     @Published var lastCollectedResource: ResourceType?
+    @Published var lastCollectedAmount: Int = 1
     @Published var showCollectionFeedback: Bool = false
     @Published var lastIdleCollectedResource: ResourceType?
     @Published var showIdleCollectionFeedback: Bool = false
@@ -456,27 +457,31 @@ class GameState: ObservableObject {
         let dropTable = getModifiedDropTable()
         let selectedResource = selectResourceFromDropTable(dropTable)
         
+        // Get card multiplier for idle yield (NOT affected by tap yield cards)
+        let idleMultiplier = getIdleYieldMultiplier()
+        let resourceAmount = calculateResourceYield(baseAmount: 1, multiplier: idleMultiplier)
+        
         // Check if we can add this resource (storage limit check)
-        guard canAddResource(selectedResource, amount: 1) else {
-            print("Storage full! Cannot idle collect \(selectedResource.rawValue)")
+        guard canAddResource(selectedResource, amount: resourceAmount) else {
+            print("Storage full! Cannot idle collect \(resourceAmount) \(selectedResource.rawValue)")
             return
         }
         
-        // Add 1 of the selected resource (same logic as tapLocation)
+        // Add resources based on card multiplier (same logic as tapLocation)
         if let existingIndex = resources.firstIndex(where: { $0.type == selectedResource }) {
             // Resource already exists, increment amount
-            resources[existingIndex].amount += 1
-            print("Idle collected 1 \(selectedResource.rawValue) - Total: \(resources[existingIndex].amount)")
+            resources[existingIndex].amount += Double(resourceAmount)
+            print("Idle collected \(resourceAmount) \(selectedResource.rawValue) (x\(String(format: "%.1f", idleMultiplier))) - Total: \(resources[existingIndex].amount)")
         } else {
             // Resource doesn't exist, create new entry
             let newResource = Resource(
                 type: selectedResource,
-                amount: 1,
+                amount: Double(resourceAmount),
                 icon: getResourceIcon(for: selectedResource),
                 color: getResourceColor(for: selectedResource)
             )
             resources.append(newResource)
-            print("Idle collected 1 \(selectedResource.rawValue) - First collection!")
+            print("Idle collected \(resourceAmount) \(selectedResource.rawValue) (x\(String(format: "%.1f", idleMultiplier))) - First collection!")
         }
         
         // Update idle collection counters
@@ -539,7 +544,7 @@ class GameState: ObservableObject {
         
         // Get card multiplier for tap yield
         let tapMultiplier = getTapYieldMultiplier()
-        let resourceAmount = tapMultiplier > 1.0 ? Int(tapMultiplier) : 1
+        let resourceAmount = calculateResourceYield(baseAmount: 1, multiplier: tapMultiplier)
         
         // Check if we can add this resource (storage limit check)
         guard canAddResource(selectedResource, amount: resourceAmount) else {
@@ -617,6 +622,7 @@ class GameState: ObservableObject {
         
         // Show visual feedback
         lastCollectedResource = selectedResource
+        lastCollectedAmount = resourceAmount
         showCollectionFeedback = true
         
         // Hide feedback after 2 seconds
@@ -2059,6 +2065,35 @@ class GameState: ObservableObject {
         let resourcesMultiplier = getCardEffectMultiplier(effectKey: "tapYieldMultiplier", page: "Resources")
         
         return 1.0 + locationMultiplier + resourcesMultiplier
+    }
+    
+    func getIdleYieldMultiplier() -> Double {
+        // Idle collection should NOT be affected by tap yield multipliers
+        // Only return base multiplier (1.0) for idle collection
+        return 1.0
+    }
+    
+    func calculateResourceYield(baseAmount: Int, multiplier: Double) -> Int {
+        // multiplier represents the total multiplier (e.g., 1.25 for 25% bonus, 2.0 for 100% bonus, 2.5 for 150% bonus)
+        let bonusMultiplier = multiplier - 1.0 // Convert to bonus percentage (0.25, 1.0, 1.5)
+        
+        if bonusMultiplier <= 0 {
+            return baseAmount
+        }
+        
+        // Calculate guaranteed extra resources
+        let guaranteedExtra = Int(bonusMultiplier)
+        let fractionalPart = bonusMultiplier - Double(guaranteedExtra)
+        
+        // Calculate total guaranteed amount
+        let totalAmount = baseAmount + guaranteedExtra
+        
+        // If there's a fractional part, there's a chance for one more resource
+        if fractionalPart > 0 && Double.random(in: 0...1) < fractionalPart {
+            return totalAmount + 1
+        }
+        
+        return totalAmount
     }
     
     func getRareItemBias() -> Double {

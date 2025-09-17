@@ -608,7 +608,7 @@ struct LocationView: View {
                     // Collection feedback (tap)
                     if gameState.showCollectionFeedback, let resource = gameState.lastCollectedResource {
                         VStack {
-                            Text("+1")
+                            Text("+\(gameState.lastCollectedAmount)")
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(.green)
