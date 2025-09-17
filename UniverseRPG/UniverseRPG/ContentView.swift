@@ -1533,23 +1533,28 @@ struct LocationResourceListView: View {
         VStack(spacing: 0) {
             // Header row - main headers
             HStack(spacing: 4) {
-                Text("Available Resources").font(.caption).foregroundColor(.white).frame(width: 110, alignment: .leading)
+                HStack {
+                    Text("Available Resources").font(.caption).foregroundColor(.white).lineLimit(1)
+                    Spacer()
+                }
+                .frame(width: 120) // Increased from 104 to 120 to account for 16pt shift
                 Text("Tap").font(.caption).foregroundColor(.white).frame(width: 65, alignment: .center)
                 Text("Idle").font(.caption).foregroundColor(.white).frame(width: 65, alignment: .center)
             }
             
             // Rate information row
             HStack(spacing: 4) {
-                Text("").frame(width: 110, alignment: .leading) // Empty space for alignment
+                Text("").frame(width: 120, alignment: .leading) // Empty space for alignment
                 Text("").frame(width: 65, alignment: .center) // Empty space for alignment
                 Text("(10%/sec)").font(.caption2).foregroundColor(.gray).frame(width: 65, alignment: .center)
             }
+            .padding(.leading, 16)
             
             // Resource rows - with breathing room
             ForEach(gameState.getModifiedDropTable(), id: \.0) { resourceType, percentage in
                 HStack(spacing: 4) {
                     Image(systemName: getResourceIcon(for: resourceType)).foregroundColor(getResourceColor(for: resourceType)).frame(width: 16).font(.caption)
-                    Text(resourceType.rawValue).font(.caption2).foregroundColor(.white).frame(width: 110, alignment: .leading)
+                    Text(resourceType.rawValue).font(.caption2).foregroundColor(.white).frame(width: 104, alignment: .leading)
                     Text("\(String(format: "%.1f", percentage))%").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
                     Text("0.0%").font(.caption2).foregroundColor(.gray).frame(width: 65, alignment: .center)
                 }
@@ -1557,15 +1562,21 @@ struct LocationResourceListView: View {
                 .padding(.horizontal, 16) // Add horizontal padding to match the header
             }
             
+            // Break line after resources
+            Divider().background(Color.gray.opacity(0.3)).padding(.vertical, 4)
+            
             // Additional Chances Section - completely compact
             VStack(spacing: 0) {
-                Text("Additional Chances").font(.caption).foregroundColor(.yellow).frame(height: 12)
-                    .padding(.horizontal, 16) // Add horizontal padding to match other sections
+                HStack {
+                    Text("Additional Chances").font(.caption).foregroundColor(.yellow)
+                    Spacer()
+                }
+                .frame(height: 12)
                 
                 // Numins chance - completely compact
                 HStack(spacing: 4) {
                     Image(systemName: "star.circle").foregroundColor(.yellow).frame(width: 16).font(.caption)
-                    Text("Numins").font(.caption2).foregroundColor(.white).frame(width: 110, alignment: .leading)
+                    Text("Numins").font(.caption2).foregroundColor(.white).frame(width: 104, alignment: .leading)
                     let numinsRange = gameState.getCurrentTapNuminsRange()
                     let numinsChance = gameState.getCurrentTapNuminsChance()
                     let numinsChanceText = numinsChance < 1.0 ? String(format: "%.1f", numinsChance) : "\(Int(numinsChance))"
@@ -1576,19 +1587,19 @@ struct LocationResourceListView: View {
                     Text("\(idleNuminsChanceText)% (\(idleNuminsRange.min)-\(idleNuminsRange.max))").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
                 }
                 .frame(height: 16) // Increased from 10 to 16 for better breathing room
-                .padding(.horizontal, 16) // Add horizontal padding to match other sections
+                .padding(.leading, 16) // Add 16pt left padding
                 
                 // XP chance - with breathing room
                 HStack(spacing: 4) {
                     Image(systemName: "star.circle.fill").foregroundColor(.blue).frame(width: 16).font(.caption)
-                    Text("XP").font(.caption2).foregroundColor(.white).frame(width: 110, alignment: .leading)
+                    Text("XP").font(.caption2).foregroundColor(.white).frame(width: 104, alignment: .leading)
                     let xpChance = gameState.getCurrentTapXPChance()
                     let xpChanceText = xpChance < 1.0 ? String(format: "%.1f", xpChance) : "\(Int(xpChance))"
                     Text("\(xpChanceText)% (\(gameState.getCurrentTapXPAmount()))").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
                     Text("0.0%").font(.caption2).foregroundColor(.gray).frame(width: 65, alignment: .center)
                 }
                 .frame(height: 16) // Increased from 10 to 16 for better breathing room
-                .padding(.horizontal, 16) // Add horizontal padding to match other sections
+                .padding(.leading, 16) // Add 16pt left padding
                 
                 // Cards chance (Tap only, only for Taragam-7)
                 if gameState.currentLocation.id == "taragam-7" {
@@ -1602,7 +1613,7 @@ struct LocationResourceListView: View {
                             Text("Cards")
                                 .font(.caption2)
                                 .foregroundColor(.white)
-                                .frame(width: 110, alignment: .leading)
+                                .frame(width: 104, alignment: .leading)
                             
                             // Tap Cards
                             let cardChance = gameState.getCurrentTapCardChance()
@@ -1621,7 +1632,7 @@ struct LocationResourceListView: View {
                                 .frame(width: 65, alignment: .center)
                         }
                         .frame(height: 16) // Increased height for better breathing room
-                        .padding(.horizontal, 16) // Add horizontal padding to match other sections
+                        .padding(.leading, 16) // Add 16pt left padding
                         
                         // Card abbreviations row
                         HStack(spacing: 4) {
@@ -1634,7 +1645,7 @@ struct LocationResourceListView: View {
                             Text(cardAbbrevs.joined(separator: ", "))
                                 .font(.caption2)
                                 .foregroundColor(.gray)
-                                .frame(width: 110, alignment: .leading)
+                                .frame(width: 104, alignment: .leading)
                             
                             // Empty spaces to maintain alignment
                             Text("")
@@ -1644,7 +1655,7 @@ struct LocationResourceListView: View {
                                 .frame(width: 65, alignment: .center)
                         }
                         .frame(height: 16) // Increased height for better breathing room
-                        .padding(.horizontal, 16) // Add horizontal padding to match other sections
+                        .padding(.leading, 16) // Add 16pt left padding
                     }
                 }
             }
