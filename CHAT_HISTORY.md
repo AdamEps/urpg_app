@@ -6,6 +6,31 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-18 - Complete Enhancements Popup System Implementation (Version 2.0.36)
+- **Request**: 
+  1. Fix card name abbreviations to use proper initials (e.g., Materials Engineer -> ME)
+  2. Initialize card equipping functionality for Shop, Construction, Resources, and Cards pages
+- **Solutions Implemented**:
+  - **Card Abbreviation Fix**: Updated both `getAbbreviatedName` functions in SlottedCardView and CompactCardView to create proper initials from each word instead of using hardcoded dictionary
+  - **Dynamic Page Parameter**: Modified CompactCardView to accept a `page` parameter for proper card equipping
+  - **Complete Page Implementation**: Updated all 5 pages with full enhancement popup functionality:
+    * **Location**: Explorer + Progression cards (already working)
+    * **Resources**: Collector + Progression cards
+    * **Shop**: Trader + Progression cards  
+    * **Cards**: Card + Progression cards
+    * **Construction**: Constructor + Progression cards
+  - **Card Selection System**: Each page now has horizontal scrollable card selection with segmented control
+  - **Slot Management**: 4 slots per page with full equip/unequip functionality using SlottedCardView
+  - **Page-Specific Filtering**: Cards are filtered by appropriate class for each page's functionality
+  - **Visual Consistency**: All pages match Location page design with proper animations and styling
+- **Key Features**:
+  - Proper initials generation: "Materials Engineer" → "ME", "Astro Prospector" → "AP"
+  - Dynamic card equipping with correct page parameter
+  - Page-specific card class filtering
+  - Consistent UI/UX across all enhancement popups
+  - Full equip/unequip functionality with visual feedback
+- **Status**: ✅ Completed - All enhancement popups now work identically with proper card abbreviations and full equipping functionality
+
 ### 2025-09-18 - Card Detail Toggle & Dev Dropdown Improvements (Version 2.0.35)
 - **Request**: 
   1. Make tapping a card again close the detailed view window
