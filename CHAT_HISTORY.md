@@ -24,6 +24,15 @@ This document tracks our development conversations and key decisions for the Uni
   - Updated CHAT_HISTORY.md with commit information
 - **Status**: ✅ Completed - Version 2.0.28 successfully committed with updated app icon
 
+### 2025-09-17 - Version 2.0.29 Commit
+- **Request**: Commit current changes as version 2.0.29
+- **Solutions Implemented**:
+  - Staged all modified files
+  - Committed changes with message "v2.0.29 - Fixed resource window header alignment and column spacing"
+  - Updated app icon with version 2.0.29 using generate_app_icon.py script
+  - Updated CHAT_HISTORY.md with commit information
+- **Status**: ✅ Completed - Version 2.0.29 successfully committed with updated app icon
+
 ### 2025-01-14 - App Restoration and Recovery (Version 2.0.15)
 - **Request**: Restore the app to the previous commit, then recover the lost changes
 - **Solutions Implemented**:
