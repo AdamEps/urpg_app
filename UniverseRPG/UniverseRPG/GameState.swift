@@ -1781,6 +1781,7 @@ class GameState: ObservableObject {
         
         let tierIndex = deepScanCard.tier - 1
         let rareBiasPerLevel = cardDef.tiers[tierIndex].value * 100.0  // Convert decimal to percentage points
+        let deepScanLevel = deepScanCard.tier
         
         // Get the 3 rare resources (last 3 in the drop table)
         let rareResources = Array(baseDropTable.suffix(3).map { $0.0 })
@@ -1800,10 +1801,44 @@ class GameState: ObservableObject {
                 // Add rare bias to rare resources
                 newPercentage += rareBiasPerLevel
             } else if commonResources.contains(resourceType) {
-                // Reduce common resources proportionally
-                // Distribute the reduction across the 4 common resources
-                let reductionPerCommon = totalRareBias / 4.0
-                newPercentage = max(0, newPercentage - reductionPerCommon)
+                // Apply different reduction strategies based on Deep Scan level
+                let commonIndex = commonResources.firstIndex(of: resourceType) ?? 0
+                
+                if deepScanLevel <= 2 {
+                    // Levels 1-2: Distribute reduction among all 4 common resources
+                    let reductionPerCommon = totalRareBias / 4.0
+                    newPercentage = max(0, newPercentage - reductionPerCommon)
+                } else if deepScanLevel <= 4 {
+                    // Levels 3-4: Keep level 1-2 effects, then distribute additional reduction among top 3
+                    // First apply level 1-2 reduction (all 4 common resources)
+                    let level12Reduction = (cardDef.tiers[0].value * 100.0) * 3.0 / 4.0 // Level 1-2 total rare bias / 4
+                    newPercentage = max(0, newPercentage - level12Reduction)
+                    
+                    // Then apply additional reduction for levels 3-4 among top 3
+                    if commonIndex < 3 { // Top 3 common resources
+                        let additionalRareBias = (rareBiasPerLevel - cardDef.tiers[0].value * 100.0) * 3.0
+                        let additionalReductionPerTop3 = additionalRareBias / 3.0
+                        newPercentage = max(0, newPercentage - additionalReductionPerTop3)
+                    }
+                } else if deepScanLevel == 5 {
+                    // Level 5: Keep level 1-4 effects, then distribute additional reduction among top 2
+                    // First apply level 1-2 reduction (all 4 common resources)
+                    let level12Reduction = (cardDef.tiers[0].value * 100.0) * 3.0 / 4.0
+                    newPercentage = max(0, newPercentage - level12Reduction)
+                    
+                    // Then apply level 3-4 reduction (top 3 common resources)
+                    if commonIndex < 3 {
+                        let level34Reduction = (cardDef.tiers[2].value * 100.0 - cardDef.tiers[0].value * 100.0) * 3.0 / 3.0
+                        newPercentage = max(0, newPercentage - level34Reduction)
+                    }
+                    
+                    // Finally apply level 5 additional reduction (top 2 common resources)
+                    if commonIndex < 2 { // Top 2 common resources
+                        let level5AdditionalRareBias = (rareBiasPerLevel - cardDef.tiers[2].value * 100.0) * 3.0
+                        let level5ReductionPerTop2 = level5AdditionalRareBias / 2.0
+                        newPercentage = max(0, newPercentage - level5ReductionPerTop2)
+                    }
+                }
             }
             // Uncommon resources (middle 3) remain unchanged
             

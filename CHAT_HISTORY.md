@@ -479,6 +479,46 @@ This document tracks our development conversations and key decisions for the Uni
 
 ---
 
+## 2025-01-27 - Deep Scan Card Resource Distribution Fix (v2.0.36)
+
+### **User Request**
+- **Problem**: Deep Scan card was reducing the 4th common resource (least common common resource) too much at all levels
+- **Requirements**:
+  1. Only reduce the 4th common resource at Deep Scan levels 1-2
+  2. At levels 3-4, distribute chance reduction among top 3 most common resources
+  3. At level 5, distribute chance reduction among top 2 most common resources
+
+### **Solution Implemented**
+1. **Modified getModifiedDropTable() Function**:
+   - Added `deepScanLevel` variable to track card tier level
+   - Implemented level-based reduction strategy:
+     - **Levels 1-2**: Only reduce 4th common resource (index 3)
+     - **Levels 3-4**: Distribute reduction among top 3 common resources (indices 0-2)
+     - **Level 5**: Distribute reduction among top 2 common resources (indices 0-1)
+   - Maintained existing rare resource boost logic
+   - Preserved uncommon resources (middle 3) unchanged
+
+2. **Technical Changes**:
+   - **GameState.swift**: Updated `getModifiedDropTable()` function with level-based logic
+   - **Logic Flow**: Uses `commonIndex` to determine which common resources to reduce
+   - **Redistribution**: Calculates `reductionPerTop3` and `reductionPerTop2` for even distribution
+   - **Preservation**: 4th common resource protected at higher levels (3-5)
+
+### **Results**
+- ✅ **Level 1-2 Behavior**: Only 4th common resource reduced (as requested)
+- ✅ **Level 3-4 Behavior**: Top 3 common resources share reduction burden
+- ✅ **Level 5 Behavior**: Top 2 common resources share reduction burden
+- ✅ **Rare Boost**: Maintained existing rare resource boost functionality
+- ✅ **Code Quality**: No linting errors, clean implementation
+- ✅ **App Testing**: Launched app to verify changes work correctly
+
+### **Version 2.0.36 Release**
+- **Commit**: Ready for commit with Deep Scan card distribution fix
+- **App Icon**: Will be updated after commit
+- **Chat History**: Updated with complete session details
+
+---
+
 *This file should be maintained during each development session. Each new conversation should start by reading this file and adding a new entry.*
 
 ## 2025-01-27 - Telescope Button Visibility Fix (v2.0.9)
