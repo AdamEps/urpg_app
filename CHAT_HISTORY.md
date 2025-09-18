@@ -6,6 +6,48 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-18 - Dark Mode vs Light Mode Implementation (Version 2.0.37)
+- **Request**: 
+  1. Fix dark mode vs light mode inconsistencies throughout the app
+  2. Ensure all text and objects adapt properly to both modes
+  3. Preserve dark mode appearance (current optimized state) while making light mode readable
+- **Solutions Implemented**:
+  - **Created Adaptive Color System**: Built comprehensive `AdaptiveColors.swift` with color scheme detection
+  - **Fixed Construction Bays Page**: Added color scheme detection and updated text colors for headers and sub-headers
+  - **Fixed Construction Blueprint Page**: Updated header text and dev button colors for proper visibility
+  - **Preserved Space Theme**: Kept location backgrounds black in both modes (space theme consistency)
+  - **Fixed Resources Header**: Updated resource table headers to use adaptive colors
+  - **Fixed Cards Header**: Updated Cards page header and section titles with adaptive colors
+  - **Fixed Card Page Text**: Updated all card-related text elements for proper visibility
+  - **Fixed Dev Dropdown Windows**: Updated all dev button dropdown backgrounds and text colors
+  - **Fixed Tap Counter Popup**: Updated tap counter window background and text colors
+  - **Added Color Scheme Detection**: Added `@Environment(\.colorScheme)` throughout all major UI components
+- **Key Features**:
+  - Dark mode appearance preserved exactly as before
+  - Light mode provides high-contrast, readable text and backgrounds
+  - Space theme maintained with black backgrounds in both modes
+  - Consistent adaptive color system across all UI elements
+  - All dev tools and popups now work in both modes
+- **Status**: ✅ Completed - App now properly adapts between dark and light modes while preserving the original dark mode design
+- **Additional Fixes**:
+  - **Card Text Colors**: Fixed card text visibility in Cards page for light mode
+  - **Enhancements Header**: Hardcoded "Enhancements" button text to white for black background consistency
+  - **Segmented Controls**: Fixed segmented button text colors in enhancements popup with `.colorScheme(.dark)` for proper contrast
+
+### 2025-09-18 - App-Controlled Color Scheme Implementation (Version 2.0.37)
+- **Request**: Override system color scheme to force dark mode by default and add in-app toggle
+- **Implementation**:
+  - **GameState Integration**: Added `appColorScheme` property and `toggleColorScheme()` function
+  - **App Override**: Modified `UniverseRPGApp.swift` to use `.preferredColorScheme(gameState.appColorScheme)`
+  - **Profile Toggle**: Added color scheme toggle button in ProfileView with sun/moon icons
+  - **System Independence**: App now ignores iPhone's system dark/light mode setting
+  - **Default Dark Mode**: App always starts in dark mode regardless of system setting
+- **Technical Details**:
+  - **ContentView Update**: Changed from `@StateObject` to `@EnvironmentObject` for GameState
+  - **Color Scheme Control**: Complete override of system color scheme behavior
+  - **User Experience**: Toggle button shows current mode and switches between dark/light
+- **Status**: ✅ Completed - App now has independent color scheme control with in-app toggle
+
 ### 2025-09-18 - Complete Enhancements Popup System Implementation (Version 2.0.36)
 - **Request**: 
   1. Fix card name abbreviations to use proper initials (e.g., Materials Engineer -> ME)

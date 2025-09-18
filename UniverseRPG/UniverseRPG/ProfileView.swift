@@ -81,6 +81,21 @@ struct ProfileView: View {
                         
                         // Action Buttons
                         VStack(spacing: 15) {
+                            // Color Scheme Toggle
+                            Button(action: {
+                                gameState.toggleColorScheme()
+                            }) {
+                                HStack {
+                                    Image(systemName: gameState.appColorScheme == .dark ? "sun.max.fill" : "moon.fill")
+                                    Text(gameState.appColorScheme == .dark ? "Switch to Light Mode" : "Switch to Dark Mode")
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue.opacity(0.8))
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                            }
+                            
                             Button(action: {
                                 showingLogoutAlert = true
                             }) {

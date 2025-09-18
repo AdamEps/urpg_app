@@ -134,6 +134,13 @@ class GameState: ObservableObject {
     @Published var selectedCardForDetail: String?
     @Published var maxStorageCapacity: Int = 1000
     
+    // MARK: - App Color Scheme Control
+    @Published var appColorScheme: ColorScheme = .dark // Default to dark mode
+    
+    func toggleColorScheme() {
+        appColorScheme = appColorScheme == .dark ? .light : .dark
+    }
+    
     // MARK: - Reset functionality
     func resetToDefaults() {
         let fresh = GameState()

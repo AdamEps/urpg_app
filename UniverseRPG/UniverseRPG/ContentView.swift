@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var gameState = GameState()
+    @EnvironmentObject var gameState: GameState
     @StateObject private var gameStateManager = GameStateManager.shared
     @State private var showXPInfo = false
     @State private var showingProfile = false {
@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var isLoggedIn = false
     @State private var currentUsername = ""
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         Group {
@@ -198,12 +199,12 @@ struct ContentView: View {
                     }) {
                         Image(systemName: "chevron.right")
                             .font(.title2)
-                            .foregroundColor(.white)
+                            .foregroundColor(.adaptivePrimaryText)
                             .padding(8)
-                            .background(Color.black.opacity(0.3))
+                            .background(Color.adaptiveSemiTransparentBackground)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color.gray, lineWidth: 1)
+                                    .stroke(Color.adaptiveBorder, lineWidth: 1)
                             )
                             .cornerRadius(6)
                     }
@@ -224,12 +225,12 @@ struct ContentView: View {
                     }) {
                         Image(systemName: "chevron.left")
                             .font(.title2)
-                            .foregroundColor(.white)
+                            .foregroundColor(.adaptivePrimaryText)
                             .padding(8)
-                            .background(Color.black.opacity(0.3))
+                            .background(Color.adaptiveSemiTransparentBackground)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color.gray, lineWidth: 1)
+                                    .stroke(Color.adaptiveBorder, lineWidth: 1)
                             )
                             .cornerRadius(6)
                     }
@@ -251,12 +252,12 @@ struct ContentView: View {
                         }) {
                             Image(systemName: "chevron.right")
                                 .font(.title2)
-                                .foregroundColor(.white)
+                                .foregroundColor(.adaptivePrimaryText)
                                 .padding(8)
-                                .background(Color.black.opacity(0.3))
+                                .background(Color.adaptiveSemiTransparentBackground)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color.gray, lineWidth: 1)
+                                        .stroke(Color.adaptiveBorder, lineWidth: 1)
                                 )
                                 .cornerRadius(6)
                         }
@@ -278,12 +279,12 @@ struct ContentView: View {
                         }) {
                             Image(systemName: "chevron.left")
                                 .font(.title2)
-                                .foregroundColor(.white)
+                                .foregroundColor(.adaptivePrimaryText)
                                 .padding(8)
-                                .background(Color.black.opacity(0.3))
+                                .background(Color.adaptiveSemiTransparentBackground)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color.gray, lineWidth: 1)
+                                        .stroke(Color.adaptiveBorder, lineWidth: 1)
                                 )
                                 .cornerRadius(6)
                         }
@@ -319,6 +320,7 @@ struct TopBarView: View {
     @Binding var showXPInfo: Bool
     @Binding var showingProfile: Bool
     let logoutAction: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         VStack(spacing: 4) {
@@ -339,7 +341,7 @@ struct TopBarView: View {
                         showingProfile = true
                     }) {
                         Image(systemName: "gearshape.fill")
-                            .foregroundColor(.white)
+                            .foregroundColor(.adaptivePrimaryText)
                     }
                 }
                 .frame(width: 100, alignment: .leading) // Match right side width for perfect centering
@@ -349,7 +351,7 @@ struct TopBarView: View {
                 // Center - Player Name (bigger font) - perfectly centered
                 Text(gameState.playerName)
                     .font(.title3)
-                    .foregroundColor(.white)
+                    .foregroundColor(.adaptivePrimaryText)
                 
                 Spacer()
                 
@@ -359,7 +361,7 @@ struct TopBarView: View {
                         .foregroundColor(.yellow)
                     Text(gameState.getFormattedCurrency())
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.adaptivePrimaryText)
                 }
                 .frame(width: 100, alignment: .trailing) // Fixed width to prevent shifting
             }
@@ -370,7 +372,7 @@ struct TopBarView: View {
                 
                 Text("Level \(gameState.playerLevel)")
                     .font(.caption)
-                    .foregroundColor(.white)
+                    .foregroundColor(.adaptivePrimaryText)
                 
                 // Level progress bar with tap tooltip
                 ZStack {
@@ -396,11 +398,11 @@ struct TopBarView: View {
                                 Text("Level \(gameState.playerLevel)")
                                     .font(.caption)
                                     .fontWeight(.bold)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.adaptivePrimaryText)
                                 
                                 Text("\(gameState.playerXP) / \(gameState.getXPRequiredForNextLevel()) XP")
                                     .font(.caption2)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.adaptiveSecondaryText)
                                 
                                 Text("\(Int(gameState.getXPProgressPercentage() * 100))% to next level")
                                     .font(.caption2)
@@ -412,7 +414,7 @@ struct TopBarView: View {
                                     .foregroundColor(.blue)
                             }
                             .padding(8)
-                            .background(Color.black.opacity(0.9))
+                            .background(Color.adaptiveDarkBackground)
                             .cornerRadius(8)
                             .offset(y: -60)
                             .animation(.easeInOut(duration: 0.2), value: showXPInfo)
@@ -425,26 +427,28 @@ struct TopBarView: View {
                     gameState.toggleStatisticsPage()
                 }) {
                     Image(systemName: "target")
-                        .foregroundColor(gameState.currentPage == .statistics ? .blue : .white)
+                        .foregroundColor(gameState.currentPage == .statistics ? .blue : .adaptivePrimaryText)
                 }
                 
                 Spacer()
             }
         }
         .padding()
-        .background(Color.black.opacity(0.8))
+        .background(Color.adaptiveDarkBackground)
     }
 }
 
 // MARK: - Header View (for location info)
 struct HeaderView: View {
     @ObservedObject var gameState: GameState
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         VStack(spacing: 8) {
             Text(gameState.currentLocation.name)
                 .font(.title2)
                 .fontWeight(.bold)
+                .foregroundColor(.adaptivePrimaryText)
             
             Text("\(gameState.currentLocation.system) • \(gameState.currentLocation.kind.rawValue)")
                 .font(.caption)
@@ -488,7 +492,7 @@ struct HeaderView: View {
             }
         }
         .padding()
-        .background(Color.blue.opacity(0.1))
+        .background(Color.adaptiveBlueBackground)
         .cornerRadius(12)
     }
 }
@@ -496,11 +500,12 @@ struct HeaderView: View {
 // MARK: - Location View
 struct LocationView: View {
     @ObservedObject var gameState: GameState
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         ZStack {
-            // Full screen background
-            Color.clear
+            // Full screen background - keep black for space theme
+            Color.black
             
             VStack {
                 // Location name header
@@ -512,10 +517,10 @@ struct LocationView: View {
                         Text("DEV")
                             .font(.caption)
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(.adaptivePrimaryText)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(Color.red.opacity(0.8))
+                            .background(Color.adaptiveRedBackground)
                             .cornerRadius(4)
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -524,7 +529,7 @@ struct LocationView: View {
                     Text(gameState.currentLocation.name)
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(.white)
+                        .foregroundColor(.adaptivePrimaryText)
                     Spacer()
                     
                     // Invisible spacer to balance the layout
@@ -533,7 +538,7 @@ struct LocationView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 8)
-                .background(Color.black.opacity(0.3))
+                .background(Color.adaptiveSemiTransparentBackground)
                 
                 // Telescope button below header on left side (where the black box is in the image)
                 HStack {
@@ -557,7 +562,7 @@ struct LocationView: View {
                     }) {
                         Text("🔭")
                             .font(.largeTitle)
-                            .foregroundColor(.white)
+                            .foregroundColor(.adaptivePrimaryText)
                     }
                     .buttonStyle(PlainButtonStyle())
                     
@@ -770,6 +775,7 @@ struct LocationView: View {
 // MARK: - Location Slots View
 struct LocationSlotsView: View {
     @ObservedObject var gameState: GameState
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         VStack(spacing: 8) {
@@ -796,9 +802,12 @@ struct LocationSlotsView: View {
                 // Segmented control for Cards/Items
                 Picker("Type", selection: $gameState.selectedSlotType) {
                     Text("Cards").tag("Cards")
+                        .foregroundColor(.white)
                     Text("Items").tag("Items")
+                        .foregroundColor(.white)
                 }
                 .pickerStyle(SegmentedPickerStyle())
+                .colorScheme(.dark) // Force dark mode for proper contrast on black background
             }
             
             // Slots
@@ -950,7 +959,7 @@ struct SlottedCardView: View {
                                         Text(line)
                                             .font(.caption2)
                                             .fontWeight(.bold)
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.adaptivePrimaryText)
                                             .multilineTextAlignment(.center)
                                             .lineLimit(1)
                                             .minimumScaleFactor(0.6)
@@ -1105,6 +1114,7 @@ struct CompactCardView: View {
     @ObservedObject var gameState: GameState
     let page: String
     @State private var isPressed = false
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
                 Button(action: {
@@ -1132,7 +1142,7 @@ struct CompactCardView: View {
                                 Text(getAbbreviatedName(getCardName()))
                                     .font(.caption2)
                                     .fontWeight(.bold)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.adaptivePrimaryText)
                                     .multilineTextAlignment(.center)
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.7)
@@ -1154,7 +1164,7 @@ struct CompactCardView: View {
                                         Text(line)
                                             .font(.caption2)
                                             .fontWeight(.bold)
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.adaptivePrimaryText)
                                             .multilineTextAlignment(.center)
                                             .lineLimit(1)
                                             .minimumScaleFactor(0.6)
@@ -1364,9 +1374,12 @@ struct ResourcesSlotsView: View {
                 // Segmented control for Cards/Items
                 Picker("Type", selection: $gameState.selectedSlotType) {
                     Text("Cards").tag("Cards")
+                        .foregroundColor(.white)
                     Text("Items").tag("Items")
+                        .foregroundColor(.white)
                 }
                 .pickerStyle(SegmentedPickerStyle())
+                .colorScheme(.dark) // Force dark mode for proper contrast on black background
             }
             
             // Slots
@@ -1379,7 +1392,7 @@ struct ResourcesSlotsView: View {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 12)
-        .background(Color.black.opacity(0.85))
+        .background(Color.adaptiveCardBackground)
         .cornerRadius(12)
     }
     
@@ -1496,9 +1509,12 @@ struct ShopSlotsView: View {
                 // Segmented control for Cards/Items
                 Picker("Type", selection: $gameState.selectedSlotType) {
                     Text("Cards").tag("Cards")
+                        .foregroundColor(.white)
                     Text("Items").tag("Items")
+                        .foregroundColor(.white)
                 }
                 .pickerStyle(SegmentedPickerStyle())
+                .colorScheme(.dark) // Force dark mode for proper contrast on black background
             }
             
             // Slots
@@ -1511,7 +1527,7 @@ struct ShopSlotsView: View {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 12)
-        .background(Color.black.opacity(0.85))
+        .background(Color.adaptiveCardBackground)
         .cornerRadius(12)
     }
     
@@ -1628,9 +1644,12 @@ struct CardsSlotsView: View {
                 // Segmented control for Cards/Items
                 Picker("Type", selection: $gameState.selectedSlotType) {
                     Text("Cards").tag("Cards")
+                        .foregroundColor(.white)
                     Text("Items").tag("Items")
+                        .foregroundColor(.white)
                 }
                 .pickerStyle(SegmentedPickerStyle())
+                .colorScheme(.dark) // Force dark mode for proper contrast on black background
             }
             
             // Slots
@@ -1643,7 +1662,7 @@ struct CardsSlotsView: View {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 12)
-        .background(Color.black.opacity(0.85))
+        .background(Color.adaptiveCardBackground)
         .cornerRadius(12)
     }
     
@@ -1734,18 +1753,19 @@ struct CardsSlotView: View {
 // MARK: - Location Resource List View
 struct LocationResourceListView: View {
     @ObservedObject var gameState: GameState
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         VStack(spacing: 0) {
             // Header row - main headers
             HStack(spacing: 4) {
                 HStack {
-                    Text("Resources").font(.caption).foregroundColor(.white).lineLimit(1)
+                    Text("Resources").font(.caption).foregroundColor(.adaptivePrimaryText).lineLimit(1)
                     Spacer()
                 }
                 .frame(width: 80) // Reduced from 120 to 80 (subtract 40 pts)
-                Text("Tap").font(.caption).foregroundColor(.white).frame(width: 65, alignment: .center)
-                Text("Idle").font(.caption).foregroundColor(.white).frame(width: 65, alignment: .center)
+                Text("Tap").font(.caption).foregroundColor(.adaptivePrimaryText).frame(width: 65, alignment: .center)
+                Text("Idle").font(.caption).foregroundColor(.adaptivePrimaryText).frame(width: 65, alignment: .center)
             }
             
             // Rate information row
@@ -1760,12 +1780,12 @@ struct LocationResourceListView: View {
             ForEach(gameState.getModifiedDropTable(), id: \.0) { resourceType, percentage in
                 HStack(spacing: 4) {
                     Image(systemName: getResourceIcon(for: resourceType)).foregroundColor(getResourceColor(for: resourceType)).frame(width: 16).font(.caption)
-                    Text(resourceType.rawValue).font(.caption2).foregroundColor(.white).frame(width: 80, alignment: .leading)
-                    Text("\(String(format: "%.2f", percentage))%").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
+                    Text(resourceType.rawValue).font(.caption2).foregroundColor(.adaptivePrimaryText).frame(width: 80, alignment: .leading)
+                    Text("\(String(format: "%.2f", percentage))%").font(.caption2).foregroundColor(.adaptivePrimaryText).frame(width: 65, alignment: .center)
                     // Show actual idle drop table percentage instead of hardcoded 0.0%
                     let idleDropTable = gameState.getIdleDropTable()
                     let idlePercentage = idleDropTable.first(where: { $0.0 == resourceType })?.1 ?? 0.0
-                    Text("\(String(format: "%.2f", idlePercentage))%").font(.caption2).foregroundColor(.gray).frame(width: 65, alignment: .center)
+                    Text("\(String(format: "%.2f", idlePercentage))%").font(.caption2).foregroundColor(.adaptiveSecondaryText).frame(width: 65, alignment: .center)
                 }
                 .frame(height: 16) // Increased from 10 to 16 for better breathing room
                 .padding(.horizontal, 16) // Add horizontal padding to match the header
@@ -1788,26 +1808,26 @@ struct LocationResourceListView: View {
                 // Numins chance - completely compact
                 HStack(spacing: 4) {
                     Image(systemName: "star.circle").foregroundColor(.yellow).frame(width: 16).font(.caption)
-                    Text("Numins").font(.caption2).foregroundColor(.white).frame(width: 80, alignment: .leading)
+                    Text("Numins").font(.caption2).foregroundColor(.adaptivePrimaryText).frame(width: 80, alignment: .leading)
                     let numinsRange = gameState.getCurrentTapNuminsRange()
                     let numinsChance = gameState.getCurrentTapNuminsChance()
                     let numinsChanceText = numinsChance < 1.0 ? String(format: "%.2f", numinsChance) : "\(Int(numinsChance))"
-                    Text("\(numinsChanceText)% (\(numinsRange.min)-\(numinsRange.max))").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
+                    Text("\(numinsChanceText)% (\(numinsRange.min)-\(numinsRange.max))").font(.caption2).foregroundColor(.adaptivePrimaryText).frame(width: 65, alignment: .center)
                     let idleNuminsRange = gameState.getCurrentIdleNuminsRange()
                     let idleNuminsChance = gameState.getCurrentIdleNuminsChance()
                     let idleNuminsChanceText = idleNuminsChance < 1.0 ? String(format: "%.2f", idleNuminsChance) : "\(Int(idleNuminsChance))"
-                    Text("\(idleNuminsChanceText)% (\(idleNuminsRange.min)-\(idleNuminsRange.max))").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
+                    Text("\(idleNuminsChanceText)% (\(idleNuminsRange.min)-\(idleNuminsRange.max))").font(.caption2).foregroundColor(.adaptivePrimaryText).frame(width: 65, alignment: .center)
                 }
                 .frame(height: 16) // Increased from 10 to 16 for better breathing room
                 
                 // XP chance - with breathing room
                 HStack(spacing: 4) {
                     Image(systemName: "star.circle.fill").foregroundColor(.blue).frame(width: 16).font(.caption)
-                    Text("XP").font(.caption2).foregroundColor(.white).frame(width: 80, alignment: .leading)
+                    Text("XP").font(.caption2).foregroundColor(.adaptivePrimaryText).frame(width: 80, alignment: .leading)
                     let xpChance = gameState.getCurrentTapXPChance()
                     let xpChanceText = xpChance < 1.0 ? String(format: "%.2f", xpChance) : "\(Int(xpChance))"
-                    Text("\(xpChanceText)% (\(gameState.getCurrentTapXPAmount()))").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
-                    Text("0.0%").font(.caption2).foregroundColor(.gray).frame(width: 65, alignment: .center)
+                    Text("\(xpChanceText)% (\(gameState.getCurrentTapXPAmount()))").font(.caption2).foregroundColor(.adaptivePrimaryText).frame(width: 65, alignment: .center)
+                    Text("0.0%").font(.caption2).foregroundColor(.adaptiveSecondaryText).frame(width: 65, alignment: .center)
                 }
                 .frame(height: 16) // Increased from 10 to 16 for better breathing room
                 
@@ -1872,10 +1892,10 @@ struct LocationResourceListView: View {
         .padding(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 0))
         .padding(2)
         .frame(maxWidth: 240)
-        .background(Color.black)
+        .background(Color.adaptiveSolidBackground)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(Color.gray, lineWidth: 1)
+                .stroke(Color.adaptiveBorder, lineWidth: 1)
         )
         .cornerRadius(6)
     }
@@ -2180,27 +2200,28 @@ struct LocationResourceListView: View {
 // MARK: - Tap Counter View
 struct TapCounterView: View {
     @ObservedObject var gameState: GameState
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         HStack(spacing: 4) {
             Text("Tap Count:")
                 .font(.caption)
                 .fontWeight(.medium)
-                .foregroundColor(.white)
+                .foregroundColor(.adaptivePrimaryText)
             
             Text("\(gameState.currentLocationTapCount)")
                 .font(.caption)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.adaptivePrimaryText)
             
             Spacer()
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 12)
-        .background(Color.black)
+        .background(Color.adaptiveSolidBackground)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(Color.gray, lineWidth: 1)
+                .stroke(Color.adaptiveBorder, lineWidth: 1)
         )
         .cornerRadius(6)
     }
@@ -2209,6 +2230,7 @@ struct TapCounterView: View {
 // MARK: - Construction View
 struct ConstructionView: View {
     @ObservedObject var gameState: GameState
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         ZStack {
@@ -2216,6 +2238,7 @@ struct ConstructionView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Construction Bays")
                         .font(.headline)
+                        .foregroundColor(.adaptivePrimaryText)
                     
                     if gameState.constructionBays.isEmpty {
                         Text("No construction bays available")
@@ -2253,7 +2276,7 @@ struct ConstructionView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.85))
+                    .background(Color.adaptiveCardBackground)
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -2362,9 +2385,12 @@ struct ConstructionSlotsView: View {
                 // Segmented control for Cards/Items
                 Picker("Type", selection: $gameState.selectedSlotType) {
                     Text("Cards").tag("Cards")
+                        .foregroundColor(.white)
                     Text("Items").tag("Items")
+                        .foregroundColor(.white)
                 }
                 .pickerStyle(SegmentedPickerStyle())
+                .colorScheme(.dark) // Force dark mode for proper contrast on black background
             }
             
             // Slots
@@ -2377,7 +2403,7 @@ struct ConstructionSlotsView: View {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 12)
-        .background(Color.black.opacity(0.85))
+        .background(Color.adaptiveCardBackground)
         .cornerRadius(12)
     }
     
@@ -2832,6 +2858,7 @@ struct BottomNavigationView: View {
 // MARK: - Construction Page View
 struct ConstructionPageView: View {
     @ObservedObject var gameState: GameState
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         ZStack {
@@ -2841,7 +2868,7 @@ struct ConstructionPageView: View {
                     Text("Construction Bays")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(.white)
+                        .foregroundColor(.adaptivePrimaryText)
                     Spacer()
                     
                     // Dev Tool Button - fixed position
@@ -2851,10 +2878,10 @@ struct ConstructionPageView: View {
                         Text("DEV")
                             .font(.caption)
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(.adaptivePrimaryText)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(Color.red.opacity(0.8))
+                            .background(Color.adaptiveRedBackground)
                             .cornerRadius(4)
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -2946,7 +2973,7 @@ struct ConstructionPageView: View {
                             HStack {
                                 Text("Unlock All Bays")
                                     .font(.caption)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.adaptivePrimaryText)
                                 Spacer()
                                 Toggle("", isOn: Binding(
                                     get: { gameState.devToolUnlockAllBays },
@@ -2960,7 +2987,7 @@ struct ConstructionPageView: View {
                             HStack {
                                 Text("Build Without Ingredients")
                                     .font(.caption)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.adaptivePrimaryText)
                                 Spacer()
                                 Toggle("", isOn: $gameState.devToolBuildableWithoutIngredients)
                                     .toggleStyle(SwitchToggleStyle(tint: .blue))
@@ -2974,7 +3001,7 @@ struct ConstructionPageView: View {
                             }) {
                                 Text("Complete All Constructions")
                                     .font(.caption)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.adaptivePrimaryText)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 4)
                                     .background(Color.orange.opacity(0.8))
@@ -2983,11 +3010,11 @@ struct ConstructionPageView: View {
                             .buttonStyle(PlainButtonStyle())
                         }
                         .padding(12)
-                        .background(Color.black.opacity(0.9))
+                        .background(Color.adaptiveDarkBackground)
                         .cornerRadius(8)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.gray, lineWidth: 1)
+                                .stroke(Color.adaptiveBorder, lineWidth: 1)
                         )
                         .frame(width: 200) // Fixed width instead of full screen
                         .padding(.trailing, 16)
@@ -3029,7 +3056,7 @@ struct ConstructionPageView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.85))
+                    .background(Color.adaptiveCardBackground)
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -3780,7 +3807,7 @@ struct ResourcesPageView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.85))
+                    .background(Color.adaptiveCardBackground)
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -4230,6 +4257,7 @@ struct ResourceDetailView: View {
 struct CardDetailView: View {
     let cardId: String
     @ObservedObject var gameState: GameState
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         ZStack {
@@ -4251,11 +4279,11 @@ struct CardDetailView: View {
                     Text("Coming Soon")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .foregroundColor(.white)
+                        .foregroundColor(.adaptivePrimaryText)
                     
                     Text("Card details and interactions will be available in a future update.")
                         .font(.callout)
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.adaptiveSecondaryText)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 20)
                 }
@@ -4853,7 +4881,7 @@ struct ConstellationView: View {
                         }) {
                             Image(systemName: "chevron.left")
                                 .font(.largeTitle)
-                                .foregroundColor(.white)
+                                .foregroundColor(.adaptivePrimaryText)
                         }
                         .buttonStyle(PlainButtonStyle())
                         .padding(.leading)
@@ -5085,7 +5113,7 @@ struct ShopView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.85))
+                    .background(Color.adaptiveCardBackground)
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -5105,6 +5133,7 @@ struct ShopView: View {
 
 struct CardsView: View {
     @ObservedObject var gameState: GameState
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         ZStack {
@@ -5190,7 +5219,7 @@ struct CardsView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.85))
+                    .background(Color.adaptiveCardBackground)
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -5268,6 +5297,7 @@ struct CardClassSection: View {
     let title: String
     let cardClass: CardClass
     @ObservedObject var gameState: GameState
+    @Environment(\.colorScheme) private var colorScheme
     
     // Computed property to get cards for this class
     private var cardsForClass: [CardDef] {
@@ -5299,7 +5329,7 @@ struct CardClassSection: View {
             Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.primary)
+                .foregroundColor(.adaptivePrimaryText)
             
             VStack(spacing: 8) {
                 // Create rows of 3 cards each
@@ -6339,6 +6369,7 @@ struct BlueprintsView: View {
     @State private var selectedBaySize: BaySize
     @State private var expandedBlueprints: Set<String> = []
     @State private var showEnhancementAbilities = false
+    @Environment(\.colorScheme) private var colorScheme
     
     init(gameState: GameState, initialBaySize: BaySize = .small) {
         self.gameState = gameState
@@ -6365,7 +6396,7 @@ struct BlueprintsView: View {
                 Text("Construction Blueprints")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(.adaptivePrimaryText)
                 
                 Spacer()
                 
@@ -7099,6 +7130,7 @@ struct DevButtonHeaderView: View {
     let buttonText: String
     let buttonColor: Color
     let onButtonTap: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
     
     init(
         title: String,
@@ -7117,7 +7149,7 @@ struct DevButtonHeaderView: View {
             Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.adaptivePrimaryText)
             Spacer()
             
             DevButtonView(
