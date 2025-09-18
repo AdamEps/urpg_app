@@ -1744,6 +1744,15 @@ class GameState: ObservableObject {
         print("🔧 DEV TOOL - All cards leveled down!")
     }
     
+    func addOneOfEachCard() {
+        let allCardDefinitions = getAllCardDefinitions()
+        for cardDef in allCardDefinitions {
+            addCard(cardDef.id, copies: 1)
+            print("🔧 DEV TOOL - Added 1 copy of \(cardDef.name)")
+        }
+        print("🔧 DEV TOOL - Added 1 copy of each card type!")
+    }
+    
     func isTelescopeUnlocked() -> Bool {
         // Telescope is unlocked if all locations are unlocked OR if we're not in Taragon Gamma system
         return devToolUnlockAllLocations || currentLocation.system != "Taragon Gamma"

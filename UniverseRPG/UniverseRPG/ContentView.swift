@@ -3956,8 +3956,6 @@ struct ResourceDetailView: View {
 struct CardDetailView: View {
     let cardId: String
     @ObservedObject var gameState: GameState
-    @State private var dragOffset = CGSize.zero
-    @State private var isDragging = false
 
     var body: some View {
         ZStack {
@@ -3992,25 +3990,7 @@ struct CardDetailView: View {
         }
         .frame(height: 200)
         .padding(.vertical, 8)
-        .offset(y: dragOffset.height)
-        .gesture(
-            DragGesture()
-                .onChanged { gesture in
-                    isDragging = true
-                    dragOffset = gesture.translation
-                }
-                .onEnded { gesture in
-                    isDragging = false
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        if gesture.translation.height > 100 {
-                            gameState.selectedCardForDetail = nil
-                        }
-                        dragOffset = .zero
-                    }
-                }
-        )
         .transition(.move(edge: .bottom))
-        .opacity(isDragging ? 0.8 : 1.0)
     }
 }
 
@@ -4956,35 +4936,55 @@ struct CardsView: View {
             DevButtonWithDropdownView(
                 isDropdownVisible: $gameState.showCardsDevToolsDropdown
             ) {
-                // Level Up Button
-                Button(action: {
-                    gameState.levelUpAllCards()
-                    gameState.showCardsDevToolsDropdown = false
-                }) {
-                    Text("Level Up")
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.green.opacity(0.8))
-                        .cornerRadius(4)
+                VStack(spacing: 8) {
+                    // +1 All Cards Button (top)
+                    Button(action: {
+                        gameState.addOneOfEachCard()
+                        gameState.showCardsDevToolsDropdown = false
+                    }) {
+                        Text("+1 All Cards")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .frame(width: 100)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.blue.opacity(0.8))
+                            .cornerRadius(4)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    // Level Up Button
+                    Button(action: {
+                        gameState.levelUpAllCards()
+                        gameState.showCardsDevToolsDropdown = false
+                    }) {
+                        Text("Level Up")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .frame(width: 100)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.green.opacity(0.8))
+                            .cornerRadius(4)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    // Level Down Button
+                    Button(action: {
+                        gameState.levelDownAllCards()
+                        gameState.showCardsDevToolsDropdown = false
+                    }) {
+                        Text("Level Down")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .frame(width: 100)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.orange.opacity(0.8))
+                            .cornerRadius(4)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
-                .buttonStyle(PlainButtonStyle())
-                
-                // Level Down Button
-                Button(action: {
-                    gameState.levelDownAllCards()
-                    gameState.showCardsDevToolsDropdown = false
-                }) {
-                    Text("Level Down")
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.orange.opacity(0.8))
-                        .cornerRadius(4)
-                }
-                .buttonStyle(PlainButtonStyle())
             }
             
         }
@@ -5087,7 +5087,12 @@ struct CardSlotView: View {
             if let cardDef = cardDef, let userCard = userCard {
                 // Owned card
                 Button(action: {
-                    gameState.selectedCardForDetail = cardDef.id
+                    // Toggle detail view - if same card is tapped again, close it
+                    if gameState.selectedCardForDetail == cardDef.id {
+                        gameState.selectedCardForDetail = nil
+                    } else {
+                        gameState.selectedCardForDetail = cardDef.id
+                    }
                 }) {
                     VStack(spacing: 0) {
                     // Card name at the top
@@ -6773,8 +6778,8 @@ struct DevButtonWithDropdownView<Content: View>: View {
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.gray, lineWidth: 1)
                     )
-                    .frame(width: dropdownWidth) // Fixed width instead of full screen
-                    .padding(.trailing, -32) // Compensate for ScrollView context - positions relative to screen edge
+                    .frame(minWidth: dropdownWidth, maxWidth: dropdownWidth, alignment: .trailing) // Fixed width with right alignment
+                    .padding(.trailing, 16) // Add 16 points of right padding
                 }
                 .padding(.top, 40) // Position below the header, touching the dev button
                 

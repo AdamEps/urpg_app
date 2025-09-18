@@ -283,8 +283,8 @@ struct DevButtonWithDropdownView<Content: View>: View {
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.gray, lineWidth: 1)
                     )
-                    .frame(width: dropdownWidth)
-                    .padding(.trailing, -32) // Compensate for ScrollView context - positions relative to screen edge
+                    .frame(minWidth: dropdownWidth, maxWidth: dropdownWidth, alignment: .trailing) // Fixed width with right alignment
+                    .padding(.trailing, 16) // Add 16 points of right padding
                 }
                 .padding(.top, 40) // Position below the header, touching the dev button
                 
