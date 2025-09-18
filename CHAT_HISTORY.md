@@ -34,7 +34,7 @@ This document tracks our development conversations and key decisions for the Uni
   - **Enhancements Header**: Hardcoded "Enhancements" button text to white for black background consistency
   - **Segmented Controls**: Fixed segmented button text colors in enhancements popup with `.colorScheme(.dark)` for proper contrast
 
-### 2025-09-18 - App-Controlled Color Scheme Implementation (Version 2.0.37)
+### 2025-09-18 - App-Controlled Color Scheme Implementation (Version 2.0.38)
 - **Request**: Override system color scheme to force dark mode by default and add in-app toggle
 - **Implementation**:
   - **GameState Integration**: Added `appColorScheme` property and `toggleColorScheme()` function
