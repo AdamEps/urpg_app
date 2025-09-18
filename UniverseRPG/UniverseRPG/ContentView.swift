@@ -1555,11 +1555,11 @@ struct LocationResourceListView: View {
                 HStack(spacing: 4) {
                     Image(systemName: getResourceIcon(for: resourceType)).foregroundColor(getResourceColor(for: resourceType)).frame(width: 16).font(.caption)
                     Text(resourceType.rawValue).font(.caption2).foregroundColor(.white).frame(width: 80, alignment: .leading)
-                    Text("\(String(format: "%.1f", percentage))%").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
+                    Text("\(String(format: "%.2f", percentage))%").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
                     // Show actual idle drop table percentage instead of hardcoded 0.0%
                     let idleDropTable = gameState.getIdleDropTable()
                     let idlePercentage = idleDropTable.first(where: { $0.0 == resourceType })?.1 ?? 0.0
-                    Text("\(String(format: "%.1f", idlePercentage))%").font(.caption2).foregroundColor(.gray).frame(width: 65, alignment: .center)
+                    Text("\(String(format: "%.2f", idlePercentage))%").font(.caption2).foregroundColor(.gray).frame(width: 65, alignment: .center)
                 }
                 .frame(height: 16) // Increased from 10 to 16 for better breathing room
                 .padding(.horizontal, 16) // Add horizontal padding to match the header
@@ -1585,11 +1585,11 @@ struct LocationResourceListView: View {
                     Text("Numins").font(.caption2).foregroundColor(.white).frame(width: 80, alignment: .leading)
                     let numinsRange = gameState.getCurrentTapNuminsRange()
                     let numinsChance = gameState.getCurrentTapNuminsChance()
-                    let numinsChanceText = numinsChance < 1.0 ? String(format: "%.1f", numinsChance) : "\(Int(numinsChance))"
+                    let numinsChanceText = numinsChance < 1.0 ? String(format: "%.2f", numinsChance) : "\(Int(numinsChance))"
                     Text("\(numinsChanceText)% (\(numinsRange.min)-\(numinsRange.max))").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
                     let idleNuminsRange = gameState.getCurrentIdleNuminsRange()
                     let idleNuminsChance = gameState.getCurrentIdleNuminsChance()
-                    let idleNuminsChanceText = idleNuminsChance < 1.0 ? String(format: "%.1f", idleNuminsChance) : "\(Int(idleNuminsChance))"
+                    let idleNuminsChanceText = idleNuminsChance < 1.0 ? String(format: "%.2f", idleNuminsChance) : "\(Int(idleNuminsChance))"
                     Text("\(idleNuminsChanceText)% (\(idleNuminsRange.min)-\(idleNuminsRange.max))").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
                 }
                 .frame(height: 16) // Increased from 10 to 16 for better breathing room
@@ -1599,7 +1599,7 @@ struct LocationResourceListView: View {
                     Image(systemName: "star.circle.fill").foregroundColor(.blue).frame(width: 16).font(.caption)
                     Text("XP").font(.caption2).foregroundColor(.white).frame(width: 80, alignment: .leading)
                     let xpChance = gameState.getCurrentTapXPChance()
-                    let xpChanceText = xpChance < 1.0 ? String(format: "%.1f", xpChance) : "\(Int(xpChance))"
+                    let xpChanceText = xpChance < 1.0 ? String(format: "%.2f", xpChance) : "\(Int(xpChance))"
                     Text("\(xpChanceText)% (\(gameState.getCurrentTapXPAmount()))").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
                     Text("0.0%").font(.caption2).foregroundColor(.gray).frame(width: 65, alignment: .center)
                 }
@@ -1621,7 +1621,7 @@ struct LocationResourceListView: View {
                             
                             // Tap Cards
                             let cardChance = gameState.getCurrentTapCardChance()
-                            let cardChanceText = cardChance < 1.0 ? String(format: "%.1f", cardChance) : "\(Int(cardChance))"
+                            let cardChanceText = cardChance < 1.0 ? String(format: "%.2f", cardChance) : "\(Int(cardChance))"
                             Text("\(cardChanceText)%")
                                 .font(.caption2)
                                 .fontWeight(.medium)

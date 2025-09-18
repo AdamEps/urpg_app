@@ -370,6 +370,50 @@ This document tracks our development conversations and key decisions for the Uni
 
 ---
 
+## 2025-09-18 - Idle Collection Percentages Fix and Deep Scan Card Correction (v2.0.31)
+
+### **Problem Identified**
+- **Issue 1**: Location resources pop-out window was showing "0.0%" for all idle collection percentages instead of actual drop table values
+- **Issue 2**: Deep Scan card effect values were too small (0.01% per level) to be visually noticeable in the UI
+- **Issue 3**: Deep Scan card was using relative percentage calculations instead of absolute percentage points
+
+### **Solutions Implemented**
+
+1. **Fixed Idle Collection Percentages Display**:
+   - **Root Cause**: `LocationResourceListView` was hardcoded to show "0.0%" for idle collection
+   - **Solution**: Updated to call `gameState.getIdleDropTable()` and display actual percentages
+   - **Result**: Idle collection now shows same base drop table as tapping (30%, 20%, 15%, 10%, 8%, 6%, 5%, 3%, 2%, 1%)
+
+2. **Corrected Deep Scan Card Effect Values**:
+   - **Before**: 0.01, 0.02, 0.03, 0.04, 0.05 (1-5% per level)
+   - **After**: 1.0, 2.0, 3.0, 4.0, 5.0 (1-5 percentage points per level)
+   - **Impact**: Now provides visible changes in UI (e.g., Gold: 1% → 2% with Tier 1 card)
+
+3. **Fixed Percentage Calculation Logic**:
+   - **Problem**: Was adding percentage of current value instead of absolute percentage points
+   - **Solution**: Changed to add absolute percentage points to rare resources
+   - **Redistribution**: Common resources reduced by same total amount to maintain 100% probability
+
+### **Technical Changes**
+- **ContentView.swift**: Fixed idle collection percentage display in `LocationResourceListView`
+- **GameState.swift**: Updated Deep Scan card effect values from 0.01-0.05 to 1.0-5.0
+- **Debug Logging**: Added comprehensive logging to verify card detection and calculation logic
+- **UI Verification**: Confirmed Deep Scan card now shows visible percentage changes
+
+### **Results**
+- ✅ **Idle Percentages**: Complete - Now shows actual drop table percentages instead of 0.0%
+- ✅ **Deep Scan Values**: Complete - Card now provides +1% per tier level to rare resources
+- ✅ **Visual Feedback**: Complete - Changes are now clearly visible in the UI
+- ✅ **Percentage Logic**: Complete - Uses absolute percentage points, not relative calculations
+- ✅ **App Testing**: Complete - Successfully built and launched on iPhone
+
+### **Version 2.0.31 Release**
+- **Commit**: Successfully committed with message "v2.0.31: Fix idle collection percentages display and Deep Scan card effect values"
+- **App Icon**: Updated to version 2.0.31 using update_app_icon.sh script
+- **Chat History**: Updated with complete session details
+
+---
+
 *This file should be maintained during each development session. Each new conversation should start by reading this file and adding a new entry.*
 
 ## 2025-01-27 - Telescope Button Visibility Fix (v2.0.9)
