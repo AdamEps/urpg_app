@@ -6,6 +6,27 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-18 - Card Detail Toggle & Dev Dropdown Improvements (Version 2.0.35)
+- **Request**: 
+  1. Make tapping a card again close the detailed view window
+  2. Remove swipe away feature for card detailed view
+  3. Add "+1 All Cards" button to cards page dev window
+  4. Fix dev dropdown alignment issues
+- **Solutions Implemented**:
+  - **Card Detail Toggle**: Modified card tap action to toggle detail view - if same card is tapped again, it closes
+  - **Removed Swipe Gesture**: Eliminated drag gesture and related state variables from CardDetailView
+  - **Added +1 All Cards Button**: Created `addOneOfEachCard()` function in GameState that adds 1 copy of each card type
+  - **Dev Dropdown UI Update**: Added new button at top of cards dev dropdown with equal width buttons (100pt)
+  - **Fixed Alignment Issues**: Discovered root cause was trying to force fixed width instead of using flexible Spacer() approach
+  - **Template Alignment Fix**: Updated DevButtonWithDropdownView template with proper right alignment using `alignment: .trailing`
+  - **Added Right Padding**: Applied 16pt right padding to dev dropdown template for proper spacing
+  - **Updated Documentation**: Modified OBJECT_TEMPLATES.md with improved alignment approach
+- **Key Learnings**: 
+  - Fixed-width approach breaks when content needs more space - flexible Spacer() approach works better
+  - `alignment: .trailing` ensures content grows leftward while maintaining right justification
+  - Construction Bay uses flexible width approach, which is why it works correctly
+- **Status**: ✅ Completed - Card detail toggle working, swipe removed, +1 All Cards button added, dev dropdown properly aligned
+
 ### 2025-09-18 - Dev Button with Dropdown Template Addition & Cards Page Migration (FINAL FIX)
 - **Request**: Add a new Object Template for the Red Dev Button and Drop Down Window from Construction Bays page, then migrate Cards Page to use the template
 - **Initial Issues**: Template had incorrect architecture - dropdown didn't overlay screen and appeared to the left of button
