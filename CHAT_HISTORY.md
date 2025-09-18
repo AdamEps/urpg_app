@@ -24,6 +24,19 @@ This document tracks our development conversations and key decisions for the Uni
 - **Key Learnings**: Template must follow Construction Bays pattern exactly - button and dropdown are separate components in a ZStack with proper right-justification to screen edge, not button edge
 - **Status**: ✅ Completed - Template now matches Construction Bays exactly with proper positioning and scrollability, Cards Page successfully migrated
 
+### 2025-09-18 - Dropdown Positioning Fine-Tuning (Version 2.0.33)
+- **Request**: Fix dropdown positioning to be perfectly right-justified to screen edge like Construction Bays
+- **Issue**: Dropdown was positioned with button's left edge aligned with dropdown's right edge, indicating additional padding equal to button width
+- **Root Cause**: Double padding - header had `.padding(.horizontal)` (16 points) and dropdown had `.padding(.trailing, 16)` (another 16 points), creating 32 points total instead of 16
+- **Solutions Implemented**:
+  - **Negative Padding Solution**: Used negative padding to compensate for button width
+  - **Precise Calculation**: Applied `.padding(.trailing, -32)` to shift dropdown right by exact button width
+  - **Perfect Alignment**: Dropdown now positioned exactly at screen edge (0 points from edge)
+  - **Template Updated**: Modified `DevButtonWithDropdownView` template with correct negative padding
+  - **Version Commit**: Committed changes as version 2.0.33 with updated app icon
+- **Key Learnings**: Negative padding is effective for precise positioning when dealing with nested padding contexts
+- **Status**: ✅ Completed - Dropdown now perfectly right-justified to screen edge, matching Construction Bays exactly
+
 ### 2025-01-27 - Cards Page Dev Tool Upgrade
 - **Request**: Upgrade the dev tool in the cards page to dropdown style with level up/down functionality
 - **Solutions Implemented**:

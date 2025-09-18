@@ -40,6 +40,7 @@ This document contains reusable UI components and templates for the UniverseRPG 
 - `isUnlocked: [Bool]` - Array indicating which buttons are enabled
 
 **Fixed Styling (matches in-game implementation):**
+**Note:** This template uses negative padding (-32pt) to compensate for ScrollView layout context. When used in a ScrollView (like Cards page), the dropdown needs to be positioned relative to the screen edge rather than the parent container edge.
 - Height: 32 points
 - Corner radius: 6
 - Border color: Color.gray
@@ -236,13 +237,16 @@ SegmentedButtonView(
 - `dropdownWidth: CGFloat` - Width of the dropdown window (default: 200)
 
 **Fixed Styling (matches in-game implementation):**
+**Note:** This template uses negative padding (-32pt) to compensate for ScrollView layout context. When used in a ScrollView (like Cards page), the dropdown needs to be positioned relative to the screen edge rather than the parent container edge.
 - Dropdown background: Color.black.opacity(0.9)
 - Dropdown corner radius: 8
 - Dropdown border: Color.gray, 1pt width
 - Dropdown padding: 12
 - Dropdown z-index: 1000
-- Dropdown positioning: Top-right aligned, below header, right-justified with button
+- Dropdown positioning: Top-right aligned, below header, right-justified to screen edge (compensates for ScrollView context)
+- Scrollability: Page remains scrollable while dropdown is open (allows scrolling through content)
 - Full screen overlay with tap-outside-to-close
+- Page remains scrollable while dropdown is open
 
 **Code Template:**
 ```swift
@@ -280,7 +284,7 @@ struct DevButtonWithDropdownView<Content: View>: View {
                             .stroke(Color.gray, lineWidth: 1)
                     )
                     .frame(width: dropdownWidth)
-                    .padding(.trailing, 16)
+                    .padding(.trailing, -32) // Compensate for ScrollView context - positions relative to screen edge
                 }
                 .padding(.top, 40) // Position below the header, touching the dev button
                 

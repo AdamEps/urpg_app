@@ -4856,16 +4856,16 @@ struct CardsView: View {
     
     var body: some View {
         ZStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Header with Dev Button - using template
-                    DevButtonHeaderView(
-                        title: "Cards",
-                        onButtonTap: {
-                            gameState.showCardsDevToolsDropdown.toggle()
-                        }
-                    )
-                    
+            VStack(spacing: 0) {
+                // Fixed Header with Dev Button - using template
+                DevButtonHeaderView(
+                    title: "Cards",
+                    onButtonTap: {
+                        gameState.showCardsDevToolsDropdown.toggle()
+                    }
+                )
+                
+                ScrollView {
                     VStack(spacing: 24) {
                         // Explorer Class Section
                         CardClassSection(
@@ -6774,22 +6774,14 @@ struct DevButtonWithDropdownView<Content: View>: View {
                             .stroke(Color.gray, lineWidth: 1)
                     )
                     .frame(width: dropdownWidth) // Fixed width instead of full screen
-                    .padding(.trailing, -32) // Shift right by actual button width to align with screen edge
+                    .padding(.trailing, -32) // Compensate for ScrollView context - positions relative to screen edge
                 }
                 .padding(.top, 40) // Position below the header, touching the dev button
                 
                 Spacer()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                // Invisible background to catch taps outside the dropdown
-                Color.clear
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        // Close dropdown when tapping outside
-                        isDropdownVisible = false
-                    }
-            )
+            // No background - let scrolling pass through completely
             .zIndex(1000)
         }
     }
