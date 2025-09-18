@@ -728,7 +728,6 @@ struct LocationView: View {
                     .padding(.horizontal, 12)
                     .background(Color.black.opacity(0.3))
                     .cornerRadius(8)
-                    .padding(.horizontal, 16)
                 }
                 .buttonStyle(PlainButtonStyle())
                 
@@ -810,6 +809,7 @@ struct LocationSlotsView: View {
             }
         }
         .padding(.horizontal, 16)
+        .padding(.top, 8)
         .padding(.bottom, 12)
         .background(Color.black.opacity(0.3))
         .cornerRadius(12)
@@ -1377,8 +1377,9 @@ struct ResourcesSlotsView: View {
             }
         }
         .padding(.horizontal, 16)
+        .padding(.top, 8)
         .padding(.bottom, 12)
-        .background(Color.black.opacity(0.3))
+        .background(Color.black.opacity(0.85))
         .cornerRadius(12)
     }
     
@@ -1508,8 +1509,9 @@ struct ShopSlotsView: View {
             }
         }
         .padding(.horizontal, 16)
+        .padding(.top, 8)
         .padding(.bottom, 12)
-        .background(Color.black.opacity(0.3))
+        .background(Color.black.opacity(0.85))
         .cornerRadius(12)
     }
     
@@ -1639,8 +1641,9 @@ struct CardsSlotsView: View {
             }
         }
         .padding(.horizontal, 16)
+        .padding(.top, 8)
         .padding(.bottom, 12)
-        .background(Color.black.opacity(0.3))
+        .background(Color.black.opacity(0.85))
         .cornerRadius(12)
     }
     
@@ -2231,7 +2234,7 @@ struct ConstructionView: View {
             }
             
             // Enhancement slots overlay - positioned at bottom without affecting layout
-            VStack {
+            VStack(spacing: 0) {
                 Spacer()
                 
                 // Enhancement button - always visible
@@ -2250,16 +2253,14 @@ struct ConstructionView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.3))
+                    .background(Color.black.opacity(0.85))
                     .cornerRadius(8)
-                    .padding(.horizontal, 16)
                 }
                 .buttonStyle(PlainButtonStyle())
                 
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showConstructionSlots {
                     ConstructionSlotsView(gameState: gameState)
-                        .padding(.bottom, 10) // Position just above navigation bar
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -2374,8 +2375,9 @@ struct ConstructionSlotsView: View {
             }
         }
         .padding(.horizontal, 16)
+        .padding(.top, 8)
         .padding(.bottom, 12)
-        .background(Color.black.opacity(0.3))
+        .background(Color.black.opacity(0.85))
         .cornerRadius(12)
     }
     
@@ -3008,7 +3010,7 @@ struct ConstructionPageView: View {
             }
             
             // Enhancement slots overlay - positioned at bottom without affecting layout
-            VStack {
+            VStack(spacing: 0) {
                 Spacer()
                 
                 // Enhancement button - always visible
@@ -3027,16 +3029,14 @@ struct ConstructionPageView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.3))
+                    .background(Color.black.opacity(0.85))
                     .cornerRadius(8)
-                    .padding(.horizontal, 16)
                 }
                 .buttonStyle(PlainButtonStyle())
                 
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showConstructionSlots {
                     ConstructionSlotsView(gameState: gameState)
-                        .padding(.bottom, 10) // Position just above navigation bar
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -3761,7 +3761,7 @@ struct ResourcesPageView: View {
                     }
             
             // Enhancement slots overlay - positioned at bottom without affecting layout
-            VStack {
+            VStack(spacing: 0) {
                 Spacer()
                 
                 // Enhancement button - always visible
@@ -3780,16 +3780,14 @@ struct ResourcesPageView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.3))
+                    .background(Color.black.opacity(0.85))
                     .cornerRadius(8)
-                    .padding(.horizontal, 16)
                 }
                 .buttonStyle(PlainButtonStyle())
                 
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showResourcesSlots {
                     ResourcesSlotsView(gameState: gameState)
-                        .padding(.bottom, 10) // Position just above navigation bar
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -5068,7 +5066,7 @@ struct ShopView: View {
                     }
             
             // Enhancement slots overlay - positioned at bottom without affecting layout
-            VStack {
+            VStack(spacing: 0) {
                 Spacer()
                 
                 // Enhancement button - always visible
@@ -5087,16 +5085,14 @@ struct ShopView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.3))
+                    .background(Color.black.opacity(0.85))
                     .cornerRadius(8)
-                    .padding(.horizontal, 16)
                 }
                 .buttonStyle(PlainButtonStyle())
                 
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showShopSlots {
                     ShopSlotsView(gameState: gameState)
-                        .padding(.bottom, 10) // Position just above navigation bar
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -5175,7 +5171,7 @@ struct CardsView: View {
                     }
             
             // Enhancement slots overlay - positioned at bottom without affecting layout
-            VStack {
+            VStack(spacing: 0) {
                 Spacer()
                 
                 // Enhancement button - always visible
@@ -5194,16 +5190,14 @@ struct CardsView: View {
                     }
                     .padding(.vertical, 8)
                     .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.3))
+                    .background(Color.black.opacity(0.85))
                     .cornerRadius(8)
-                    .padding(.horizontal, 16)
                 }
                 .buttonStyle(PlainButtonStyle())
                 
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showCardsSlots {
                     CardsSlotsView(gameState: gameState)
-                        .padding(.bottom, 10) // Position just above navigation bar
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
