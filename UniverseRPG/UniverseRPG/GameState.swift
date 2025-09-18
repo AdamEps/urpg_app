@@ -1572,6 +1572,7 @@ class GameState: ObservableObject {
     @Published var devToolBuildableWithoutIngredients = false
     @Published var devToolUnlockAllLocations = false
     @Published var showStarMapDevToolsDropdown = false
+    @Published var showCardsDevToolsDropdown = false
     @Published var showTelescopeLockedMessage = false
     
     func unlockAllConstructionBays() {
@@ -1719,6 +1720,28 @@ class GameState: ObservableObject {
     func toggleLocationUnlock() {
         devToolUnlockAllLocations.toggle()
         print("🔧 DEV TOOL - Toggle location unlock called, new state: \(devToolUnlockAllLocations)")
+    }
+    
+    // MARK: - Card Leveling Dev Tools
+    
+    func levelUpAllCards() {
+        for i in 0..<ownedCards.count {
+            if ownedCards[i].tier < 5 {
+                ownedCards[i].tier += 1
+                print("🔧 DEV TOOL - Card \(ownedCards[i].cardId) leveled up to tier \(ownedCards[i].tier)")
+            }
+        }
+        print("🔧 DEV TOOL - All cards leveled up!")
+    }
+    
+    func levelDownAllCards() {
+        for i in 0..<ownedCards.count {
+            if ownedCards[i].tier > 1 {
+                ownedCards[i].tier -= 1
+                print("🔧 DEV TOOL - Card \(ownedCards[i].cardId) leveled down to tier \(ownedCards[i].tier)")
+            }
+        }
+        print("🔧 DEV TOOL - All cards leveled down!")
     }
     
     func isTelescopeUnlocked() -> Bool {

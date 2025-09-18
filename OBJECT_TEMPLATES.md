@@ -5,6 +5,8 @@ This document contains reusable UI components and templates for the UniverseRPG 
 ## Table of Contents
 
 - [Buttons](#buttons)
+  - [SegmentedButtonView](#segmentedbuttonview)
+  - [DevButtonWithDropdownView](#devbuttonwithdropdownview)
 - [Menus](#menus)
 - [Pop-out Windows](#pop-out-windows)
 - [Cards](#cards)
@@ -205,6 +207,390 @@ SegmentedButtonView(
 - Mode switching (View/Edit/Delete)
 - Category filtering (All/Active/Completed)
 - Any multi-option selection interface
+
+### DevButtonWithDropdownView
+**Type:** Dropdown Overlay  
+**Description:** A dropdown window overlay that appears when triggered by a dev button. Perfect for developer tools, debug options, or admin controls. The dropdown content area is empty and customizable for different implementations. This component only handles the dropdown overlay - the button should be implemented using `DevButtonHeaderView` for proper header positioning.
+
+**Visual Representation:**
+```
+┌─────────────────────────────────────┐
+│  Page Title                    [DEV] │
+│  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^    │
+│                                      │
+│  ┌─────────────────────────────┐    │
+│  │  [Dropdown Content Area]    │    │
+│  │  (Empty - customizable)     │    │
+│  │                             │    │
+│  └─────────────────────────────┘    │
+└─────────────────────────────────────┘
+```
+
+**Variables:**
+
+**Required Variables:**
+- `isDropdownVisible: Binding<Bool>` - Controls dropdown visibility
+- `content: () -> Content` - Custom content for the dropdown (using @ViewBuilder for flexibility)
+
+**Optional Variables:**
+- `dropdownWidth: CGFloat` - Width of the dropdown window (default: 200)
+
+**Fixed Styling (matches in-game implementation):**
+- Dropdown background: Color.black.opacity(0.9)
+- Dropdown corner radius: 8
+- Dropdown border: Color.gray, 1pt width
+- Dropdown padding: 12
+- Dropdown z-index: 1000
+- Dropdown positioning: Top-right aligned, below header, right-justified with button
+- Full screen overlay with tap-outside-to-close
+
+**Code Template:**
+```swift
+// MARK: - Dev Button with Dropdown View (Dropdown Overlay Only)
+struct DevButtonWithDropdownView<Content: View>: View {
+    @Binding var isDropdownVisible: Bool
+    let content: () -> Content
+    let dropdownWidth: CGFloat
+    
+    init(
+        isDropdownVisible: Binding<Bool>,
+        @ViewBuilder content: @escaping () -> Content,
+        dropdownWidth: CGFloat = 200
+    ) {
+        self._isDropdownVisible = isDropdownVisible
+        self.content = content
+        self.dropdownWidth = dropdownWidth
+    }
+    
+    var body: some View {
+        // Dropdown Overlay - positioned absolutely (full screen overlay)
+        if isDropdownVisible {
+            VStack {
+                HStack {
+                    Spacer()
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        content()
+                    }
+                    .padding(12)
+                    .background(Color.black.opacity(0.9))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray, lineWidth: 1)
+                    )
+                    .frame(width: dropdownWidth)
+                    .padding(.trailing, 16)
+                }
+                .padding(.top, 40) // Position below the header, touching the dev button
+                
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                // Invisible background to catch taps outside the dropdown
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        // Close dropdown when tapping outside
+                        isDropdownVisible = false
+                    }
+            )
+            .zIndex(1000)
+        }
+    }
+}
+
+// MARK: - Dev Button Template (separate component for the button)
+struct DevButtonView: View {
+    let buttonText: String
+    let buttonColor: Color
+    let onButtonTap: () -> Void
+    
+    init(
+        buttonText: String = "DEV",
+        buttonColor: Color = Color.red.opacity(0.8),
+        onButtonTap: @escaping () -> Void
+    ) {
+        self.buttonText = buttonText
+        self.buttonColor = buttonColor
+        self.onButtonTap = onButtonTap
+    }
+    
+    var body: some View {
+        Button(action: onButtonTap) {
+            Text(buttonText)
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(buttonColor)
+                .cornerRadius(4)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Dev Button Header Template (includes proper header structure)
+struct DevButtonHeaderView: View {
+    let title: String
+    let buttonText: String
+    let buttonColor: Color
+    let onButtonTap: () -> Void
+    
+    init(
+        title: String,
+        buttonText: String = "DEV",
+        buttonColor: Color = Color.red.opacity(0.8),
+        onButtonTap: @escaping () -> Void
+    ) {
+        self.title = title
+        self.buttonText = buttonText
+        self.buttonColor = buttonColor
+        self.onButtonTap = onButtonTap
+    }
+    
+    var body: some View {
+        HStack {
+            Text(title)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            Spacer()
+            
+            DevButtonView(
+                buttonText: buttonText,
+                buttonColor: buttonColor,
+                onButtonTap: onButtonTap
+            )
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .padding(.bottom, 20)
+    }
+}
+```
+
+**Usage Examples:**
+
+**Example 1: Basic Dev Tools (Construction Bays style)**
+```swift
+// In your page view:
+ZStack {
+    // Your main content here
+    VStack(spacing: 0) {
+        // Header with dev button - using template
+        DevButtonHeaderView(
+            title: "Construction Bays",
+            onButtonTap: {
+                gameState.showDevToolsDropdown.toggle()
+            }
+        )
+        
+        // Rest of your content...
+        VStack(spacing: 24) {
+            // Your page content here
+        }
+        .padding()
+    }
+    
+    // Dropdown Overlay
+    DevButtonWithDropdownView(
+        isDropdownVisible: $gameState.showDevToolsDropdown
+    ) {
+        // Bay Unlock Toggle
+        HStack {
+            Text("Unlock All Bays")
+                .font(.caption)
+                .foregroundColor(.white)
+            Spacer()
+            Toggle("", isOn: Binding(
+                get: { gameState.devToolUnlockAllBays },
+                set: { _ in gameState.toggleBayUnlock() }
+            ))
+            .toggleStyle(SwitchToggleStyle(tint: .green))
+            .scaleEffect(0.8)
+        }
+        
+        // Buildable Without Ingredients Toggle
+        HStack {
+            Text("Build Without Ingredients")
+                .font(.caption)
+                .foregroundColor(.white)
+            Spacer()
+            Toggle("", isOn: $gameState.devToolBuildableWithoutIngredients)
+                .toggleStyle(SwitchToggleStyle(tint: .blue))
+                .scaleEffect(0.8)
+        }
+        
+        // Complete All Constructions Button
+        Button(action: {
+            gameState.completeAllConstructions()
+            gameState.showDevToolsDropdown = false
+        }) {
+            Text("Complete All Constructions")
+                .font(.caption)
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.orange.opacity(0.8))
+                .cornerRadius(4)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+```
+
+**Example 2: Debug Tools (Cards page style)**
+```swift
+// In your page view:
+ZStack {
+    // Your main content here
+    VStack(spacing: 0) {
+        // Header with dev button - using template
+        DevButtonHeaderView(
+            title: "Cards",
+            buttonText: "DEBUG",
+            buttonColor: Color.blue.opacity(0.8),
+            onButtonTap: {
+                gameState.showCardsDevToolsDropdown.toggle()
+            }
+        )
+        
+        // Rest of your content...
+        VStack(spacing: 24) {
+            // Your page content here
+        }
+        .padding()
+    }
+    
+    // Dropdown Overlay
+    DevButtonWithDropdownView(
+        isDropdownVisible: $gameState.showCardsDevToolsDropdown,
+        dropdownWidth: 180
+    ) {
+        // Add Card Button
+        Button(action: {
+            gameState.addRandomCard()
+            gameState.showCardsDevToolsDropdown = false
+        }) {
+            Text("Add Random Card")
+                .font(.caption)
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.green.opacity(0.8))
+                .cornerRadius(4)
+        }
+        .buttonStyle(PlainButtonStyle())
+        
+        // Clear All Cards Button
+        Button(action: {
+            gameState.clearAllCards()
+            gameState.showCardsDevToolsDropdown = false
+        }) {
+            Text("Clear All Cards")
+                .font(.caption)
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.red.opacity(0.8))
+                .cornerRadius(4)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+```
+
+**Example 3: Admin Panel (Star Map style)**
+```swift
+// In your page view:
+ZStack {
+    // Your main content here
+    VStack(spacing: 0) {
+        // Header with dev button - using template
+        DevButtonHeaderView(
+            title: "Star Map",
+            buttonText: "ADMIN",
+            buttonColor: Color.purple.opacity(0.8),
+            onButtonTap: {
+                print("Admin panel opened")
+                gameState.showStarMapDevToolsDropdown.toggle()
+            }
+        )
+        
+        // Rest of your content...
+        VStack(spacing: 24) {
+            // Your page content here
+        }
+        .padding()
+    }
+    
+    // Dropdown Overlay
+    DevButtonWithDropdownView(
+        isDropdownVisible: $gameState.showStarMapDevToolsDropdown,
+        dropdownWidth: 220
+    ) {
+        // Unlock All Planets
+        Button(action: {
+            gameState.unlockAllPlanets()
+            gameState.showStarMapDevToolsDropdown = false
+        }) {
+            Text("Unlock All Planets")
+                .font(.caption)
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.cyan.opacity(0.8))
+                .cornerRadius(4)
+        }
+        .buttonStyle(PlainButtonStyle())
+        
+        // Reset Progress
+        Button(action: {
+            gameState.resetAllProgress()
+            gameState.showStarMapDevToolsDropdown = false
+        }) {
+            Text("Reset All Progress")
+                .font(.caption)
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.orange.opacity(0.8))
+                .cornerRadius(4)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+```
+
+**Key Features:**
+- **Three Components**: `DevButtonHeaderView` (header + button), `DevButtonView` (button only), `DevButtonWithDropdownView` (dropdown overlay)
+- **Proper Header Positioning**: Button positioned correctly in header on right side
+- **Correct Dropdown Alignment**: Dropdown right-justified to screen edge (16pt from right edge)
+- **Full Screen Overlay**: Dropdown covers entire screen with proper z-index management
+- **Flexible Content**: Use @ViewBuilder for completely customizable dropdown content
+- **Consistent Positioning**: Always appears in top-right corner, below header, aligned with button
+- **Outside Tap to Close**: Tapping outside the dropdown closes it automatically
+- **Customizable Button**: Change text, color, and add custom tap actions
+- **Responsive Width**: Configurable dropdown width for different content needs
+- **Matches Construction Bays**: Follows exact same pattern as Construction Bays page
+
+**Implementation Pattern:**
+1. Wrap your page content in a `ZStack`
+2. Use `DevButtonHeaderView` for the header with title and dev button
+3. Add `DevButtonWithDropdownView` as a separate overlay in the ZStack
+4. Both components share the same `@Binding<Bool>` for dropdown visibility
+5. Use `VStack(spacing: 0)` for proper header/content separation
+
+**Common Use Cases:**
+- Developer tools and debug options
+- Admin panels and configuration
+- Quick action menus
+- Settings toggles and controls
+- Testing and development utilities
+- Power user features
 
 ---
 

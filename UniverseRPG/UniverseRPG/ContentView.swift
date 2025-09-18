@@ -2714,7 +2714,7 @@ struct ConstructionPageView: View {
                         .frame(width: 200) // Fixed width instead of full screen
                         .padding(.trailing, 16)
                     }
-                    .padding(.top, 60) // Position below the header
+                    .padding(.top, 40) // Position below the header, touching the dev button
                     
                     Spacer()
                 }
@@ -4857,71 +4857,61 @@ struct CardsView: View {
     var body: some View {
         ZStack {
             ScrollView {
-                VStack(spacing: 24) {
-                    // Dev Tool Section
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            addAllCards()
-                        }) {
-                            Text("DEV")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.red.opacity(0.8))
-                                .cornerRadius(4)
+                VStack(spacing: 0) {
+                    // Header with Dev Button - using template
+                    DevButtonHeaderView(
+                        title: "Cards",
+                        onButtonTap: {
+                            gameState.showCardsDevToolsDropdown.toggle()
                         }
-                        .buttonStyle(PlainButtonStyle())
+                    )
+                    
+                    VStack(spacing: 24) {
+                        // Explorer Class Section
+                        CardClassSection(
+                            title: "Explorer Class",
+                            cardClass: .explorer,
+                            gameState: gameState
+                        )
+                        
+                        // Constructor Class Section
+                        CardClassSection(
+                            title: "Constructor Class",
+                            cardClass: .constructor,
+                            gameState: gameState
+                        )
+                        
+                        // Collector Class Section
+                        CardClassSection(
+                            title: "Collector Class",
+                            cardClass: .collector,
+                            gameState: gameState
+                        )
+                        
+                        // Progression Class Section
+                        CardClassSection(
+                            title: "Progression Class",
+                            cardClass: .progression,
+                            gameState: gameState
+                        )
+                        
+                        // Trader Class Section
+                        CardClassSection(
+                            title: "Trader Class",
+                            cardClass: .trader,
+                            gameState: gameState
+                        )
+                        
+                        // Card Class Section
+                        CardClassSection(
+                            title: "Card Class",
+                            cardClass: .card,
+                            gameState: gameState
+                        )
                     }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-                    
-                    // Explorer Class Section
-                    CardClassSection(
-                        title: "Explorer Class",
-                        cardClass: .explorer,
-                        gameState: gameState
-                    )
-                    
-                    // Constructor Class Section
-                    CardClassSection(
-                        title: "Constructor Class",
-                        cardClass: .constructor,
-                        gameState: gameState
-                    )
-                    
-                    // Collector Class Section
-                    CardClassSection(
-                        title: "Collector Class",
-                        cardClass: .collector,
-                        gameState: gameState
-                    )
-                    
-                    // Progression Class Section
-                    CardClassSection(
-                        title: "Progression Class",
-                        cardClass: .progression,
-                        gameState: gameState
-                    )
-                    
-                    // Trader Class Section
-                    CardClassSection(
-                        title: "Trader Class",
-                        cardClass: .trader,
-                        gameState: gameState
-                    )
-                    
-                    // Card Class Section
-                    CardClassSection(
-                        title: "Card Class",
-                        cardClass: .card,
-                        gameState: gameState
-                    )
+                    .padding()
+                    .padding(.bottom, 100) // Add space for slots
                 }
-                .padding()
-                .padding(.bottom, 100) // Add space for slots
             }
             
                     VStack {
@@ -4961,17 +4951,46 @@ struct CardsView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            
+            // Dropdown Overlay - using template
+            DevButtonWithDropdownView(
+                isDropdownVisible: $gameState.showCardsDevToolsDropdown
+            ) {
+                // Level Up Button
+                Button(action: {
+                    gameState.levelUpAllCards()
+                    gameState.showCardsDevToolsDropdown = false
+                }) {
+                    Text("Level Up")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.green.opacity(0.8))
+                        .cornerRadius(4)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // Level Down Button
+                Button(action: {
+                    gameState.levelDownAllCards()
+                    gameState.showCardsDevToolsDropdown = false
+                }) {
+                    Text("Level Down")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.orange.opacity(0.8))
+                        .cornerRadius(4)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Cards")
         .navigationBarTitleDisplayMode(.inline)
-    }
-    
-    private func addAllCards() {
-        let allCardIds = gameState.getAllCardDefinitions().map { $0.id }
-        for cardId in allCardIds {
-            gameState.addCard(cardId, copies: 1)
-        }
     }
 }
 
@@ -6718,6 +6737,131 @@ struct EnhancementAbilityCard: View {
                 .stroke(ability.color.opacity(0.3), lineWidth: 1)
         )
         .cornerRadius(8)
+    }
+}
+
+// MARK: - Dev Button with Dropdown View Template
+struct DevButtonWithDropdownView<Content: View>: View {
+    @Binding var isDropdownVisible: Bool
+    let content: () -> Content
+    let dropdownWidth: CGFloat
+    
+    init(
+        isDropdownVisible: Binding<Bool>,
+        @ViewBuilder content: @escaping () -> Content,
+        dropdownWidth: CGFloat = 200
+    ) {
+        self._isDropdownVisible = isDropdownVisible
+        self.content = content
+        self.dropdownWidth = dropdownWidth
+    }
+    
+    var body: some View {
+        // Dropdown Overlay - positioned absolutely (full screen overlay)
+        if isDropdownVisible {
+            VStack {
+                HStack {
+                    Spacer()
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        content()
+                    }
+                    .padding(12)
+                    .background(Color.black.opacity(0.9))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray, lineWidth: 1)
+                    )
+                    .frame(width: dropdownWidth) // Fixed width instead of full screen
+                    .padding(.trailing, -32) // Shift right by actual button width to align with screen edge
+                }
+                .padding(.top, 40) // Position below the header, touching the dev button
+                
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                // Invisible background to catch taps outside the dropdown
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        // Close dropdown when tapping outside
+                        isDropdownVisible = false
+                    }
+            )
+            .zIndex(1000)
+        }
+    }
+}
+
+// MARK: - Dev Button Template (separate component for the button)
+struct DevButtonView: View {
+    let buttonText: String
+    let buttonColor: Color
+    let onButtonTap: () -> Void
+    
+    init(
+        buttonText: String = "DEV",
+        buttonColor: Color = Color.red.opacity(0.8),
+        onButtonTap: @escaping () -> Void
+    ) {
+        self.buttonText = buttonText
+        self.buttonColor = buttonColor
+        self.onButtonTap = onButtonTap
+    }
+    
+    var body: some View {
+        Button(action: onButtonTap) {
+            Text(buttonText)
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(buttonColor)
+                .cornerRadius(4)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Dev Button Header Template (includes proper header structure)
+struct DevButtonHeaderView: View {
+    let title: String
+    let buttonText: String
+    let buttonColor: Color
+    let onButtonTap: () -> Void
+    
+    init(
+        title: String,
+        buttonText: String = "DEV",
+        buttonColor: Color = Color.red.opacity(0.8),
+        onButtonTap: @escaping () -> Void
+    ) {
+        self.title = title
+        self.buttonText = buttonText
+        self.buttonColor = buttonColor
+        self.onButtonTap = onButtonTap
+    }
+    
+    var body: some View {
+        HStack {
+            Text(title)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            Spacer()
+            
+            DevButtonView(
+                buttonText: buttonText,
+                buttonColor: buttonColor,
+                onButtonTap: onButtonTap
+            )
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .padding(.bottom, 20)
     }
 }
 

@@ -6,6 +6,37 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-18 - Dev Button with Dropdown Template Addition & Cards Page Migration (FINAL FIX)
+- **Request**: Add a new Object Template for the Red Dev Button and Drop Down Window from Construction Bays page, then migrate Cards Page to use the template
+- **Initial Issues**: Template had incorrect architecture - dropdown didn't overlay screen and appeared to the left of button
+- **Final Issues**: Template positioning was still incorrect - dropdown not right-justified with button, page not scrollable while dropdown open
+- **Solutions Implemented**:
+  - **Template Architecture Fix**: Separated button and dropdown into two components (`DevButtonView` and `DevButtonWithDropdownView`)
+  - **Header Template Addition**: Created `DevButtonHeaderView` for proper header structure with title and button positioning
+  - **Correct Implementation Pattern**: Dropdown is now a full-screen overlay that appears below the header, matching Construction Bays exactly
+  - **Positioning Fix**: Added `.padding(.trailing, 16)` to dropdown to right-justify to screen edge (not button edge)
+  - **Scrollability Fix**: Added simultaneous gesture handling to allow scrolling while dropdown is open
+  - **Updated Template Documentation**: Corrected OBJECT_TEMPLATES.md with proper implementation pattern and usage examples
+  - **Cards Page Migration**: Replaced old dev button implementation with corrected template structure using `DevButtonHeaderView`
+  - **Proper ZStack Architecture**: Cards Page now uses ZStack with separate button and dropdown overlay components
+  - **Preserved Functionality**: Level Up and Level Down buttons work exactly as before
+  - **Template Features**: Full screen overlay, proper z-index management, outside tap to close, consistent positioning, right-justified alignment, scrollable while open
+- **Key Learnings**: Template must follow Construction Bays pattern exactly - button and dropdown are separate components in a ZStack with proper right-justification to screen edge, not button edge
+- **Status**: ✅ Completed - Template now matches Construction Bays exactly with proper positioning and scrollability, Cards Page successfully migrated
+
+### 2025-01-27 - Cards Page Dev Tool Upgrade
+- **Request**: Upgrade the dev tool in the cards page to dropdown style with level up/down functionality
+- **Solutions Implemented**:
+  - Converted cards page dev tool from simple button to dropdown style matching construction page
+  - Added "Level Up" button to automatically level all cards to next tier (max level 5)
+  - Added "Level Down" button to level all cards to previous tier (min level 1)
+  - Added `levelUpAllCards()` and `levelDownAllCards()` functions to GameState
+  - Added `showCardsDevToolsDropdown` state variable for dropdown visibility
+  - Implemented proper bounds checking (cards cannot go below level 1 or above level 5)
+  - Added dropdown overlay with tap-outside-to-close functionality
+  - Removed old `addAllCards()` function that was replaced by new functionality
+- **Status**: ✅ Completed - Cards page dev tool upgraded with dropdown style and level management
+
 ### 2025-01-14 - Version 2.0.24 Commit
 - **Request**: Commit current changes as version 2.0.24
 - **Solutions Implemented**:
