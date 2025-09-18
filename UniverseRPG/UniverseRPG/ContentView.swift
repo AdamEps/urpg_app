@@ -1556,7 +1556,10 @@ struct LocationResourceListView: View {
                     Image(systemName: getResourceIcon(for: resourceType)).foregroundColor(getResourceColor(for: resourceType)).frame(width: 16).font(.caption)
                     Text(resourceType.rawValue).font(.caption2).foregroundColor(.white).frame(width: 80, alignment: .leading)
                     Text("\(String(format: "%.1f", percentage))%").font(.caption2).foregroundColor(.white).frame(width: 65, alignment: .center)
-                    Text("0.0%").font(.caption2).foregroundColor(.gray).frame(width: 65, alignment: .center)
+                    // Show actual idle drop table percentage instead of hardcoded 0.0%
+                    let idleDropTable = gameState.getIdleDropTable()
+                    let idlePercentage = idleDropTable.first(where: { $0.0 == resourceType })?.1 ?? 0.0
+                    Text("\(String(format: "%.1f", idlePercentage))%").font(.caption2).foregroundColor(.gray).frame(width: 65, alignment: .center)
                 }
                 .frame(height: 16) // Increased from 10 to 16 for better breathing room
                 .padding(.horizontal, 16) // Add horizontal padding to match the header

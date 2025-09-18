@@ -1811,11 +1811,11 @@ class GameState: ObservableObject {
                 cardClass: .explorer,
                 effectKey: "idleRareBias",
                 tiers: [
-                    CardTier(copies: 2, value: 0.01),   // +1% per level
-                    CardTier(copies: 5, value: 0.02),   // +2% per level
-                    CardTier(copies: 10, value: 0.03),  // +3% per level
-                    CardTier(copies: 25, value: 0.04),  // +4% per level
-                    CardTier(copies: 100, value: 0.05)  // +5% per level
+                    CardTier(copies: 2, value: 1.0),   // +1% per level
+                    CardTier(copies: 5, value: 2.0),   // +2% per level
+                    CardTier(copies: 10, value: 3.0),  // +3% per level
+                    CardTier(copies: 25, value: 4.0),  // +4% per level
+                    CardTier(copies: 100, value: 5.0)  // +5% per level
                 ],
                 description: "Improves chances of getting the 3 'Rare' resources during idle collection"
             ),
