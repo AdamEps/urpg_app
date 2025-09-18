@@ -780,7 +780,7 @@ struct LocationSlotsView: View {
                     HStack(spacing: 8) {
                         if gameState.selectedSlotType == "Cards" {
                             ForEach(getAvailableCards(), id: \.id) { userCard in
-                                CompactCardView(userCard: userCard, gameState: gameState)
+                                CompactCardView(userCard: userCard, gameState: gameState, page: "Location")
                             }
                         } else {
                             // TODO: Add items when ready
@@ -991,18 +991,10 @@ struct SlottedCardView: View {
     }
     
     private func getAbbreviatedName(_ name: String) -> String {
-        let abbreviations: [String: String] = [
-            "Astro Prospector": "AP",
-            "Deep Scan": "DS",
-            "Resource Efficiency": "RE",
-            "Mining Mastery": "MM",
-            "Exploration Boost": "EB",
-            "Lucky Strike": "LS",
-            "Rare Finder": "RF",
-            "XP Collector": "XC",
-            "Midas' Touch": "MT"
-        ]
-        return abbreviations[name] ?? String(name.prefix(2))
+        // Create proper initials from each word
+        let words = name.components(separatedBy: " ")
+        let initials = words.compactMap { $0.first }.map { String($0).uppercased() }
+        return initials.joined()
     }
     
     private func getCardIcon() -> String {
@@ -1111,6 +1103,7 @@ struct SlottedCardView: View {
 struct CompactCardView: View {
     let userCard: UserCard
     @ObservedObject var gameState: GameState
+    let page: String
     @State private var isPressed = false
     
     var body: some View {
@@ -1118,7 +1111,7 @@ struct CompactCardView: View {
                     print("Selected card: \(userCard.cardId)")
                     // Equip the card to the selected slot
                     if let selectedSlotIndex = gameState.selectedSlotIndex {
-                        gameState.equipCardToSlot(cardId: userCard.cardId, slotIndex: selectedSlotIndex, page: "Location")
+                        gameState.equipCardToSlot(cardId: userCard.cardId, slotIndex: selectedSlotIndex, page: page)
                         // Clear the selection to close the popup
                         gameState.selectedSlotIndex = nil
                     }
@@ -1268,19 +1261,10 @@ struct CompactCardView: View {
     }
     
     private func getAbbreviatedName(_ name: String) -> String {
-        // Create abbreviations for common card names - single line only
-        let abbreviations: [String: String] = [
-            "Astro Prospector": "AP",
-            "Deep Scan": "DS",
-            "Resource Efficiency": "RE",
-            "Mining Mastery": "MM",
-            "Exploration Boost": "EB",
-            "Lucky Strike": "LS",
-            "Rare Finder": "RF",
-            "XP Collector": "XC",
-            "Midas' Touch": "MT"
-        ]
-        return abbreviations[name] ?? String(name.prefix(2))
+        // Create proper initials from each word
+        let words = name.components(separatedBy: " ")
+        let initials = words.compactMap { $0.first }.map { String($0).uppercased() }
+        return initials.joined()
     }
     
     private func getAbilityLines() -> [String] {
@@ -1357,17 +1341,64 @@ struct ResourcesSlotsView: View {
     
     var body: some View {
         VStack(spacing: 8) {
+            // Scrollable selection area (only shown when a slot is selected)
+            if gameState.selectedSlotIndex != nil {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        if gameState.selectedSlotType == "Cards" {
+                            ForEach(getAvailableCards(), id: \.id) { userCard in
+                                CompactCardView(userCard: userCard, gameState: gameState, page: "Resources")
+                            }
+                        } else {
+                            // TODO: Add items when ready
+                            Text("Items coming soon...")
+                                .foregroundColor(.gray)
+                                .padding()
+                        }
+                    }
+                    .padding(.leading, 2) // Add 2pts to the left
+                    .padding(.vertical, 4) // Add 4pts above and below inside scroll area
+                }
+                .frame(height: 88) // Perfect height: cards (80) + padding (8) = 88
+                
+                // Segmented control for Cards/Items
+                Picker("Type", selection: $gameState.selectedSlotType) {
+                    Text("Cards").tag("Cards")
+                    Text("Items").tag("Items")
+                }
+                .pickerStyle(SegmentedPickerStyle())
+            }
+            
+            // Slots
             HStack(spacing: 12) {
                 ForEach(0..<4, id: \.self) { index in
                     ResourcesSlotView(slotIndex: index, gameState: gameState)
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(Color.black.opacity(0.6))
-        .cornerRadius(12)
         .padding(.horizontal, 16)
+        .padding(.bottom, 12)
+        .background(Color.black.opacity(0.3))
+        .cornerRadius(12)
+    }
+    
+    private func getAvailableCards() -> [UserCard] {
+        // Get all equipped cards for the resources page
+        let equippedCards = gameState.getEquippedCardsForPage("Resources").compactMap { $0 }
+        
+        // Filter cards to show only collector/progression class cards that are unlocked and not already equipped
+        return gameState.ownedCards.filter { userCard in
+            // Skip if already equipped
+            if equippedCards.contains(userCard.cardId) {
+                return false
+            }
+            
+            // Get the card definition to check class
+            if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
+                return (cardDef.cardClass == .collector || cardDef.cardClass == .progression)
+            }
+            return false
+        }
     }
 }
 
@@ -1376,10 +1407,26 @@ struct ResourcesSlotView: View {
     @ObservedObject var gameState: GameState
     @State private var isPressed = false
     
+    var equippedCardId: String? {
+        gameState.getEquippedCard(slotIndex: slotIndex, page: "Resources")
+    }
+    
     var body: some View {
         Button(action: {
             print("enhancementsResourcesSlot\(slotIndex + 1) tapped!")
-            // TODO: Implement slot functionality
+            
+            if equippedCardId != nil {
+                // If slot has a card, unequip it
+                gameState.unequipCardFromSlot(slotIndex: slotIndex, page: "Resources")
+            } else {
+                // If slot is empty, select it for equipping
+                if gameState.selectedSlotIndex == slotIndex {
+                    gameState.selectedSlotIndex = nil
+                } else {
+                    gameState.selectedSlotIndex = slotIndex
+                    gameState.selectedSlotType = "Cards" // Default to Cards
+                }
+            }
         }) {
         VStack(spacing: 4) {
             // Slot container
@@ -1387,14 +1434,24 @@ struct ResourcesSlotView: View {
                     .stroke(isPressed ? Color.blue : Color.gray.opacity(0.5), lineWidth: 2)
                 .frame(width: 60, height: 80)
                 .overlay(
-                    VStack {
-                        Image(systemName: "plus")
-                            .font(.title3)
-                            .foregroundColor(.gray.opacity(0.6))
-                        
-                        Text("Slot \(slotIndex + 1)")
-                            .font(.caption2)
-                            .foregroundColor(.gray.opacity(0.6))
+                    Group {
+                        if let equippedCardId = equippedCardId {
+                            // Show equipped card as mini card overlay
+                            if let userCard = gameState.getUserCard(for: equippedCardId) {
+                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex)
+                            }
+                        } else {
+                            // Show empty slot
+                            VStack {
+                                Image(systemName: "plus")
+                                    .font(.title3)
+                                    .foregroundColor(.gray.opacity(0.6))
+                                
+                                Text("Slot \(slotIndex + 1)")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray.opacity(0.6))
+                            }
+                        }
                     }
                 )
         }
@@ -1415,17 +1472,64 @@ struct ShopSlotsView: View {
     
     var body: some View {
         VStack(spacing: 8) {
+            // Scrollable selection area (only shown when a slot is selected)
+            if gameState.selectedSlotIndex != nil {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        if gameState.selectedSlotType == "Cards" {
+                            ForEach(getAvailableCards(), id: \.id) { userCard in
+                                CompactCardView(userCard: userCard, gameState: gameState, page: "Shop")
+                            }
+                        } else {
+                            // TODO: Add items when ready
+                            Text("Items coming soon...")
+                                .foregroundColor(.gray)
+                                .padding()
+                        }
+                    }
+                    .padding(.leading, 2) // Add 2pts to the left
+                    .padding(.vertical, 4) // Add 4pts above and below inside scroll area
+                }
+                .frame(height: 88) // Perfect height: cards (80) + padding (8) = 88
+                
+                // Segmented control for Cards/Items
+                Picker("Type", selection: $gameState.selectedSlotType) {
+                    Text("Cards").tag("Cards")
+                    Text("Items").tag("Items")
+                }
+                .pickerStyle(SegmentedPickerStyle())
+            }
+            
+            // Slots
             HStack(spacing: 12) {
                 ForEach(0..<4, id: \.self) { index in
                     ShopSlotView(slotIndex: index, gameState: gameState)
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(Color.black.opacity(0.6))
-        .cornerRadius(12)
         .padding(.horizontal, 16)
+        .padding(.bottom, 12)
+        .background(Color.black.opacity(0.3))
+        .cornerRadius(12)
+    }
+    
+    private func getAvailableCards() -> [UserCard] {
+        // Get all equipped cards for the shop page
+        let equippedCards = gameState.getEquippedCardsForPage("Shop").compactMap { $0 }
+        
+        // Filter cards to show only trader/progression class cards that are unlocked and not already equipped
+        return gameState.ownedCards.filter { userCard in
+            // Skip if already equipped
+            if equippedCards.contains(userCard.cardId) {
+                return false
+            }
+            
+            // Get the card definition to check class
+            if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
+                return (cardDef.cardClass == .trader || cardDef.cardClass == .progression)
+            }
+            return false
+        }
     }
 }
 
@@ -1434,10 +1538,26 @@ struct ShopSlotView: View {
     @ObservedObject var gameState: GameState
     @State private var isPressed = false
     
+    var equippedCardId: String? {
+        gameState.getEquippedCard(slotIndex: slotIndex, page: "Shop")
+    }
+    
     var body: some View {
         Button(action: {
             print("enhancementsShopSlot\(slotIndex + 1) tapped!")
-            // TODO: Implement slot functionality
+            
+            if equippedCardId != nil {
+                // If slot has a card, unequip it
+                gameState.unequipCardFromSlot(slotIndex: slotIndex, page: "Shop")
+            } else {
+                // If slot is empty, select it for equipping
+                if gameState.selectedSlotIndex == slotIndex {
+                    gameState.selectedSlotIndex = nil
+                } else {
+                    gameState.selectedSlotIndex = slotIndex
+                    gameState.selectedSlotType = "Cards" // Default to Cards
+                }
+            }
         }) {
         VStack(spacing: 4) {
             // Slot container
@@ -1445,14 +1565,24 @@ struct ShopSlotView: View {
                     .stroke(isPressed ? Color.blue : Color.gray.opacity(0.5), lineWidth: 2)
                 .frame(width: 60, height: 80)
                 .overlay(
-                    VStack {
-                        Image(systemName: "plus")
-                            .font(.title3)
-                            .foregroundColor(.gray.opacity(0.6))
-                        
-                        Text("Slot \(slotIndex + 1)")
-                            .font(.caption2)
-                            .foregroundColor(.gray.opacity(0.6))
+                    Group {
+                        if let equippedCardId = equippedCardId {
+                            // Show equipped card as mini card overlay
+                            if let userCard = gameState.getUserCard(for: equippedCardId) {
+                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex)
+                            }
+                        } else {
+                            // Show empty slot
+                            VStack {
+                                Image(systemName: "plus")
+                                    .font(.title3)
+                                    .foregroundColor(.gray.opacity(0.6))
+                                
+                                Text("Slot \(slotIndex + 1)")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray.opacity(0.6))
+                            }
+                        }
                     }
                 )
         }
@@ -1473,17 +1603,64 @@ struct CardsSlotsView: View {
     
     var body: some View {
         VStack(spacing: 8) {
+            // Scrollable selection area (only shown when a slot is selected)
+            if gameState.selectedSlotIndex != nil {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        if gameState.selectedSlotType == "Cards" {
+                            ForEach(getAvailableCards(), id: \.id) { userCard in
+                                CompactCardView(userCard: userCard, gameState: gameState, page: "Cards")
+                            }
+                        } else {
+                            // TODO: Add items when ready
+                            Text("Items coming soon...")
+                                .foregroundColor(.gray)
+                                .padding()
+                        }
+                    }
+                    .padding(.leading, 2) // Add 2pts to the left
+                    .padding(.vertical, 4) // Add 4pts above and below inside scroll area
+                }
+                .frame(height: 88) // Perfect height: cards (80) + padding (8) = 88
+                
+                // Segmented control for Cards/Items
+                Picker("Type", selection: $gameState.selectedSlotType) {
+                    Text("Cards").tag("Cards")
+                    Text("Items").tag("Items")
+                }
+                .pickerStyle(SegmentedPickerStyle())
+            }
+            
+            // Slots
             HStack(spacing: 12) {
                 ForEach(0..<4, id: \.self) { index in
                     CardsSlotView(slotIndex: index, gameState: gameState)
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(Color.black.opacity(0.6))
-        .cornerRadius(12)
         .padding(.horizontal, 16)
+        .padding(.bottom, 12)
+        .background(Color.black.opacity(0.3))
+        .cornerRadius(12)
+    }
+    
+    private func getAvailableCards() -> [UserCard] {
+        // Get all equipped cards for the cards page
+        let equippedCards = gameState.getEquippedCardsForPage("Cards").compactMap { $0 }
+        
+        // Filter cards to show only card/progression class cards that are unlocked and not already equipped
+        return gameState.ownedCards.filter { userCard in
+            // Skip if already equipped
+            if equippedCards.contains(userCard.cardId) {
+                return false
+            }
+            
+            // Get the card definition to check class
+            if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
+                return (cardDef.cardClass == .card || cardDef.cardClass == .progression)
+            }
+            return false
+        }
     }
 }
 
@@ -1492,10 +1669,26 @@ struct CardsSlotView: View {
     @ObservedObject var gameState: GameState
     @State private var isPressed = false
     
+    var equippedCardId: String? {
+        gameState.getEquippedCard(slotIndex: slotIndex, page: "Cards")
+    }
+    
     var body: some View {
         Button(action: {
             print("enhancementsCardsSlot\(slotIndex + 1) tapped!")
-            // TODO: Implement slot functionality
+            
+            if equippedCardId != nil {
+                // If slot has a card, unequip it
+                gameState.unequipCardFromSlot(slotIndex: slotIndex, page: "Cards")
+            } else {
+                // If slot is empty, select it for equipping
+                if gameState.selectedSlotIndex == slotIndex {
+                    gameState.selectedSlotIndex = nil
+                } else {
+                    gameState.selectedSlotIndex = slotIndex
+                    gameState.selectedSlotType = "Cards" // Default to Cards
+                }
+            }
         }) {
         VStack(spacing: 4) {
             // Slot container
@@ -1503,14 +1696,24 @@ struct CardsSlotView: View {
                     .stroke(isPressed ? Color.blue : Color.gray.opacity(0.5), lineWidth: 2)
                 .frame(width: 60, height: 80)
                 .overlay(
-                    VStack {
-                        Image(systemName: "plus")
-                            .font(.title3)
-                            .foregroundColor(.gray.opacity(0.6))
-                        
-                        Text("Slot \(slotIndex + 1)")
-                            .font(.caption2)
-                            .foregroundColor(.gray.opacity(0.6))
+                    Group {
+                        if let equippedCardId = equippedCardId {
+                            // Show equipped card as mini card overlay
+                            if let userCard = gameState.getUserCard(for: equippedCardId) {
+                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex)
+                            }
+                        } else {
+                            // Show empty slot
+                            VStack {
+                                Image(systemName: "plus")
+                                    .font(.title3)
+                                    .foregroundColor(.gray.opacity(0.6))
+                                
+                                Text("Slot \(slotIndex + 1)")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray.opacity(0.6))
+                            }
+                        }
                     }
                 )
         }
@@ -2135,17 +2338,64 @@ struct ConstructionSlotsView: View {
     
     var body: some View {
         VStack(spacing: 8) {
+            // Scrollable selection area (only shown when a slot is selected)
+            if gameState.selectedSlotIndex != nil {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        if gameState.selectedSlotType == "Cards" {
+                            ForEach(getAvailableCards(), id: \.id) { userCard in
+                                CompactCardView(userCard: userCard, gameState: gameState, page: "Construction")
+                            }
+                        } else {
+                            // TODO: Add items when ready
+                            Text("Items coming soon...")
+                                .foregroundColor(.gray)
+                                .padding()
+                        }
+                    }
+                    .padding(.leading, 2) // Add 2pts to the left
+                    .padding(.vertical, 4) // Add 4pts above and below inside scroll area
+                }
+                .frame(height: 88) // Perfect height: cards (80) + padding (8) = 88
+                
+                // Segmented control for Cards/Items
+                Picker("Type", selection: $gameState.selectedSlotType) {
+                    Text("Cards").tag("Cards")
+                    Text("Items").tag("Items")
+                }
+                .pickerStyle(SegmentedPickerStyle())
+            }
+            
+            // Slots
             HStack(spacing: 12) {
                 ForEach(0..<4, id: \.self) { index in
                     ConstructionSlotView(slotIndex: index, gameState: gameState)
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(Color.black.opacity(0.6))
-        .cornerRadius(12)
         .padding(.horizontal, 16)
+        .padding(.bottom, 12)
+        .background(Color.black.opacity(0.3))
+        .cornerRadius(12)
+    }
+    
+    private func getAvailableCards() -> [UserCard] {
+        // Get all equipped cards for the construction page
+        let equippedCards = gameState.getEquippedCardsForPage("Construction").compactMap { $0 }
+        
+        // Filter cards to show only constructor/progression class cards that are unlocked and not already equipped
+        return gameState.ownedCards.filter { userCard in
+            // Skip if already equipped
+            if equippedCards.contains(userCard.cardId) {
+                return false
+            }
+            
+            // Get the card definition to check class
+            if let cardDef = gameState.getAllCardDefinitions().first(where: { $0.id == userCard.cardId }) {
+                return (cardDef.cardClass == .constructor || cardDef.cardClass == .progression)
+            }
+            return false
+        }
     }
 }
 
@@ -2154,10 +2404,26 @@ struct ConstructionSlotView: View {
     @ObservedObject var gameState: GameState
     @State private var isPressed = false
     
+    var equippedCardId: String? {
+        gameState.getEquippedCard(slotIndex: slotIndex, page: "Construction")
+    }
+    
     var body: some View {
         Button(action: {
             print("enhancementsConstructionSlot\(slotIndex + 1) tapped!")
-            // TODO: Implement slot functionality
+            
+            if equippedCardId != nil {
+                // If slot has a card, unequip it
+                gameState.unequipCardFromSlot(slotIndex: slotIndex, page: "Construction")
+            } else {
+                // If slot is empty, select it for equipping
+                if gameState.selectedSlotIndex == slotIndex {
+                    gameState.selectedSlotIndex = nil
+                } else {
+                    gameState.selectedSlotIndex = slotIndex
+                    gameState.selectedSlotType = "Cards" // Default to Cards
+                }
+            }
         }) {
         VStack(spacing: 4) {
             // Slot container
@@ -2165,14 +2431,24 @@ struct ConstructionSlotView: View {
                     .stroke(isPressed ? Color.blue : Color.gray.opacity(0.5), lineWidth: 2)
                 .frame(width: 60, height: 80)
                 .overlay(
-                    VStack {
-                        Image(systemName: "plus")
-                            .font(.title3)
-                            .foregroundColor(.gray.opacity(0.6))
-                        
-                        Text("Slot \(slotIndex + 1)")
-                            .font(.caption2)
-                            .foregroundColor(.gray.opacity(0.6))
+                    Group {
+                        if let equippedCardId = equippedCardId {
+                            // Show equipped card as mini card overlay
+                            if let userCard = gameState.getUserCard(for: equippedCardId) {
+                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex)
+                            }
+                        } else {
+                            // Show empty slot
+                            VStack {
+                                Image(systemName: "plus")
+                                    .font(.title3)
+                                    .foregroundColor(.gray.opacity(0.6))
+                                
+                                Text("Slot \(slotIndex + 1)")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray.opacity(0.6))
+                            }
+                        }
                     }
                 )
         }
@@ -4940,7 +5216,7 @@ struct CardsView: View {
                     // +1 All Cards Button (top)
                     Button(action: {
                         gameState.addOneOfEachCard()
-                        gameState.showCardsDevToolsDropdown = false
+                        // Note: Removed line that closes dropdown to keep it open
                     }) {
                         Text("+1 All Cards")
                             .font(.caption)
@@ -4956,7 +5232,7 @@ struct CardsView: View {
                     // Level Up Button
                     Button(action: {
                         gameState.levelUpAllCards()
-                        gameState.showCardsDevToolsDropdown = false
+                        // Note: Removed line that closes dropdown to keep it open
                     }) {
                         Text("Level Up")
                             .font(.caption)
@@ -4972,7 +5248,7 @@ struct CardsView: View {
                     // Level Down Button
                     Button(action: {
                         gameState.levelDownAllCards()
-                        gameState.showCardsDevToolsDropdown = false
+                        // Note: Removed line that closes dropdown to keep it open
                     }) {
                         Text("Level Down")
                             .font(.caption)

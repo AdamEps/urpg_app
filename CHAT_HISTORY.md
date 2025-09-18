@@ -512,9 +512,9 @@ This document tracks our development conversations and key decisions for the Uni
 - ✅ **Code Quality**: No linting errors, clean implementation
 - ✅ **App Testing**: Launched app to verify changes work correctly
 
-### **Version 2.0.36 Release**
-- **Commit**: Ready for commit with Deep Scan card distribution fix
-- **App Icon**: Will be updated after commit
+### **Version 2.0.26 Release**
+- **Commit**: Successfully committed with message "v2.0.26: Deep Scan card cumulative resource distribution fix"
+- **App Icon**: Updated to version 2.0.26 using update_app_icon.sh script
 - **Chat History**: Updated with complete session details
 
 ---
