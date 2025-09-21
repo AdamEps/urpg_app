@@ -2748,6 +2748,40 @@ struct ResourceBadge: View {
     }
 }
 
+// MARK: - Glowing Telescope Icon
+struct GlowingTelescopeIcon: View {
+    @State private var glowOpacity: Double = 0.3
+
+    var body: some View {
+        ZStack {
+            // Outer glow layer
+            Text("🔭")
+                .font(.title2)
+                .foregroundColor(.yellow.opacity(glowOpacity))
+                .scaleEffect(1.2)
+                .blur(radius: 8)
+
+            // Middle glow layer
+            Text("🔭")
+                .font(.title2)
+                .foregroundColor(.yellow.opacity(glowOpacity * 1.5))
+                .scaleEffect(1.1)
+                .blur(radius: 4)
+
+            // Core telescope
+            Text("🔭")
+                .font(.title2)
+                .foregroundColor(.yellow)
+        }
+        .onAppear {
+            // Start oscillating animation
+            withAnimation(Animation.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                glowOpacity = 0.8
+            }
+        }
+    }
+}
+
 // MARK: - Bottom Navigation
 struct BottomNavigationView: View {
     @ObservedObject var gameState: GameState
@@ -2789,11 +2823,9 @@ struct BottomNavigationView: View {
                     }
                 } else if gameState.currentPage == .location {
                     // From location view, go to star map and ensure we start at solar system level
-                    gameState.currentPage = .starMap
-                    gameState.starMapViaTelescope = false
-                    // Ensure we start at solar system level, not constellation
+                    // First ensure we're at the correct zoom level to prevent flicker
                     if case .constellation = gameState.starMapZoomLevel {
-                        // If we're at constellation level, zoom into the current star system
+                        // If we're at constellation level, zoom into the current star system first
                         if let constellation = gameState.getCurrentConstellation() {
                             let currentSystem = constellation.starSystems.first { starSystem in
                                 starSystem.locations.contains { $0.id == gameState.currentLocation.id }
@@ -2803,6 +2835,9 @@ struct BottomNavigationView: View {
                             }
                         }
                     }
+                    // Then change the page after zoom level is set
+                    gameState.currentPage = .starMap
+                    gameState.starMapViaTelescope = false
                 } else if gameState.currentPage == .shop || gameState.currentPage == .construction || 
                          gameState.currentPage == .resources || gameState.currentPage == .cards || 
                          gameState.currentPage == .statistics {
@@ -2829,10 +2864,8 @@ struct BottomNavigationView: View {
                             .foregroundColor(.blue)
                     }
                 } else if gameState.currentPage == .location {
-                    // From location view, show telescope icon (locationMap)
-                    Text("🔭")
-                        .font(.title2)
-                        .foregroundColor(.blue)
+                    // From location view, show glowing telescope icon
+                    GlowingTelescopeIcon()
                 } else {
                     // From other pages, show globe icon (locationView)
                     Image(systemName: "globe")

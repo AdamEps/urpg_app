@@ -48,6 +48,20 @@ This document tracks our development conversations and key decisions for the Uni
   - **User Experience**: Toggle button shows current mode and switches between dark/light
 - **Status**: ✅ Completed - App now has independent color scheme control with in-app toggle
 
+### 2025-09-21 - Telescope Icon Visibility Fix (Version 2.0.157)
+- **Request**: Fix missing telescope icon on bottom navigation bar when on location view
+- **Root Cause**: The "telescope.fill" SF Symbol was not displaying properly, causing the telescope icon to be invisible on the navigation bar
+- **Solutions Implemented**:
+  - **Navigation Bar Fix**: Replaced `Image(systemName: "telescope.fill")` with `Text("🔭")` for the telescope icon in BottomNavigationView
+  - **Consistency Update**: Updated astro-prospector card icons to also use telescope emoji for consistency
+  - **Cross-Platform Compatibility**: Using emoji ensures visibility across all iOS versions and devices
+- **Technical Details**:
+  - **Location View Navigation**: When `gameState.currentPage == .location`, the telescope emoji now shows correctly
+  - **Star Map Navigation**: Also updated the telescope icon in star map view for consistency
+  - **Card Icons**: Updated all astro-prospector card references to use emoji instead of SF Symbol
+- **Status**: ✅ Completed - Telescope icon now displays properly on navigation bar when on location view
+- **Testing**: Changes committed and app icon updated to version 2.0.157
+
 ### 2025-09-18 - Complete Enhancements Popup System Implementation (Version 2.0.36)
 - **Request**: 
   1. Fix card name abbreviations to use proper initials (e.g., Materials Engineer -> ME)
