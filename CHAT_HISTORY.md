@@ -62,6 +62,24 @@ This document tracks our development conversations and key decisions for the Uni
 - **Status**: ✅ Completed - Telescope icon now displays properly on navigation bar when on location view
 - **Testing**: Changes committed and app icon updated to version 2.0.157
 
+### 2025-09-21 - Navigation Flicker Fix and Glowing Telescope Effect (Version 2.0.158)
+- **Request**:
+  1. Fix flicker showing multi-star system view before switching to correct solar system view when navigating from location to map
+  2. Add slow yellow oscillating glow to telescope icon when on location view (instead of blue)
+- **Solutions Implemented**:
+  - **Navigation Flicker Fix**: Reordered navigation logic to set zoom level before changing page to prevent brief constellation view flash
+  - **Glowing Telescope Effect**: Created `GlowingTelescopeIcon` view with animated yellow glow that oscillates slowly (2-second cycle)
+- **Technical Details**:
+  - **Flicker Fix**: Changed order so `zoomIntoStarSystem()` is called before `currentPage = .starMap` to ensure correct view shows immediately
+  - **Glow Implementation**: Multi-layer ZStack with animated opacity changes creating pulsing yellow glow effect around telescope emoji
+  - **Animation**: 2-second ease-in-out animation that repeats forever with auto-reverse for smooth oscillation
+- **Visual Effects**:
+  - Telescope icon now has a distinctive yellow glow when on location view
+  - Glow intensity oscillates between 30% and 80% opacity for subtle pulsing effect
+  - Maintains space theme while adding visual interest to navigation
+- **Status**: ✅ Completed - Navigation is smooth and telescope icon has attractive glowing effect
+- **Testing**: Changes committed and app icon updated to version 2.0.158
+
 ### 2025-09-18 - Complete Enhancements Popup System Implementation (Version 2.0.36)
 - **Request**: 
   1. Fix card name abbreviations to use proper initials (e.g., Materials Engineer -> ME)

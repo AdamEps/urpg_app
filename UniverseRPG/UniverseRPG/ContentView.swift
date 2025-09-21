@@ -2853,9 +2853,10 @@ struct BottomNavigationView: View {
                 // Dynamic icon based on current page and zoom level
                 if gameState.currentPage == .starMap {
                     if case .constellation = gameState.starMapZoomLevel {
-                        // At constellation level, show globe icon (locationView)
-                        Image(systemName: "globe")
-                            .font(.title2)
+                        // At constellation level, show Saturn location icon
+                        Image("SaturnLocation")
+                            .resizable()
+                            .frame(width: 28, height: 28)
                             .foregroundColor(.blue)
                     } else {
                         // In solar system view, show telescope icon (locationMap)
@@ -2867,9 +2868,10 @@ struct BottomNavigationView: View {
                     // From location view, show glowing telescope icon
                     GlowingTelescopeIcon()
                 } else {
-                    // From other pages, show globe icon (locationView)
-                    Image(systemName: "globe")
-                        .font(.title2)
+                    // From other pages, show Saturn location icon
+                    Image("SaturnLocation")
+                        .resizable()
+                        .frame(width: 28, height: 28)
                         .foregroundColor(.white)
                 }
             }
