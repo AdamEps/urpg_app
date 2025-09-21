@@ -497,7 +497,9 @@ class GameState: ObservableObject {
         
         // 2% chance for XP from idle collection
         if Double.random(in: 0...100) <= 2.0 {
-            addXP(1)
+            let xpMultiplier = getXPGainMultiplier(for: "Location")
+            let xpAmount = Int(Double(1) * xpMultiplier)
+            addXP(xpAmount)
         }
         
         // Show visual feedback for idle collection
@@ -617,7 +619,7 @@ class GameState: ObservableObject {
         
         // Dynamic chance for XP from tapping (with XP multiplier)
         if Double.random(in: 0...100) <= getCurrentTapXPChance() {
-            let xpMultiplier = getXPGainMultiplier()
+            let xpMultiplier = getXPGainMultiplier(for: "Location")
             let xpAmount = Int(Double(getCurrentTapXPAmount()) * xpMultiplier)
             addXP(xpAmount)
         }
@@ -2180,15 +2182,11 @@ class GameState: ObservableObject {
         return locationMultiplier + resourcesMultiplier
     }
     
-    func getXPGainMultiplier() -> Double {
-        // Check all pages for XP gain multipliers
-        let locationMultiplier = getCardEffectMultiplier(effectKey: "xpGainMultiplier", page: "Location")
-        let shopMultiplier = getCardEffectMultiplier(effectKey: "xpGainMultiplier", page: "Shop")
-        let cardsMultiplier = getCardEffectMultiplier(effectKey: "xpGainMultiplier", page: "Cards")
-        let resourcesMultiplier = getCardEffectMultiplier(effectKey: "xpGainMultiplier", page: "Resources")
-        let constructionMultiplier = getCardEffectMultiplier(effectKey: "xpGainMultiplier", page: "Construction")
+    func getXPGainMultiplier(for page: String) -> Double {
+        // Check only the specified page for XP gain multipliers
+        let pageMultiplier = getCardEffectMultiplier(effectKey: "xpGainMultiplier", page: page)
         
-        return 1.0 + locationMultiplier + shopMultiplier + cardsMultiplier + resourcesMultiplier + constructionMultiplier
+        return 1.0 + pageMultiplier
     }
     
     func getBuildTimeMultiplier() -> Double {

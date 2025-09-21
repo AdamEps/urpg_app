@@ -540,36 +540,6 @@ struct LocationView: View {
                 .padding(.vertical, 8)
                 .background(Color.adaptiveSemiTransparentBackground)
                 
-                // Telescope button below header on left side (where the black box is in the image)
-                HStack {
-                    Button(action: {
-                        print("🔭 TELESCOPE BUTTON TAPPED!")
-                        // Set zoom level BEFORE changing page to avoid flicker
-                        if let constellation = gameState.getCurrentConstellation() {
-                            let currentSystem = constellation.starSystems.first { starSystem in
-                                starSystem.locations.contains { $0.id == gameState.currentLocation.id }
-                            }
-                            if let system = currentSystem {
-                                gameState.zoomIntoStarSystem(system)
-                            } else {
-                                gameState.zoomOutToConstellation()
-                            }
-                        }
-                        // Now change the page after zoom level is set
-                        gameState.currentPage = .starMap
-                        gameState.showingLocationList = false
-                        gameState.starMapViaTelescope = true
-                    }) {
-                        Text("🔭")
-                            .font(.largeTitle)
-                            .foregroundColor(.adaptivePrimaryText)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    Spacer()
-                }
-                .padding(.horizontal)
-                .padding(.top, 8)
                 
                 Spacer()
                 
@@ -880,7 +850,7 @@ struct LocationSlotView: View {
                         if let equippedCardId = equippedCardId {
                             // Show equipped card as mini card overlay
                             if let userCard = gameState.getUserCard(for: equippedCardId) {
-                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex)
+                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex, page: "Location")
                             }
                         } else {
                             // Show empty slot
@@ -914,13 +884,14 @@ struct SlottedCardView: View {
     let userCard: UserCard
     @ObservedObject var gameState: GameState
     let slotIndex: Int
+    let page: String
     @State private var isPressed = false
     
     var body: some View {
         Button(action: {
             print("Slotted card tapped: \(userCard.cardId)")
             // Unequip the card from the slot
-            gameState.unequipCardFromSlot(slotIndex: slotIndex, page: "Location")
+            gameState.unequipCardFromSlot(slotIndex: slotIndex, page: page)
         }) {
             VStack(spacing: 0) {
                 // Card container with colored border and black interior
@@ -1009,7 +980,7 @@ struct SlottedCardView: View {
     private func getCardIcon() -> String {
         switch userCard.cardId {
         case "astro-prospector":
-            return "telescope.fill"
+            return "🔭"
         case "deep-scan":
             return "waveform"
         default:
@@ -1238,7 +1209,7 @@ struct CompactCardView: View {
     private func getCardIcon() -> String {
         switch userCard.cardId {
         case "astro-prospector":
-            return "telescope.fill"
+            return "🔭"
         case "deep-scan":
             return "waveform"
         default:
@@ -1452,7 +1423,7 @@ struct ResourcesSlotView: View {
                         if let equippedCardId = equippedCardId {
                             // Show equipped card as mini card overlay
                             if let userCard = gameState.getUserCard(for: equippedCardId) {
-                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex)
+                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex, page: "Resources")
                             }
                         } else {
                             // Show empty slot
@@ -1587,7 +1558,7 @@ struct ShopSlotView: View {
                         if let equippedCardId = equippedCardId {
                             // Show equipped card as mini card overlay
                             if let userCard = gameState.getUserCard(for: equippedCardId) {
-                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex)
+                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex, page: "Shop")
                             }
                         } else {
                             // Show empty slot
@@ -1722,7 +1693,7 @@ struct CardsSlotView: View {
                         if let equippedCardId = equippedCardId {
                             // Show equipped card as mini card overlay
                             if let userCard = gameState.getUserCard(for: equippedCardId) {
-                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex)
+                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex, page: "Cards")
                             }
                         } else {
                             // Show empty slot
@@ -2463,7 +2434,7 @@ struct ConstructionSlotView: View {
                         if let equippedCardId = equippedCardId {
                             // Show equipped card as mini card overlay
                             if let userCard = gameState.getUserCard(for: equippedCardId) {
-                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex)
+                                SlottedCardView(userCard: userCard, gameState: gameState, slotIndex: slotIndex, page: "Construction")
                             }
                         } else {
                             // Show empty slot
@@ -2807,8 +2778,31 @@ struct BottomNavigationView: View {
             
             Button(action: {
                 if gameState.currentPage == .starMap {
-                    // If we're in star map, do nothing
-                    return
+                    // If we're in star map, zoom out or go back to location
+                    if case .constellation = gameState.starMapZoomLevel {
+                        // At furthest zoom out, go back to location view
+                        gameState.currentPage = .location
+                        gameState.starMapViaTelescope = false
+                    } else {
+                        // Zoom out to constellation level
+                        gameState.zoomOutToConstellation()
+                    }
+                } else if gameState.currentPage == .location {
+                    // From location view, go to star map and ensure we start at solar system level
+                    gameState.currentPage = .starMap
+                    gameState.starMapViaTelescope = false
+                    // Ensure we start at solar system level, not constellation
+                    if case .constellation = gameState.starMapZoomLevel {
+                        // If we're at constellation level, zoom into the current star system
+                        if let constellation = gameState.getCurrentConstellation() {
+                            let currentSystem = constellation.starSystems.first { starSystem in
+                                starSystem.locations.contains { $0.id == gameState.currentLocation.id }
+                            }
+                            if let system = currentSystem {
+                                gameState.zoomIntoStarSystem(system)
+                            }
+                        }
+                    }
                 } else if gameState.currentPage == .shop || gameState.currentPage == .construction || 
                          gameState.currentPage == .resources || gameState.currentPage == .cards || 
                          gameState.currentPage == .statistics {
@@ -2820,11 +2814,31 @@ struct BottomNavigationView: View {
                     gameState.currentPage = .starMap
                     gameState.starMapViaTelescope = false
                 }
-                // Do nothing for other pages (like location)
             }) {
-                Image(systemName: "globe")
-                    .font(.title2)
-                    .foregroundColor((gameState.currentPage == .starMap || gameState.currentPage == .location) ? .blue : .white)
+                // Dynamic icon based on current page and zoom level
+                if gameState.currentPage == .starMap {
+                    if case .constellation = gameState.starMapZoomLevel {
+                        // At constellation level, show globe icon (locationView)
+                        Image(systemName: "globe")
+                            .font(.title2)
+                            .foregroundColor(.blue)
+                    } else {
+                        // In solar system view, show telescope icon (locationMap)
+                        Text("🔭")
+                            .font(.title2)
+                            .foregroundColor(.blue)
+                    }
+                } else if gameState.currentPage == .location {
+                    // From location view, show telescope icon (locationMap)
+                    Text("🔭")
+                        .font(.title2)
+                        .foregroundColor(.blue)
+                } else {
+                    // From other pages, show globe icon (locationView)
+                    Image(systemName: "globe")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                }
             }
             
             Spacer()
@@ -3191,8 +3205,10 @@ struct SmallBaySlotView: View {
                 gameState.constructionBays[bayIndex].currentConstruction = nil
             }
             
-            // Award XP
-            gameState.addXP(construction.blueprint.xpReward)
+            // Award XP with multiplier
+            let xpMultiplier = gameState.getXPGainMultiplier(for: "Construction")
+            let xpAmount = Int(Double(construction.blueprint.xpReward) * xpMultiplier)
+            gameState.addXP(xpAmount)
             
             // Check for location unlocks
             gameState.checkLocationUnlocks()
@@ -3361,8 +3377,10 @@ struct MediumBaySlotView: View {
                 gameState.constructionBays[bayIndex].currentConstruction = nil
             }
             
-            // Award XP
-            gameState.addXP(construction.blueprint.xpReward)
+            // Award XP with multiplier
+            let xpMultiplier = gameState.getXPGainMultiplier(for: "Construction")
+            let xpAmount = Int(Double(construction.blueprint.xpReward) * xpMultiplier)
+            gameState.addXP(xpAmount)
             
             // Check for location unlocks
             gameState.checkLocationUnlocks()
@@ -3531,8 +3549,10 @@ struct LargeBaySlotView: View {
                 gameState.constructionBays[bayIndex].currentConstruction = nil
             }
             
-            // Award XP
-            gameState.addXP(construction.blueprint.xpReward)
+            // Award XP with multiplier
+            let xpMultiplier = gameState.getXPGainMultiplier(for: "Construction")
+            let xpAmount = Int(Double(construction.blueprint.xpReward) * xpMultiplier)
+            gameState.addXP(xpAmount)
             
             // Check for location unlocks
             gameState.checkLocationUnlocks()
@@ -4688,36 +4708,11 @@ struct SolarSystemView: View {
                 }
                 
                 
-                // Telescope button (consistent position - top left)
+                // Dev tool button (top right)
                 VStack {
                     HStack {
-                        Button(action: {
-                            if gameState.isTelescopeUnlocked() {
-                                gameState.zoomOutToConstellation()
-                            } else {
-                                gameState.displayTelescopeLockedMessage()
-                            }
-                        }) {
-                            Text("🔭")
-                                .font(.largeTitle)
-                                .foregroundColor(gameState.isTelescopeUnlocked() ? .white : .gray)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .padding(.leading)
-                        .opacity(gameState.isTelescopeUnlocked() ? 1.0 : 0.5)
-                        
-                        if gameState.showTelescopeLockedMessage {
-                            Text("Unlock Conditions Not Met")
-                                .font(.caption)
-                                .foregroundColor(.red)
-                                .padding(.leading, 8)
-                                .transition(.opacity)
-                                .animation(.easeInOut(duration: 0.3), value: gameState.showTelescopeLockedMessage)
-                        }
-                        
                         Spacer()
                         
-                        // Dev tool button (top right)
                         Button(action: {
                             gameState.showStarMapDevToolsDropdown.toggle()
                         }) {
@@ -4871,24 +4866,11 @@ struct ConstellationView: View {
                     .position(x: x, y: y)
                 }
                 
-                // Telescope button (consistent position - top left)
+                // Dev tool button (top right)
                 VStack {
                     HStack {
-                        Button(action: {
-                            // At constellation level, left arrow goes back to location view
-                            gameState.currentPage = .location
-                            gameState.starMapViaTelescope = false
-                        }) {
-                            Image(systemName: "chevron.left")
-                                .font(.largeTitle)
-                                .foregroundColor(.adaptivePrimaryText)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .padding(.leading)
-                        
                         Spacer()
                         
-                        // Dev tool button (top right)
                         Button(action: {
                             gameState.showStarMapDevToolsDropdown.toggle()
                         }) {
@@ -5508,7 +5490,7 @@ struct CardSlotView: View {
     private func getCardIcon(for cardId: String) -> String {
         switch cardId {
         case "astro-prospector":
-            return "telescope.fill"
+            return "🔭"
         case "deep-scan":
             return "waveform"
         default:
