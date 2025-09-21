@@ -80,6 +80,29 @@ This document tracks our development conversations and key decisions for the Uni
 - **Status**: ✅ Completed - Navigation is smooth and telescope icon has attractive glowing effect
 - **Testing**: Changes committed and app icon updated to version 2.0.158
 
+### 2025-09-21 - Custom Saturn Location Icon Implementation (Version 2.0.159)
+- **Request**: Replace the globe icon (.locationView) with a custom Saturn planet icon, removing background and inverting colors to white
+- **Solutions Implemented**:
+  - **Image Processing Script**: Enhanced Python script to handle Saturn icon with background removal and color inversion
+  - **Navigation Bar Update**: Replaced `Image(systemName: "globe")` with custom `SaturnLocation.png` image
+  - **Color Inversion**: Processed black Saturn icon to white for proper visibility in navigation bar
+- **Technical Details**:
+  - **Script Enhancement**: Added `--saturn` flag to process_telescope_image.py for Saturn-specific processing
+  - **Color Inversion Algorithm**: Pixel-by-pixel RGB inversion with brightness normalization to ensure white appearance
+  - **Navigation Integration**: Updated both constellation level and other pages to use Saturn icon
+  - **Image Optimization**: Resized to 28x28 pixels with proper padding for UI consistency
+- **Visual Changes**:
+  - Globe SF Symbol replaced with custom Saturn planet icon
+  - Icon appears in white on navigation bar when not on location view
+  - Maintains space theme with distinctive Saturn branding
+  - Consistent sizing with other navigation icons
+- **Usage**:
+  - **Processing**: `python3 process_telescope_image.py saturn_image.png --saturn`
+  - **Output**: Saves as `SaturnLocation.png` in `/Locations/` folder
+  - **Integration**: Automatically used in navigation bar code
+- **Status**: ✅ Completed - Custom Saturn location icon now replaces globe icon
+- **Testing**: Changes committed and app icon updated to version 2.0.159
+
 ### 2025-09-18 - Complete Enhancements Popup System Implementation (Version 2.0.36)
 - **Request**: 
   1. Fix card name abbreviations to use proper initials (e.g., Materials Engineer -> ME)

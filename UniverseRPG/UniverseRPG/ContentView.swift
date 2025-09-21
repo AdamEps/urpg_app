@@ -2853,11 +2853,17 @@ struct BottomNavigationView: View {
                 // Dynamic icon based on current page and zoom level
                 if gameState.currentPage == .starMap {
                     if case .constellation = gameState.starMapZoomLevel {
-                        // At constellation level, show Saturn location icon
-                        Image("SaturnLocation")
-                            .resizable()
-                            .frame(width: 28, height: 28)
-                            .foregroundColor(.blue)
+                        // At constellation level, show Saturn location icon (fallback to globe if image missing)
+                        if let _ = UIImage(named: "SaturnLocation") {
+                            Image("SaturnLocation")
+                                .resizable()
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(.blue)
+                        } else {
+                            Image(systemName: "globe")
+                                .font(.title2)
+                                .foregroundColor(.blue)
+                        }
                     } else {
                         // In solar system view, show telescope icon (locationMap)
                         Text("🔭")
@@ -2868,11 +2874,17 @@ struct BottomNavigationView: View {
                     // From location view, show glowing telescope icon
                     GlowingTelescopeIcon()
                 } else {
-                    // From other pages, show Saturn location icon
-                    Image("SaturnLocation")
-                        .resizable()
-                        .frame(width: 28, height: 28)
-                        .foregroundColor(.white)
+                    // From other pages, show Saturn location icon (fallback to globe if image missing)
+                    if let _ = UIImage(named: "SaturnLocation") {
+                        Image("SaturnLocation")
+                            .resizable()
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.white)
+                    } else {
+                        Image(systemName: "globe")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                    }
                 }
             }
             
