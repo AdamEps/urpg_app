@@ -221,6 +221,32 @@ struct ContentView: View {
             .animation(.easeInOut(duration: 0.3), value: gameState.showExtendedNavigation)
             .onPreferenceChange(BottomNavHeightPreferenceKey.self) { bottomNavHeight = $0 }
             .onPreferenceChange(ExtendedNavHeightPreferenceKey.self) { extendedNavHeight = $0 }
+
+            // Enhancements overlay - restores original pop-up behavior above nav bars
+            VStack(spacing: 0) {
+                Spacer()
+                Group {
+                    if gameState.currentPage == .location, gameState.showLocationSlots {
+                        LocationSlotsView(gameState: gameState)
+                    } else if gameState.currentPage == .construction, gameState.showConstructionSlots {
+                        ConstructionSlotsView(gameState: gameState)
+                    } else if gameState.currentPage == .resources, gameState.showResourcesSlots {
+                        ResourcesSlotsView(gameState: gameState)
+                    } else if gameState.currentPage == .shop, gameState.showShopSlots {
+                        ShopSlotsView(gameState: gameState)
+                    } else if gameState.currentPage == .cards, gameState.showCardsSlots {
+                        CardsSlotsView(gameState: gameState)
+                    }
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0) + 80)
+            }
+            .animation(.easeInOut(duration: 0.3), value: gameState.showLocationSlots)
+            .animation(.easeInOut(duration: 0.3), value: gameState.showConstructionSlots)
+            .animation(.easeInOut(duration: 0.3), value: gameState.showResourcesSlots)
+            .animation(.easeInOut(duration: 0.3), value: gameState.showShopSlots)
+            .animation(.easeInOut(duration: 0.3), value: gameState.showCardsSlots)
+            .zIndex(20)
             
             // Resource pop out positioned above bottom navigation
             if gameState.showLocationResources && gameState.currentPage == .location {
