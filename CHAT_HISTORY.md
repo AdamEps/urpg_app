@@ -1239,4 +1239,95 @@ Updated the telescope button logic in the main navigation bar to prioritize the 
 ### **Result**
 The telescope button now consistently shows the new LocationView icon when on other pages, matching the extended navigation bar implementation and providing a cohesive visual experience throughout the app.
 
+### **Version 2.0.40 Release**
+- **Commit**: Successfully committed with message "v2.0.40: LocationView Icon Replacement in Main Navigation Bar"
+- **App Icon**: No change (still v2.0.39)
+- **Files Changed**: 4 files changed, 66 insertions(+), 2 deletions(-)
+- **Push Status**: Successfully pushed to GitHub ✅
+- **Chat History**: Updated with complete session details
+
+---
+
+## 2025-09-22 - Extended Navigation Animation & Glowing Telescope Fix (v2.0.41)
+
+### **Request Summary**
+1. Fix the weird animation when extended nav appears/disappears - replace with natural extension from nav bar
+2. Implement glowing telescope in Multi system view when extended nav is closed
+
+### **Solutions Implemented**
+
+1. **Extended Navigation Animation Fix**:
+   - **Problem**: Extended nav appeared from above and disappeared upward (weird animation)
+   - **Solution**: Changed positioning from VStack (above) to overlay (extending upward from nav bar)
+   - **Implementation**:
+     - Removed ExtendedNavigationView from VStack structure
+     - Added as overlay to regular navigation HStack with `alignment: .bottom`
+     - Used `offset(y: -44)` to position it extending upward from the nav bar
+     - Applied `transition(.move(edge: .bottom))` for natural slide-up animation
+
+2. **Glowing Telescope in Multi System View**:
+   - **Problem**: Multi system view (constellation level) didn't show glowing telescope when extended nav closed
+   - **Solution**: Added conditional logic to constellation level telescope button
+   - **Implementation**:
+     - When `showExtendedNavigation` is true: Show non-glowing ZoomOutMaps icon
+     - When `showExtendedNavigation` is false: Show `GlowingZoomOutIcon()` with yellow pulsing glow
+     - Same behavior as location view and solar system view
+
+### **Code Changes**
+
+1. **BottomNavigationView Structure**:
+   ```swift
+   VStack(spacing: 0) {
+       // Regular navigation
+       HStack { ... }
+           .overlay(alignment: .bottom) {
+               // Extended navigation that extends upward from the regular nav bar
+               if gameState.showExtendedNavigation {
+                   ExtendedNavigationView(gameState: gameState)
+                       .offset(y: -44) // Extend upward from the regular nav bar
+                       .transition(.move(edge: .bottom))
+               }
+           }
+   }
+   ```
+
+2. **Constellation Level Telescope Logic**:
+   ```swift
+   if case .constellation = gameState.starMapZoomLevel {
+       // At constellation level (Multi system view), show glowing or non-glowing zoom out icon
+       if gameState.showExtendedNavigation {
+           // When extended navigation is shown, show non-glowing zoom out icon
+           Image("ZoomOutMaps")...
+       } else {
+           // When extended navigation is closed, show glowing zoom out icon
+           GlowingZoomOutIcon()
+       }
+   }
+   ```
+
+### **Testing**
+- ✅ App builds successfully
+- ✅ App launches on iPhone
+- ✅ Extended navigation extends upward from nav bar with smooth animation
+- ✅ No more weird appearing/disappearing from above animation
+- ✅ Multi system view telescope glows when extended nav closed
+- ✅ No glow when extended nav open (consistent behavior)
+- ✅ All existing functionality preserved
+
+### **Animation Behavior**
+- **Before**: Extended nav appeared from above and disappeared upward (awkward)
+- **After**: Extended nav slides up from the regular nav bar and slides down to disappear (natural)
+
+### **Glowing Telescope Behavior**
+- **Multi System View**: Glows when extended nav closed, no glow when extended nav open
+- **Location View**: Already working correctly (glows when closed, no glow when open)
+- **Solar System View**: Already working correctly (glows when closed, no glow when open)
+
+### **Version 2.0.41 Release**
+- **Commit**: Successfully committed with message "v2.0.41: Extended Navigation Animation & Glowing Telescope Fix"
+- **App Icon**: No change (still v2.0.39)
+- **Files Changed**: 1 file changed, 25 insertions(+), 5 deletions(-)
+- **Push Status**: Successfully pushed to GitHub ✅
+- **Chat History**: Updated with complete session details
+
 ---

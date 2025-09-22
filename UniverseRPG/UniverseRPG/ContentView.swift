@@ -2791,11 +2791,6 @@ struct BottomNavigationView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Extended navigation (appears above regular navigation when toggled)
-            if gameState.showExtendedNavigation {
-                ExtendedNavigationView(gameState: gameState)
-            }
-
             // Regular navigation
             HStack {
             Button(action: {
@@ -2848,16 +2843,22 @@ struct BottomNavigationView: View {
                             .foregroundColor(.blue)
                     } else if gameState.currentPage == .starMap {
                         if case .constellation = gameState.starMapZoomLevel {
-                            // At constellation level, show Saturn location icon (fallback to globe if image missing)
-                            if let _ = UIImage(named: "SaturnLocation") {
-                                Image("SaturnLocation")
-                                    .resizable()
-                                    .frame(width: 28, height: 28)
-                                    .foregroundColor(.blue)
+                            // At constellation level (Multi system view), show glowing or non-glowing zoom out icon
+                            if gameState.showExtendedNavigation {
+                                // When extended navigation is shown, show non-glowing zoom out icon
+                                if let _ = UIImage(named: "ZoomOutMaps") {
+                                    Image("ZoomOutMaps")
+                                        .resizable()
+                                        .frame(width: 28, height: 28)
+                                        .foregroundColor(.blue)
+                                } else {
+                                    Text("🔭")
+                                        .font(.title2)
+                                        .foregroundColor(.blue)
+                                }
                             } else {
-                                Image(systemName: "globe")
-                                    .font(.title2)
-                                    .foregroundColor(.blue)
+                                // When extended navigation is closed, show glowing zoom out icon
+                                GlowingZoomOutIcon()
                             }
                         } else {
                             // In solar system view, show glowing zoom out icon when extended nav is closed
@@ -3046,6 +3047,14 @@ struct ExtendedNavigationView: View {
         .padding(.vertical, 12)
         .background(Color.gray.opacity(0.4))
         .transition(.move(edge: .top))
+        .overlay(alignment: .bottom) {
+            // Extended navigation that extends upward from the regular nav bar
+            if gameState.showExtendedNavigation {
+                ExtendedNavigationView(gameState: gameState)
+                    .offset(y: -44) // Extend upward from the regular nav bar
+                    .transition(.move(edge: .bottom))
+            }
+        }
     }
 }
 
