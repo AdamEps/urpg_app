@@ -168,9 +168,9 @@ struct ContentView: View {
                 Group {
                     switch gameState.currentPage {
                     case .location:
-                        LocationView(gameState: gameState)
+                        LocationView(gameState: gameState, bottomBarHeight: bottomNavHeight, extendedBarHeight: extendedNavHeight)
                     case .construction:
-                        ConstructionPageView(gameState: gameState)
+                        ConstructionPageView(gameState: gameState, bottomBarHeight: bottomNavHeight, extendedBarHeight: extendedNavHeight)
                     case .blueprints:
                         BlueprintsView(gameState: gameState, initialBaySize: gameState.selectedBaySizeForBlueprints)
                             .onAppear {
@@ -184,11 +184,11 @@ struct ContentView: View {
                             StarMapView(gameState: gameState)
                         }
                     case .resources:
-                        ResourcesPageView(gameState: gameState)
+                        ResourcesPageView(gameState: gameState, bottomBarHeight: bottomNavHeight, extendedBarHeight: extendedNavHeight)
                     case .cards:
-                        CardsView(gameState: gameState)
+                        CardsView(gameState: gameState, bottomBarHeight: bottomNavHeight, extendedBarHeight: extendedNavHeight)
                     case .shop:
-                        ShopView(gameState: gameState)
+                        ShopView(gameState: gameState, bottomBarHeight: bottomNavHeight, extendedBarHeight: extendedNavHeight)
                     case .statistics:
                         StatisticsAndObjectivesView(gameState: gameState)
                     }
@@ -537,6 +537,8 @@ struct HeaderView: View {
 // MARK: - Location View
 struct LocationView: View {
     @ObservedObject var gameState: GameState
+    let bottomBarHeight: CGFloat
+    let extendedBarHeight: CGFloat
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
@@ -749,7 +751,7 @@ struct LocationView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
+            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -2296,7 +2298,7 @@ struct ConstructionView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
+            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -3092,6 +3094,8 @@ struct ExtendedNavigationView: View {
 // MARK: - Construction Page View
 struct ConstructionPageView: View {
     @ObservedObject var gameState: GameState
+    let bottomBarHeight: CGFloat
+    let extendedBarHeight: CGFloat
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
@@ -3301,7 +3305,7 @@ struct ConstructionPageView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
+            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -3826,6 +3830,8 @@ struct LargeBaySlotView: View {
 // MARK: - Resources Page View
 struct ResourcesPageView: View {
     @ObservedObject var gameState: GameState
+    let bottomBarHeight: CGFloat
+    let extendedBarHeight: CGFloat
     
     // Helper function to check if a resource is in a specific row
     func isResourceInRow(_ resourceType: ResourceType, rowIndex: Int) -> Bool {
@@ -4059,7 +4065,7 @@ struct ResourcesPageView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
+            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -5274,6 +5280,8 @@ struct StarMapView: View {
 
 struct ShopView: View {
     @ObservedObject var gameState: GameState
+    let bottomBarHeight: CGFloat
+    let extendedBarHeight: CGFloat
     
     var body: some View {
         ZStack {
@@ -5328,7 +5336,7 @@ struct ShopView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
+            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Shop")
@@ -5338,6 +5346,8 @@ struct ShopView: View {
 
 struct CardsView: View {
     @ObservedObject var gameState: GameState
+    let bottomBarHeight: CGFloat
+    let extendedBarHeight: CGFloat
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
@@ -5435,7 +5445,7 @@ struct CardsView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
+            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0))
             
             // Dropdown Overlay - using template
             DevButtonWithDropdownView(
