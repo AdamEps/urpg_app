@@ -720,7 +720,7 @@ struct LocationView: View {
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showLocationSlots {
                     LocationSlotsView(gameState: gameState)
-                        .padding(.bottom, gameState.showExtendedNavigation ? 50 : 0) // Push above extended nav when visible
+                        .padding(.bottom, gameState.showExtendedNavigation ? 0 : 0) // No gap between button and slots content
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
