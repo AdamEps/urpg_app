@@ -6,6 +6,26 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-22 - Enhancement Button Dynamic Positioning Fix (Version 2.0.62)
+- **Request**:
+  1. Fix Enhancement button positioning to be dynamic based on navigation state
+  2. Button should be above bottom nav when extended nav is closed
+  3. Button should be above extended nav when it's open
+  4. Slots should position above extended nav when open
+- **Solutions Implemented**:
+  - **Separated Button and Slots Positioning**: Button and slots now have independent positioning logic
+  - **Dynamic Button Positioning**: Enhancement buttons always position above bottom nav (`bottomBarHeight + 8`)
+  - **Dynamic Slots Positioning**: Enhancement slots position above extended nav when open (`bottomBarHeight + extendedBarHeight + 80`)
+  - **Applied to All Pages**: Updated Location, Construction, Resources, Shop, and Cards pages
+  - **Maintained Original Styling**: Each page keeps its specific Enhancement button appearance
+- **Key Features**:
+  - Enhancement buttons always sit just above the bottom navigation bar
+  - When extended nav opens, Enhancement slots appear above it
+  - Proper visual hierarchy maintained in all navigation states
+  - Smooth animations preserved
+- **Status**: ✅ **Completed** - Enhancement buttons now position correctly based on navigation state
+- **Version**: 2.0.62
+
 ### 2025-09-22 - Enhancement Overlays Positioning Fix (Version 2.0.61)
 - **Request**:
   1. Fix Enhancement overlays not being visible on any page
