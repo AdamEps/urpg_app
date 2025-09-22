@@ -7,6 +7,17 @@
 
 import SwiftUI
 
+// MARK: - Overlay Height Preferences (for non-pushing overlays)
+private struct BottomNavHeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+private struct ExtendedNavHeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
 struct ContentView: View {
     @EnvironmentObject var gameState: GameState
     @StateObject private var gameStateManager = GameStateManager.shared
@@ -24,6 +35,8 @@ struct ContentView: View {
     @State private var currentUsername = ""
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.colorScheme) private var colorScheme
+    @State private var bottomNavHeight: CGFloat = 0
+    @State private var extendedNavHeight: CGFloat = 0
     
     var body: some View {
         Group {
@@ -183,9 +196,31 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .animation(nil, value: gameState.currentPage)
                 
-                // Bottom navigation
-                BottomNavigationView(gameState: gameState)
+                // Bottom navigation removed from layout; rendered as overlay below
             }
+            
+            // Render both bars as a bottom overlay so content doesn't move
+            VStack(spacing: 0) {
+                Spacer()
+                if gameState.showExtendedNavigation {
+                    ExtendedNavigationView(gameState: gameState)
+                        .background(
+                            GeometryReader { proxy in
+                                Color.clear.preference(key: ExtendedNavHeightPreferenceKey.self, value: proxy.size.height)
+                            }
+                        )
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                BottomNavigationView(gameState: gameState)
+                    .background(
+                        GeometryReader { proxy in
+                            Color.clear.preference(key: BottomNavHeightPreferenceKey.self, value: proxy.size.height)
+                        }
+                    )
+            }
+            .animation(.easeInOut(duration: 0.3), value: gameState.showExtendedNavigation)
+            .onPreferenceChange(BottomNavHeightPreferenceKey.self) { bottomNavHeight = $0 }
+            .onPreferenceChange(ExtendedNavHeightPreferenceKey.self) { extendedNavHeight = $0 }
             
             // Resource pop out positioned above bottom navigation
             if gameState.showLocationResources && gameState.currentPage == .location {
@@ -213,7 +248,7 @@ struct ContentView: View {
                     LocationResourceListView(gameState: gameState)
                 }
                     .padding(.trailing, 0)
-                    .padding(.bottom, 80) // Position well above navigation bar
+                    .padding(.bottom, 80 + (gameState.showExtendedNavigation ? extendedNavHeight : 0)) // Respect extended nav overlay
             } else if gameState.currentPage == .location {
                 HStack {
                     Spacer()
@@ -236,7 +271,7 @@ struct ContentView: View {
                     }
                 }
                 .padding(.trailing, 0)
-                .padding(.bottom, 80) // Position well above navigation bar
+                .padding(.bottom, 80 + (gameState.showExtendedNavigation ? extendedNavHeight : 0)) // Respect extended nav overlay
             }
             
             // Tap counter pop out positioned below location name
@@ -2791,11 +2826,6 @@ struct BottomNavigationView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Extended navigation (appears above regular navigation when toggled)
-            if gameState.showExtendedNavigation {
-                ExtendedNavigationView(gameState: gameState)
-            }
-
             // Regular navigation
             HStack {
             Button(action: {
