@@ -715,10 +715,12 @@ struct LocationView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .padding(.bottom, gameState.showExtendedNavigation ? 0 : 10) // Dynamic positioning: 0 when extended nav visible, 10 when hidden
                 
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showLocationSlots {
                     LocationSlotsView(gameState: gameState)
+                        .padding(.bottom, gameState.showExtendedNavigation ? 0 : 10) // Dynamic positioning: 0 when extended nav visible, 10 when hidden
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
