@@ -7,17 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Overlay Height Preferences (for non-pushing overlays)
-private struct BottomNavHeightPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
-}
-
-private struct ExtendedNavHeightPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
-}
-
 struct ContentView: View {
     @EnvironmentObject var gameState: GameState
     @StateObject private var gameStateManager = GameStateManager.shared
@@ -35,8 +24,6 @@ struct ContentView: View {
     @State private var currentUsername = ""
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.colorScheme) private var colorScheme
-    @State private var bottomNavHeight: CGFloat = 0
-    @State private var extendedNavHeight: CGFloat = 0
     
     var body: some View {
         Group {
@@ -168,9 +155,9 @@ struct ContentView: View {
                 Group {
                     switch gameState.currentPage {
                     case .location:
-                        LocationView(gameState: gameState, bottomBarHeight: bottomNavHeight, extendedBarHeight: extendedNavHeight)
+                        LocationView(gameState: gameState)
                     case .construction:
-                        ConstructionPageView(gameState: gameState, bottomBarHeight: bottomNavHeight, extendedBarHeight: extendedNavHeight)
+                        ConstructionPageView(gameState: gameState)
                     case .blueprints:
                         BlueprintsView(gameState: gameState, initialBaySize: gameState.selectedBaySizeForBlueprints)
                             .onAppear {
@@ -184,11 +171,11 @@ struct ContentView: View {
                             StarMapView(gameState: gameState)
                         }
                     case .resources:
-                        ResourcesPageView(gameState: gameState, bottomBarHeight: bottomNavHeight, extendedBarHeight: extendedNavHeight)
+                        ResourcesPageView(gameState: gameState)
                     case .cards:
-                        CardsView(gameState: gameState, bottomBarHeight: bottomNavHeight, extendedBarHeight: extendedNavHeight)
+                        CardsView(gameState: gameState)
                     case .shop:
-                        ShopView(gameState: gameState, bottomBarHeight: bottomNavHeight, extendedBarHeight: extendedNavHeight)
+                        ShopView(gameState: gameState)
                     case .statistics:
                         StatisticsAndObjectivesView(gameState: gameState)
                     }
@@ -196,33 +183,9 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .animation(nil, value: gameState.currentPage)
                 
-                // Bottom navigation removed from layout; rendered as overlay below
-            }
-            
-            // Render both bars as a bottom overlay so content doesn't move
-            VStack(spacing: 0) {
-                Spacer()
-                if gameState.showExtendedNavigation {
-                    ExtendedNavigationView(gameState: gameState)
-                        .background(
-                            GeometryReader { proxy in
-                                Color.clear.preference(key: ExtendedNavHeightPreferenceKey.self, value: proxy.size.height)
-                            }
-                        )
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
+                // Bottom navigation
                 BottomNavigationView(gameState: gameState)
-                    .background(
-                        GeometryReader { proxy in
-                            Color.clear.preference(key: BottomNavHeightPreferenceKey.self, value: proxy.size.height)
-                        }
-                    )
             }
-            .animation(.easeInOut(duration: 0.3), value: gameState.showExtendedNavigation)
-            .onPreferenceChange(BottomNavHeightPreferenceKey.self) { bottomNavHeight = $0 }
-            .onPreferenceChange(ExtendedNavHeightPreferenceKey.self) { extendedNavHeight = $0 }
-
-            // Enhancements overlays are page-scoped below; nothing global here
             
             // Resource pop out positioned above bottom navigation
             if gameState.showLocationResources && gameState.currentPage == .location {
@@ -250,7 +213,7 @@ struct ContentView: View {
                     LocationResourceListView(gameState: gameState)
                 }
                     .padding(.trailing, 0)
-                    .padding(.bottom, 80 + (gameState.showExtendedNavigation ? extendedNavHeight : 0)) // Respect extended nav overlay
+                    .padding(.bottom, 80) // Position well above navigation bar
             } else if gameState.currentPage == .location {
                 HStack {
                     Spacer()
@@ -273,7 +236,7 @@ struct ContentView: View {
                     }
                 }
                 .padding(.trailing, 0)
-                .padding(.bottom, 80 + (gameState.showExtendedNavigation ? extendedNavHeight : 0)) // Respect extended nav overlay
+                .padding(.bottom, 80) // Position well above navigation bar
             }
             
             // Tap counter pop out positioned below location name
@@ -346,34 +309,6 @@ struct ContentView: View {
         }
         .onChange(of: showingProfile) { _, newValue in
             print("🔍 PROFILE VIEW - showingProfile changed to: \(newValue)")
-        }
-    }
-}
-
-// MARK: - Helpers for page-scoped enhancements
-private extension ContentView {
-    func showsEnhancementsButtonForCurrentPage() -> Bool {
-        switch gameState.currentPage {
-        case .location, .construction, .blueprints, .resources, .shop, .cards:
-            return true
-        default:
-            return false
-        }
-    }
-    func toggleEnhancementsForCurrentPage() {
-        switch gameState.currentPage {
-        case .location:
-            gameState.showLocationSlots.toggle()
-        case .construction, .blueprints:
-            gameState.showConstructionSlots.toggle()
-        case .resources:
-            gameState.showResourcesSlots.toggle()
-        case .shop:
-            gameState.showShopSlots.toggle()
-        case .cards:
-            gameState.showCardsSlots.toggle()
-        default:
-            break
         }
     }
 }
@@ -565,8 +500,6 @@ struct HeaderView: View {
 // MARK: - Location View
 struct LocationView: View {
     @ObservedObject var gameState: GameState
-    let bottomBarHeight: CGFloat
-    let extendedBarHeight: CGFloat
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
@@ -748,11 +681,11 @@ struct LocationView: View {
                 Spacer()
             }
             
-            // Enhancement overlay - Location page only (button + slots)
+            // Enhancement slots overlay - positioned at bottom without affecting layout
             VStack(spacing: 0) {
                 Spacer()
                 
-                // Enhancement button - always visible, positioned dynamically based on nav state
+                // Enhancement button - always visible
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         gameState.showLocationSlots.toggle()
@@ -772,16 +705,11 @@ struct LocationView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 8, 100))
-                .onAppear {
-                    print("DEBUG: bottomBarHeight = \(bottomBarHeight), extendedBarHeight = \(extendedBarHeight), showExtendedNavigation = \(gameState.showExtendedNavigation)")
-                }
                 
-                // Enhancement slots - shown conditionally with animation, positioned above button
+                // Enhancement slots - shown conditionally with animation
                 if gameState.showLocationSlots {
                     LocationSlotsView(gameState: gameState)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 80, 100))
                 }
             }
         }
@@ -2273,15 +2201,7 @@ struct TapCounterView: View {
 // MARK: - Construction View
 struct ConstructionView: View {
     @ObservedObject var gameState: GameState
-    let bottomBarHeight: CGFloat
-    let extendedBarHeight: CGFloat
     @Environment(\.colorScheme) private var colorScheme
-
-    init(gameState: GameState, bottomBarHeight: CGFloat = 0, extendedBarHeight: CGFloat = 0) {
-        self.gameState = gameState
-        self.bottomBarHeight = bottomBarHeight
-        self.extendedBarHeight = extendedBarHeight
-    }
     
     var body: some View {
         ZStack {
@@ -2307,11 +2227,11 @@ struct ConstructionView: View {
                 .padding(.bottom, 80) // Position well above navigation bar
             }
             
-            // Enhancement overlay - Construction page (button + slots)
+            // Enhancement slots overlay - positioned at bottom without affecting layout
             VStack(spacing: 0) {
                 Spacer()
                 
-                // Enhancement button - always visible, positioned dynamically based on nav state
+                // Enhancement button - always visible
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         gameState.showConstructionSlots.toggle()
@@ -2331,13 +2251,11 @@ struct ConstructionView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 8, 100))
                 
-                // Enhancement slots - shown conditionally with animation, positioned above button
+                // Enhancement slots - shown conditionally with animation
                 if gameState.showConstructionSlots {
                     ConstructionSlotsView(gameState: gameState)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 80, 100))
                 }
             }
         }
@@ -2873,6 +2791,11 @@ struct BottomNavigationView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Extended navigation (appears above regular navigation when toggled)
+            if gameState.showExtendedNavigation {
+                ExtendedNavigationView(gameState: gameState)
+            }
+
             // Regular navigation
             HStack {
             Button(action: {
@@ -3135,8 +3058,6 @@ struct ExtendedNavigationView: View {
 // MARK: - Construction Page View
 struct ConstructionPageView: View {
     @ObservedObject var gameState: GameState
-    let bottomBarHeight: CGFloat
-    let extendedBarHeight: CGFloat
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
@@ -3315,11 +3236,11 @@ struct ConstructionPageView: View {
                 .zIndex(1000)
             }
             
-            // Enhancement overlay - Construction (secondary) page (button + slots)
+            // Enhancement slots overlay - positioned at bottom without affecting layout
             VStack(spacing: 0) {
                 Spacer()
                 
-                // Enhancement button - always visible, positioned dynamically based on nav state
+                // Enhancement button - always visible
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         gameState.showConstructionSlots.toggle()
@@ -3339,13 +3260,11 @@ struct ConstructionPageView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 8, 100))
                 
-                // Enhancement slots - shown conditionally with animation, positioned above button
+                // Enhancement slots - shown conditionally with animation
                 if gameState.showConstructionSlots {
                     ConstructionSlotsView(gameState: gameState)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 80, 100))
                 }
             }
         }
@@ -3872,8 +3791,6 @@ struct LargeBaySlotView: View {
 // MARK: - Resources Page View
 struct ResourcesPageView: View {
     @ObservedObject var gameState: GameState
-    let bottomBarHeight: CGFloat
-    let extendedBarHeight: CGFloat
     
     // Helper function to check if a resource is in a specific row
     func isResourceInRow(_ resourceType: ResourceType, rowIndex: Int) -> Bool {
@@ -4076,11 +3993,11 @@ struct ResourcesPageView: View {
                         
                     }
             
-            // Enhancement overlay - Resources page (button + slots)
+            // Enhancement slots overlay - positioned at bottom without affecting layout
             VStack(spacing: 0) {
                 Spacer()
                 
-                // Enhancement button - always visible, positioned dynamically based on nav state
+                // Enhancement button - always visible
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         gameState.showResourcesSlots.toggle()
@@ -4100,13 +4017,11 @@ struct ResourcesPageView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 8, 100))
                 
-                // Enhancement slots - shown conditionally with animation, positioned above button
+                // Enhancement slots - shown conditionally with animation
                 if gameState.showResourcesSlots {
                     ResourcesSlotsView(gameState: gameState)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 80, 100))
                 }
             }
         }
@@ -5323,8 +5238,6 @@ struct StarMapView: View {
 
 struct ShopView: View {
     @ObservedObject var gameState: GameState
-    let bottomBarHeight: CGFloat
-    let extendedBarHeight: CGFloat
     
     var body: some View {
         ZStack {
@@ -5348,11 +5261,11 @@ struct ShopView: View {
                         Spacer()
                     }
             
-            // Enhancement overlay - Shop page (button + slots)
+            // Enhancement slots overlay - positioned at bottom without affecting layout
             VStack(spacing: 0) {
                 Spacer()
                 
-                // Enhancement button - always visible, positioned dynamically based on nav state
+                // Enhancement button - always visible
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         gameState.showShopSlots.toggle()
@@ -5372,13 +5285,11 @@ struct ShopView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 8, 100))
                 
-                // Enhancement slots - shown conditionally with animation, positioned above button
+                // Enhancement slots - shown conditionally with animation
                 if gameState.showShopSlots {
                     ShopSlotsView(gameState: gameState)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 80, 100))
                 }
             }
         }
@@ -5390,8 +5301,6 @@ struct ShopView: View {
 
 struct CardsView: View {
     @ObservedObject var gameState: GameState
-    let bottomBarHeight: CGFloat
-    let extendedBarHeight: CGFloat
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
@@ -5458,11 +5367,11 @@ struct CardsView: View {
                         Spacer()
                     }
             
-            // Enhancement overlay - Cards page (button + slots)
+            // Enhancement slots overlay - positioned at bottom without affecting layout
             VStack(spacing: 0) {
                 Spacer()
                 
-                // Enhancement button - always visible, positioned dynamically based on nav state
+                // Enhancement button - always visible
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         gameState.showCardsSlots.toggle()
@@ -5482,13 +5391,11 @@ struct CardsView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 8, 100))
                 
-                // Enhancement slots - shown conditionally with animation, positioned above button
+                // Enhancement slots - shown conditionally with animation
                 if gameState.showCardsSlots {
                     CardsSlotsView(gameState: gameState)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 80, 100))
                 }
             }
             

@@ -6,81 +6,14 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
-### 2025-09-22 - Enhancement Button Dynamic Positioning Fix - Corrected (Version 2.0.63)
-- **Request**:
-  1. Fix Enhancement button positioning to move dynamically based on navigation state
-  2. When extended nav is closed: Enhancement button should be right above bottom nav bar
-  3. When extended nav is open: Enhancement button should move up to be right above extended nav bar
-  4. Button should move, not just slots
+### 2025-09-22 - Revert to Version 2.0.49
+- **Request**: Revert the app to version 2.0.49
 - **Solutions Implemented**:
-  - **Dynamic Button Positioning**: Enhancement buttons now move based on navigation state
-  - **Closed Extended Nav**: Button positions at `bottomBarHeight + 8` (above bottom nav)
-  - **Open Extended Nav**: Button positions at `bottomBarHeight + extendedBarHeight + 8` (above extended nav)
-  - **Applied to All Pages**: Updated Location, Construction, Resources, Shop, and Cards pages
-  - **Maintained Slots Positioning**: Slots still appear above the button with proper spacing
-- **Key Features**:
-  - Enhancement buttons dynamically move up/down based on extended nav state
-  - Proper visual hierarchy: button always sits just above the currently visible nav bar
-  - Smooth animations preserved for all transitions
-  - Consistent behavior across all pages
-- **Status**: ✅ **Completed** - Enhancement buttons now move correctly based on navigation state
-- **Version**: 2.0.63
-
-### 2025-09-22 - Enhancement Button Dynamic Positioning Fix (Version 2.0.62)
-- **Request**:
-  1. Fix Enhancement button positioning to be dynamic based on navigation state
-  2. Button should be above bottom nav when extended nav is closed
-  3. Button should be above extended nav when it's open
-  4. Slots should position above extended nav when open
-- **Solutions Implemented**:
-  - **Separated Button and Slots Positioning**: Button and slots now have independent positioning logic
-  - **Dynamic Button Positioning**: Enhancement buttons always position above bottom nav (`bottomBarHeight + 8`)
-  - **Dynamic Slots Positioning**: Enhancement slots position above extended nav when open (`bottomBarHeight + extendedBarHeight + 80`)
-  - **Applied to All Pages**: Updated Location, Construction, Resources, Shop, and Cards pages
-  - **Maintained Original Styling**: Each page keeps its specific Enhancement button appearance
-- **Key Features**:
-  - Enhancement buttons always sit just above the bottom navigation bar
-  - When extended nav opens, Enhancement slots appear above it
-  - Proper visual hierarchy maintained in all navigation states
-  - Smooth animations preserved
-- **Status**: ✅ **Completed** - Enhancement buttons now position correctly based on navigation state
-- **Version**: 2.0.62
-
-### 2025-09-22 - Enhancement Overlays Positioning Fix (Version 2.0.61)
-- **Request**:
-  1. Fix Enhancement overlays not being visible on any page
-  2. Ensure Enhancement buttons are always visible above navigation bars
-- **Solutions Implemented**:
-  - **Added Minimum Positioning**: Set minimum padding of 100pt for all Enhancement overlays
-  - **Fixed Zero Height Issue**: When `bottomNavHeight` and `extendedNavHeight` are 0, Enhancement buttons were pushed off-screen
-  - **Applied to All Pages**: Updated Location, Construction, Resources, Shop, and Cards pages
-  - **Ensured Visibility**: Enhancement buttons now always appear above navigation bars regardless of measured heights
-- **Key Features**:
-  - Enhancement buttons always visible on all pages
-  - Proper positioning above navigation bars
-  - Fallback positioning when navigation heights aren't measured yet
-  - Maintains original styling and functionality
-- **Status**: ✅ **Completed** - Enhancement overlays now visible on all pages
-- **Version**: 2.0.61
-
-### 2025-09-22 - Enhancement Overlays Fix (Version 2.0.60)
-- **Request**:
-  1. Fix missing Enhancement overlays on all pages after navigation bar overlay implementation
-  2. Remove duplicate Enhancement windows that appeared after global overlay attempt
-  3. Ensure Enhancement button sits above navigation bars with proper positioning
-- **Solutions Implemented**:
-  - **Removed Global Enhancement Overlay**: Eliminated the unified Enhancement overlay that was causing duplication
-  - **Restored Page-Scoped Overlays**: Each page (Location, Construction, Resources, Shop, Cards) now has its own Enhancement overlay
-  - **Fixed Button Positioning**: Enhancement buttons now sit properly above navigation bars with correct padding
-  - **Maintained Page-Specific Styling**: Each page retains its original Enhancement button styling and behavior
-  - **Preserved Original Functionality**: All Enhancement slots and animations work as originally designed
-- **Key Features**:
-  - No duplicate Enhancement windows
-  - Proper positioning above both bottom and extended navigation bars
-  - Page-specific Enhancement content and styling preserved
-  - Smooth slide-up/down animations maintained
-- **Status**: ✅ **Completed** - All Enhancement overlays restored and working correctly on all pages
-- **Version**: 2.0.60
+  - **File Reversion**: Checked out ContentView.swift, project.pbxproj, and CHAT_HISTORY.md from commit 7f305bd (version 2.0.49)
+  - **Version Numbers**: Updated CURRENT_PROJECT_VERSION to 49 and MARKETING_VERSION to 2.0.49 in project.pbxproj
+  - **App Icon Update**: Generated new app icon with version 2.0.49 branding
+  - **Chat History**: Updated CHAT_HISTORY.md with revert session details
+- **Status**: ✅ **Completed** - Successfully reverted to version 2.0.49 with all changes from that commit restored
 
 ### 2025-09-22 - Navigation Bar Transparency Fix (Version 2.0.48)
 - **Request**:
