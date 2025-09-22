@@ -6,6 +6,23 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-22 - Enhancement Overlays Positioning Fix (Version 2.0.61)
+- **Request**:
+  1. Fix Enhancement overlays not being visible on any page
+  2. Ensure Enhancement buttons are always visible above navigation bars
+- **Solutions Implemented**:
+  - **Added Minimum Positioning**: Set minimum padding of 100pt for all Enhancement overlays
+  - **Fixed Zero Height Issue**: When `bottomNavHeight` and `extendedNavHeight` are 0, Enhancement buttons were pushed off-screen
+  - **Applied to All Pages**: Updated Location, Construction, Resources, Shop, and Cards pages
+  - **Ensured Visibility**: Enhancement buttons now always appear above navigation bars regardless of measured heights
+- **Key Features**:
+  - Enhancement buttons always visible on all pages
+  - Proper positioning above navigation bars
+  - Fallback positioning when navigation heights aren't measured yet
+  - Maintains original styling and functionality
+- **Status**: ✅ **Completed** - Enhancement overlays now visible on all pages
+- **Version**: 2.0.61
+
 ### 2025-09-22 - Enhancement Overlays Fix (Version 2.0.60)
 - **Request**:
   1. Fix missing Enhancement overlays on all pages after navigation bar overlay implementation
