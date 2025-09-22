@@ -222,75 +222,7 @@ struct ContentView: View {
             .onPreferenceChange(BottomNavHeightPreferenceKey.self) { bottomNavHeight = $0 }
             .onPreferenceChange(ExtendedNavHeightPreferenceKey.self) { extendedNavHeight = $0 }
 
-            // Enhancements overlay - button + pop-up, above nav bars
-            VStack(spacing: 0) {
-                Spacer()
-
-                // Enhancements button (style matches each page's original)
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        switch gameState.currentPage {
-                        case .location:
-                            gameState.showLocationSlots.toggle()
-                        case .construction, .blueprints:
-                            gameState.showConstructionSlots.toggle()
-                        case .resources:
-                            gameState.showResourcesSlots.toggle()
-                        case .shop:
-                            gameState.showShopSlots.toggle()
-                        case .cards:
-                            gameState.showCardsSlots.toggle()
-                        default:
-                            break
-                        }
-                    }
-                }) {
-                    HStack {
-                        Text("Enhancements")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(
-                        Group {
-                            if gameState.currentPage == .location {
-                                Color.black.opacity(0.3)
-                            } else {
-                                Color.adaptiveCardBackground
-                            }
-                        }
-                    )
-                    .cornerRadius(8)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0) + 8)
-
-                // Enhancement slots - shown conditionally with animation
-                Group {
-                    if gameState.currentPage == .location, gameState.showLocationSlots {
-                        LocationSlotsView(gameState: gameState)
-                    } else if gameState.currentPage == .construction || gameState.currentPage == .blueprints, gameState.showConstructionSlots {
-                        ConstructionSlotsView(gameState: gameState)
-                    } else if gameState.currentPage == .resources, gameState.showResourcesSlots {
-                        ResourcesSlotsView(gameState: gameState)
-                    } else if gameState.currentPage == .shop, gameState.showShopSlots {
-                        ShopSlotsView(gameState: gameState)
-                    } else if gameState.currentPage == .cards, gameState.showCardsSlots {
-                        CardsSlotsView(gameState: gameState)
-                    }
-                }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0) + 80)
-            }
-            .animation(.easeInOut(duration: 0.3), value: gameState.showLocationSlots)
-            .animation(.easeInOut(duration: 0.3), value: gameState.showConstructionSlots)
-            .animation(.easeInOut(duration: 0.3), value: gameState.showResourcesSlots)
-            .animation(.easeInOut(duration: 0.3), value: gameState.showShopSlots)
-            .animation(.easeInOut(duration: 0.3), value: gameState.showCardsSlots)
-            .zIndex(20)
+            // (Global Enhancements overlay removed) — enhancements handled per page overlay
             
             // Resource pop out positioned above bottom navigation
             if gameState.showLocationResources && gameState.currentPage == .location {
@@ -786,7 +718,7 @@ struct LocationView: View {
                 Spacer()
             }
             
-            // Enhancement slots overlay - positioned at bottom without affecting layout
+            // Enhancement overlay - Location page only (button + slots)
             VStack(spacing: 0) {
                 Spacer()
                 
@@ -817,6 +749,7 @@ struct LocationView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -2332,7 +2265,7 @@ struct ConstructionView: View {
                 .padding(.bottom, 80) // Position well above navigation bar
             }
             
-            // Enhancement slots overlay - positioned at bottom without affecting layout
+            // Enhancement overlay - Construction page (button + slots)
             VStack(spacing: 0) {
                 Spacer()
                 
@@ -2363,6 +2296,7 @@ struct ConstructionView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -3336,7 +3270,7 @@ struct ConstructionPageView: View {
                 .zIndex(1000)
             }
             
-            // Enhancement slots overlay - positioned at bottom without affecting layout
+            // Enhancement overlay - Construction (secondary) page (button + slots)
             VStack(spacing: 0) {
                 Spacer()
                 
@@ -3367,6 +3301,7 @@ struct ConstructionPageView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -4093,7 +4028,7 @@ struct ResourcesPageView: View {
                         
                     }
             
-            // Enhancement slots overlay - positioned at bottom without affecting layout
+            // Enhancement overlay - Resources page (button + slots)
             VStack(spacing: 0) {
                 Spacer()
                 
@@ -4124,6 +4059,7 @@ struct ResourcesPageView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -5361,7 +5297,7 @@ struct ShopView: View {
                         Spacer()
                     }
             
-            // Enhancement slots overlay - positioned at bottom without affecting layout
+            // Enhancement overlay - Shop page (button + slots)
             VStack(spacing: 0) {
                 Spacer()
                 
@@ -5392,6 +5328,7 @@ struct ShopView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Shop")
@@ -5467,7 +5404,7 @@ struct CardsView: View {
                         Spacer()
                     }
             
-            // Enhancement slots overlay - positioned at bottom without affecting layout
+            // Enhancement overlay - Cards page (button + slots)
             VStack(spacing: 0) {
                 Spacer()
                 
@@ -5498,6 +5435,7 @@ struct CardsView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0))
             
             // Dropdown Overlay - using template
             DevButtonWithDropdownView(
