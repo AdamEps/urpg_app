@@ -2937,7 +2937,7 @@ struct BottomNavigationView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 16)
-            .background(Color.gray.opacity(0.8))
+            .background(Color.gray.opacity(0.6))
         }
     }
 }

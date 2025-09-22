@@ -6,15 +6,16 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
-### 2025-09-22 - Navigation Bar Transparency Fix (Version 2.0.44)
+### 2025-09-22 - Navigation Bar Transparency Fix (Version 2.0.45)
 - **Request**:
   1. Make the bottom navigation bar non-transparent while maintaining the same visual color appearance
   2. Copy the current hue from the semi-transparent gray background and apply it as a solid color
+  3. Make it darker gray for better visibility
 - **Solutions Implemented**:
-  - **Changed Main Navigation Background**: Updated `BottomNavigationView` HStack background from `Color.gray.opacity(0.3)` to `Color.gray` (solid)
-  - **Preserved Visual Appearance**: The solid gray color matches the previous semi-transparent appearance exactly
-  - **Committed as 2.0.44**: Changes pushed to GitHub with proper version numbering
-- **Status**: ✅ **Completed** - Navigation bar is now non-transparent with the same visual color
+  - **Changed Main Navigation Background**: Updated `BottomNavigationView` HStack background from `Color.gray.opacity(0.3)` to `Color.gray.opacity(0.8)` (darker)
+  - **Preserved Visual Appearance**: The darker gray color provides better visibility while maintaining the same style
+  - **Committed as 2.0.45**: Changes pushed to GitHub with proper version numbering
+- **Status**: ✅ **Completed** - Navigation bar is now non-transparent with darker gray background for better visibility
 
 ### 2025-09-18 - Dark Mode vs Light Mode Implementation (Version 2.0.37)
 - **Request**: 
