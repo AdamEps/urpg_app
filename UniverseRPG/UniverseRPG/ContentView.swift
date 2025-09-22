@@ -2937,7 +2937,7 @@ struct BottomNavigationView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 16)
-            .background(Color(red: 0.3, green: 0.3, blue: 0.3))
+            .background(Color(red: 0.25, green: 0.25, blue: 0.25))
         }
     }
 }
