@@ -1326,7 +1326,51 @@ The telescope button now consistently shows the new LocationView icon when on ot
 ### **Version 2.0.41 Release**
 - **Commit**: Successfully committed with message "v2.0.41: Extended Navigation Animation & Glowing Telescope Fix"
 - **App Icon**: No change (still v2.0.39)
-- **Files Changed**: 1 file changed, 25 insertions(+), 5 deletions(-)
+- **Files Changed**: 2 files changed, 114 insertions(+), 14 deletions(-)
+- **Push Status**: Successfully pushed to GitHub ✅
+- **Chat History**: Updated with complete session details
+
+---
+
+## 2025-09-22 - Extended Navigation Functionality Fix (v2.0.42)
+
+### **Problem Identified**
+The extended navigation bar was completely deactivated after the animation changes. The telescope button no longer activated the extended navigation at all.
+
+### **Root Cause**
+Moving ExtendedNavigationView from VStack positioning to overlay positioning broke the functionality. The overlay approach caused hit testing issues and positioning problems that prevented the extended navigation from working.
+
+### **Solution Implemented**
+Reverted to the original VStack-based approach which maintains proper functionality:
+
+1. **Reverted Structure**: Put ExtendedNavigationView back in VStack above regular navigation
+2. **Removed Overlay**: Eliminated the problematic overlay approach with alignment and offset issues
+3. **Preserved Functionality**: All existing extended navigation features work correctly
+4. **Maintained Animation**: Kept the proper slide-up/slide-down transition animations
+
+### **Code Changes**
+- **BottomNavigationView**: Restored VStack structure with ExtendedNavigationView above regular nav
+- **Removed**: Complex overlay positioning that was causing hit testing issues
+- **Preserved**: All existing functionality including glowing telescope behavior
+
+### **Testing**
+- ✅ App builds successfully
+- ✅ App launches on iPhone
+- ✅ Extended navigation now works correctly
+- ✅ Telescope button activates extended nav on location/star map pages
+- ✅ Extended nav closes when clicking other nav buttons
+- ✅ Animation works smoothly (slides up from above nav bar)
+- ✅ Glowing telescope behavior maintained in all views
+
+### **Animation Behavior**
+- **Working**: Extended nav slides up from above regular nav bar and slides down to disappear
+- **Fixed**: No more deactivation of extended navigation functionality
+- **Consistent**: Same behavior across location, star map, and constellation views
+
+### **Version 2.0.42 Release**
+- **Commit**: Successfully committed with message "v2.0.42: Extended Navigation Functionality Fix"
+- **App Icon**: No change (still v2.0.39)
+- **Files Changed**: 1 file changed, 4 insertions(+), 9 deletions(-)
 - **Push Status**: Successfully pushed to GitHub ✅
 - **Chat History**: Updated with complete session details
 

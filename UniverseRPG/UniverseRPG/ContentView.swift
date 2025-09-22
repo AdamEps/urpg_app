@@ -2791,6 +2791,11 @@ struct BottomNavigationView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Extended navigation (appears above regular navigation when toggled)
+            if gameState.showExtendedNavigation {
+                ExtendedNavigationView(gameState: gameState)
+            }
+
             // Regular navigation
             HStack {
             Button(action: {
@@ -3047,14 +3052,6 @@ struct ExtendedNavigationView: View {
         .padding(.vertical, 12)
         .background(Color.gray.opacity(0.4))
         .transition(.move(edge: .top))
-        .overlay(alignment: .bottom) {
-            // Extended navigation that extends upward from the regular nav bar
-            if gameState.showExtendedNavigation {
-                ExtendedNavigationView(gameState: gameState)
-                    .offset(y: -44) // Extend upward from the regular nav bar
-                    .transition(.move(edge: .bottom))
-            }
-        }
     }
 }
 
