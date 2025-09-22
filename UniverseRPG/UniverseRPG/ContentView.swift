@@ -773,6 +773,9 @@ struct LocationView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 8, 100))
+                .onAppear {
+                    print("DEBUG: bottomBarHeight = \(bottomBarHeight), extendedBarHeight = \(extendedBarHeight), showExtendedNavigation = \(gameState.showExtendedNavigation)")
+                }
                 
                 // Enhancement slots - shown conditionally with animation, positioned above button
                 if gameState.showLocationSlots {
