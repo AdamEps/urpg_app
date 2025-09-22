@@ -222,13 +222,57 @@ struct ContentView: View {
             .onPreferenceChange(BottomNavHeightPreferenceKey.self) { bottomNavHeight = $0 }
             .onPreferenceChange(ExtendedNavHeightPreferenceKey.self) { extendedNavHeight = $0 }
 
-            // Enhancements overlay - restores original pop-up behavior above nav bars
+            // Enhancements overlay - button + pop-up, above nav bars
             VStack(spacing: 0) {
                 Spacer()
+
+                // Enhancements button (style matches each page's original)
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        switch gameState.currentPage {
+                        case .location:
+                            gameState.showLocationSlots.toggle()
+                        case .construction, .blueprints:
+                            gameState.showConstructionSlots.toggle()
+                        case .resources:
+                            gameState.showResourcesSlots.toggle()
+                        case .shop:
+                            gameState.showShopSlots.toggle()
+                        case .cards:
+                            gameState.showCardsSlots.toggle()
+                        default:
+                            break
+                        }
+                    }
+                }) {
+                    HStack {
+                        Text("Enhancements")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(
+                        Group {
+                            if gameState.currentPage == .location {
+                                Color.black.opacity(0.3)
+                            } else {
+                                Color.adaptiveCardBackground
+                            }
+                        }
+                    )
+                    .cornerRadius(8)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.bottom, bottomNavHeight + (gameState.showExtendedNavigation ? extendedNavHeight : 0) + 8)
+
+                // Enhancement slots - shown conditionally with animation
                 Group {
                     if gameState.currentPage == .location, gameState.showLocationSlots {
                         LocationSlotsView(gameState: gameState)
-                    } else if gameState.currentPage == .construction, gameState.showConstructionSlots {
+                    } else if gameState.currentPage == .construction || gameState.currentPage == .blueprints, gameState.showConstructionSlots {
                         ConstructionSlotsView(gameState: gameState)
                     } else if gameState.currentPage == .resources, gameState.showResourcesSlots {
                         ResourcesSlotsView(gameState: gameState)
