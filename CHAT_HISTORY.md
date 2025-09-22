@@ -6,6 +6,25 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-22 - Enhancement Overlays Fix (Version 2.0.60)
+- **Request**:
+  1. Fix missing Enhancement overlays on all pages after navigation bar overlay implementation
+  2. Remove duplicate Enhancement windows that appeared after global overlay attempt
+  3. Ensure Enhancement button sits above navigation bars with proper positioning
+- **Solutions Implemented**:
+  - **Removed Global Enhancement Overlay**: Eliminated the unified Enhancement overlay that was causing duplication
+  - **Restored Page-Scoped Overlays**: Each page (Location, Construction, Resources, Shop, Cards) now has its own Enhancement overlay
+  - **Fixed Button Positioning**: Enhancement buttons now sit properly above navigation bars with correct padding
+  - **Maintained Page-Specific Styling**: Each page retains its original Enhancement button styling and behavior
+  - **Preserved Original Functionality**: All Enhancement slots and animations work as originally designed
+- **Key Features**:
+  - No duplicate Enhancement windows
+  - Proper positioning above both bottom and extended navigation bars
+  - Page-specific Enhancement content and styling preserved
+  - Smooth slide-up/down animations maintained
+- **Status**: ✅ **Completed** - All Enhancement overlays restored and working correctly on all pages
+- **Version**: 2.0.60
+
 ### 2025-09-22 - Navigation Bar Transparency Fix (Version 2.0.48)
 - **Request**:
   1. Make the bottom navigation bar non-transparent while maintaining the same visual color appearance

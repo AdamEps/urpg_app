@@ -779,7 +779,7 @@ struct LocationView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 8)
+            .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0) + 8, 100))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -2334,7 +2334,7 @@ struct ConstructionView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0))
+            .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0), 100))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -3341,7 +3341,7 @@ struct ConstructionPageView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0))
+            .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0), 100))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -4101,7 +4101,7 @@ struct ResourcesPageView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0))
+            .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0), 100))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -5372,7 +5372,7 @@ struct ShopView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0))
+            .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0), 100))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("Shop")
@@ -5481,7 +5481,7 @@ struct CardsView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .padding(.bottom, bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0))
+            .padding(.bottom, max(bottomBarHeight + (gameState.showExtendedNavigation ? extendedBarHeight : 0), 100))
             
             // Dropdown Overlay - using template
             DevButtonWithDropdownView(
