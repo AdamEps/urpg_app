@@ -295,6 +295,16 @@ struct ContentView: View {
                 
                 Spacer()
             }
+            
+            // Extended navigation overlay - positioned directly on navigation bar
+            if gameState.showExtendedNavigation {
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    ExtendedNavigationView(gameState: gameState)
+                    // NO bottom padding - sits directly on nav bar
+                }
+            }
         }
         .onAppear {
             print("🔍 CONTENT VIEW - onAppear called, showingProfile: \(showingProfile)")
@@ -2790,14 +2800,8 @@ struct BottomNavigationView: View {
     @ObservedObject var gameState: GameState
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Extended navigation (appears above regular navigation when toggled)
-            if gameState.showExtendedNavigation {
-                ExtendedNavigationView(gameState: gameState)
-            }
-
-            // Regular navigation
-            HStack {
+        // Regular navigation
+        HStack {
             Button(action: {
                 gameState.currentPage = .shop
                 gameState.starMapViaTelescope = false
@@ -2933,7 +2937,6 @@ struct BottomNavigationView: View {
                 Image(systemName: "rectangle.stack.fill")
                     .font(.title2)
                     .foregroundColor(gameState.currentPage == .cards ? .blue : .white)
-            }
             }
             .padding(.horizontal)
             .padding(.vertical, 16)
@@ -4926,7 +4929,7 @@ struct SolarSystemView: View {
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showStarMapSlots {
                     StarMapSlotsView(gameState: gameState)
-                        .padding(.bottom, 10) // Position just above navigation bar
+                        .padding(.bottom, gameState.showExtendedNavigation ? 0 : 10) // Dynamic positioning: 0 when extended nav visible, 10 when hidden
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -5084,7 +5087,7 @@ struct ConstellationView: View {
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showStarMapSlots {
                     StarMapSlotsView(gameState: gameState)
-                        .padding(.bottom, 10) // Position just above navigation bar
+                        .padding(.bottom, gameState.showExtendedNavigation ? 0 : 10) // Dynamic positioning: 0 when extended nav visible, 10 when hidden
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -5228,7 +5231,7 @@ struct StarMapView: View {
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showStarMapSlots {
                     StarMapSlotsView(gameState: gameState)
-                        .padding(.bottom, 10) // Position just above navigation bar
+                        .padding(.bottom, gameState.showExtendedNavigation ? 0 : 10) // Dynamic positioning: 0 when extended nav visible, 10 when hidden
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
