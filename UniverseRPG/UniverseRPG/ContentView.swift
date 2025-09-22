@@ -695,12 +695,6 @@ struct LocationView: View {
             VStack(spacing: 0) {
                 Spacer()
                 
-                // Add bottom padding to push enhancements above extended nav when visible
-                if gameState.showExtendedNavigation {
-                    Spacer()
-                        .frame(height: 50) // Height of extended nav bar
-                }
-                
                 // Enhancement button - always visible
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.3)) {
@@ -721,6 +715,7 @@ struct LocationView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .padding(.bottom, gameState.showExtendedNavigation ? 50 : 0) // Push above extended nav when visible
                 
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showLocationSlots {
