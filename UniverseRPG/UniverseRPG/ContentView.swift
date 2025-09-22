@@ -3051,7 +3051,7 @@ struct ExtendedNavigationView: View {
         .padding(.horizontal)
         .padding(.vertical, 12)
         .background(Color.gray.opacity(0.4))
-        .transition(.move(edge: .top))
+        .transition(.move(edge: .bottom))
     }
 }
 

@@ -1370,7 +1370,57 @@ Reverted to the original VStack-based approach which maintains proper functional
 ### **Version 2.0.42 Release**
 - **Commit**: Successfully committed with message "v2.0.42: Extended Navigation Functionality Fix"
 - **App Icon**: No change (still v2.0.39)
-- **Files Changed**: 1 file changed, 4 insertions(+), 9 deletions(-)
+- **Files Changed**: 3 files changed, 50 insertions(+), 9 deletions(-)
+- **Push Status**: Successfully pushed to GitHub ✅
+- **Chat History**: Updated with complete session details
+
+---
+
+## 2025-09-22 - Extended Navigation Animation Direction Fix (v2.0.43)
+
+### **Problem Identified**
+The extended navigation animation was the opposite of what was described. Instead of sliding UP from the main nav bar when appearing, it was sliding DOWN from above the enhancements button.
+
+### **Root Cause**
+The transition direction was set to `.move(edge: .top)` which made it move from the top edge (appearing from above). To make it slide UP from the main nav bar, it should use `.move(edge: .bottom)` to move from the bottom edge.
+
+### **Solution Implemented**
+Changed the ExtendedNavigationView transition direction:
+
+1. **Changed Transition**: From `.transition(.move(edge: .top))` to `.transition(.move(edge: .bottom))`
+2. **Animation Direction**: Now slides UP from the main nav bar when appearing
+3. **Disappear Animation**: Slides DOWN into the main nav bar when disappearing
+4. **Natural Flow**: Matches the expected behavior of extending upward from the nav bar
+
+### **Animation Behavior**
+- **Before**: Appeared by sliding down from above, disappeared by sliding up
+- **After**: Appears by sliding up from main nav bar, disappears by sliding down into main nav bar
+- **Natural**: Much more intuitive and matches user expectations
+
+### **Code Change**
+```swift
+// Before
+.transition(.move(edge: .top))
+
+// After  
+.transition(.move(edge: .bottom))
+```
+
+### **Testing**
+- ✅ App builds successfully
+- ✅ App launches on iPhone
+- ✅ Extended navigation slides UP from main nav bar when appearing
+- ✅ Extended navigation slides DOWN into main nav bar when disappearing
+- ✅ Smooth and natural animation direction
+- ✅ All existing functionality preserved
+
+### **Result**
+The extended navigation now has the correct animation direction as originally requested - it slides UP from the main nav bar when appearing and slides DOWN into the main nav bar when disappearing, creating a much more natural user experience.
+
+### **Version 2.0.43 Release**
+- **Commit**: Successfully committed with message "v2.0.43: Extended Navigation Animation Direction Fix"
+- **App Icon**: No change (still v2.0.39)
+- **Files Changed**: 1 file changed, 1 insertion(+), 1 deletion(-)
 - **Push Status**: Successfully pushed to GitHub ✅
 - **Chat History**: Updated with complete session details
 
