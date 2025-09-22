@@ -295,16 +295,6 @@ struct ContentView: View {
                 
                 Spacer()
             }
-            
-            // Extended navigation overlay - positioned directly on navigation bar
-            if gameState.showExtendedNavigation {
-                VStack(spacing: 0) {
-                    Spacer()
-                    
-                    ExtendedNavigationView(gameState: gameState)
-                    // NO bottom padding - sits directly on nav bar
-                }
-            }
         }
         .onAppear {
             print("🔍 CONTENT VIEW - onAppear called, showingProfile: \(showingProfile)")
@@ -689,6 +679,16 @@ struct LocationView: View {
                 }
                 
                 Spacer()
+            }
+            
+            // Extended navigation overlay - positioned directly on navigation bar
+            if gameState.showExtendedNavigation {
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    ExtendedNavigationView(gameState: gameState)
+                    // NO bottom padding - sits directly on nav bar
+                }
             }
             
             // Enhancement slots overlay - positioned at bottom without affecting layout
@@ -4922,6 +4922,16 @@ struct SolarSystemView: View {
                 .padding(.top)
             }
             
+            // Extended navigation overlay - positioned directly on navigation bar
+            if gameState.showExtendedNavigation {
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    ExtendedNavigationView(gameState: gameState)
+                    // NO bottom padding - sits directly on nav bar
+                }
+            }
+            
             // Enhancement slots overlay - positioned at bottom without affecting layout
             VStack {
                 Spacer()
@@ -5078,6 +5088,16 @@ struct ConstellationView: View {
                     Spacer()
                 }
                 .padding(.top)
+            }
+            
+            // Extended navigation overlay - positioned directly on navigation bar
+            if gameState.showExtendedNavigation {
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    ExtendedNavigationView(gameState: gameState)
+                    // NO bottom padding - sits directly on nav bar
+                }
             }
             
             // Enhancement slots overlay - positioned at bottom without affecting layout
