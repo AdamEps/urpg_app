@@ -106,6 +106,7 @@ class GameState: ObservableObject {
     @Published var showLocationResources = false
     @Published var showObjectives = false
     @Published var showTapCounter = false
+    @Published var showExtendedNavigation = false
     @Published var showIdleCollectionDetails = false
     @Published var showTapDetails = false
     @Published var showConstructionDetails = false
@@ -170,6 +171,7 @@ class GameState: ObservableObject {
         self.largeConstructionsCompleted = fresh.largeConstructionsCompleted
         self.maxStorageCapacity = fresh.maxStorageCapacity
         self.showLocationResources = fresh.showLocationResources
+        self.showExtendedNavigation = fresh.showExtendedNavigation
         self.selectedLocationForPopup = fresh.selectedLocationForPopup
         print("🔄 Game state reset to defaults")
     }

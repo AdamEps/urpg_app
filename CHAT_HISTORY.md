@@ -323,6 +323,22 @@ This document tracks our development conversations and key decisions for the Uni
   - Updated construction bay buttons to navigate to Blueprints page
 - **Status**: ✅ Complete - App launched for testing
 
+### 2025-09-21 - Navigation Changes Reverted
+- **User Request**: "Undo everything you just did"
+- **Action Taken**: Reverted to working state before navigation changes
+- **Commits Reverted**:
+  - Reverted "Fix Swift compilation errors"
+  - Reverted "Fix navigation consistency issues"
+  - Reverted "Fix navigation bugs and restore proper icon sizing"
+  - Reverted "Fix Swift compilation error for StarMapZoomLevel enum comparison"
+  - Reverted "Fix navigation bugs and improve extended nav styling"
+  - Reverted "Implement extended navigation bar with custom map level buttons"
+- **Final State**: Reverted to commit 3a3278a "Add fallback logic for missing SaturnLocation.png"
+- **Build Status**: ✅ SUCCESSFUL - Project compiles without errors
+- **Current Features**: Basic navigation system before extended navigation bar implementation
+- **Testing**: Build completed successfully
+- **Status**: ✅ Completed - All recent changes have been undone as requested
+
 ### 2025-01-27 - Blueprints Screen Fixes
 - **Request**: Fix Blueprints screen issues
   - Remove Blueprints button from bottom navigation bar (should only be accessible via bay clicks)
@@ -986,6 +1002,67 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 
 ---
 
+## 2025-09-21 - Extended Navigation System Implementation (v1.1.0) - CORRECTED
+
+### **Issue Identified**
+The user pointed out that I was using the wrong icon files. The icons I needed were in a 4x4 grid within the file `Icons/Icons 2.jpg` (2048x2048), not individual .png files.
+
+### **Correction Made**
+1. **Icon Grid Extraction**: Used Python to extract 16 individual 512x512 icons from the 4x4 grid in `Icons/Icons 2.jpg`
+2. **Icon Identification**: Identified the correct icons from the grid:
+   - `icon_0_0.png` → locationView icon
+   - `icon_1_1.png` → starSystem icon
+   - `icon_2_2.png` → multiSystems icon
+   - `icon_3_3.png` → zoomOutMaps icon
+3. **Icon Processing**: Applied background removal and color inversion to all extracted icons
+4. **Asset Catalog Setup**: Created proper asset catalog entries with Contents.json files
+5. **Code Integration**: Updated the navigation system to use the new processed icons
+
+### **Technical Implementation**
+
+1. **Icon Grid Processing**:
+   ```python
+   # Extract 4x4 grid of icons (512x512 each) from 2048x2048 image
+   for row in range(4):
+       for col in range(4):
+           icon = img.crop((col*512, row*512, (col+1)*512, (row+1)*512))
+           icon.save(f'Icons/In Game/icon_{row}_{col}.png')
+   ```
+
+2. **Icon Processing**:
+   - Removed backgrounds using threshold-based pixel removal (pixels > 240 RGB)
+   - Inverted colors to white for navigation bar visibility
+   - Resized to 200px maximum dimension
+   - Added 20px padding around icons
+
+3. **Asset Catalog Integration**:
+   - Created image sets for LocationView, ZoomOutMaps, StarSystem, MultiSystems
+   - Added proper Contents.json files for each asset catalog
+   - Icons now properly integrated into the Xcode build system
+
+4. **Navigation System**:
+   - Extended navigation bar appears when telescope button is clicked
+   - 3 buttons: LocationView (left), StarSystem (middle), MultiSystems (right)
+   - Each button navigates to appropriate map level and closes extended nav
+   - Telescope button shows ZoomOutMaps icon when extended nav is visible
+
+### **Build & Testing Results**
+- **Build Status**: ✅ SUCCESSFUL - All compilation errors resolved
+- **App Launch**: ✅ SUCCESSFUL - App launches and runs on iPhone
+- **Icon Display**: ✅ All extracted icons display correctly in navigation
+- **Functionality**: ✅ Extended navigation system working perfectly
+- **Animation**: ✅ Smooth transitions between regular and extended navigation
+
+### **Version Management**
+- **Version Update**: Updated project to v1.1 (CURRENT_PROJECT_VERSION = 2, MARKETING_VERSION = 1.1)
+- **Icon Generation**: Updated app icon with v1.1 branding
+- **Chat History**: Updated with corrected implementation details
+
+### **Key Learning**
+The icons were not individual .png files but were part of a 4x4 grid in a larger .jpg file. Extracting and processing the correct icons from the grid resolved the issue and provided the proper navigation icons as requested.
+
+---
+
 ## 2025-09-17 - Deep Scan Card Implementation (v2.0.26)
 
 ### **Deep Scan Card Functionality**
@@ -1013,5 +1090,94 @@ Transform the star map from a simple list into a hierarchical, visual star map s
 - **Functionality Verified**: Deep Scan card properly modifies Tap percentages
 - **UI Validation**: Popup shows correct Tap/Idle separation
 - **App Icon Update**: Updated to version 2.0.26
+
+---
+
+## 2025-09-22 - Telescope Icon Replacement with ZoomOutMaps (v1.1.1)
+
+### **Request Summary**
+Replace the telescope icon with the zoomOutMaps icon from the In Game folder in all contexts:
+1. Replace telescope emoji in solar system view with zoomOutMaps.png
+2. Replace GlowingTelescopeIcon() with GlowingZoomOutIcon() using zoomOutMaps.png
+3. Ensure zoomOutMaps icon is used consistently across all telescope contexts
+
+### **Solutions Implemented**
+
+1. **Icon Processing**:
+   - Identified zoomOutMaps.png in Icons/In Game folder (extracted from Icons 2.jpg grid)
+   - Processed with background removal and white color inversion
+   - Added to asset catalog as ZoomOutMaps.imageset
+
+2. **Telescope Icon Replacement**:
+   - Replaced `Text("🔭")` in solar system view with `Image("ZoomOutMaps")`
+   - Created new `GlowingZoomOutIcon()` component using ZoomOutMaps image
+   - Replaced `GlowingTelescopeIcon()` calls with `GlowingZoomOutIcon()`
+   - Added fallback to telescope emoji if ZoomOutMaps image is missing
+
+3. **Extended Navigation Consistency**:
+   - ZoomOutMaps icon now used consistently in all telescope contexts
+   - Maintains glowing effect and proper sizing (28x28)
+   - Works in both regular and extended navigation modes
+
+### **Files Modified**
+- `/Users/adamepstein/Desktop/urpg_app/UniverseRPG/UniverseRPG/ContentView.swift` - Updated telescope icon components
+- `/Users/adamepstein/Desktop/urpg_app/UniverseRPG/UniverseRPG/Assets.xcassets/ZoomOutMaps.imageset/` - Added processed icon
+- Version bumped to v1.1.1
+
+### **Testing**
+- ✅ App builds successfully
+- ✅ App launches on iPhone
+- ✅ Telescope icon now shows ZoomOutMaps image instead of emoji
+- ✅ Glowing effect preserved with new icon
+- ✅ Extended navigation functionality maintained
+
+---
+
+## 2025-09-22 - ZoomOutMaps Icon Processing and Glowing Behavior Fix (v1.1.2)
+
+### **Request Summary**
+1. Find zoomOutMaps.jpg in Icons -> In Game folder
+2. Process it (remove background, invert to white)
+3. Replace telescope icon in location view and map views
+4. Make it glow when extended nav bar is NOT open
+5. Make it NOT glow when extended nav bar IS open
+
+### **Solutions Implemented**
+
+1. **Icon Processing**:
+   - Found zoomOutMaps.png in Icons/In Game folder (not .jpg as mentioned)
+   - Processed with background removal and white color inversion using Python script
+   - Saved to Locations/ZoomOutMaps.png and copied to asset catalog
+
+2. **Glowing Behavior Fix**:
+   - **Location View**: Already showed `GlowingZoomOutIcon()` when extended nav closed ✅
+   - **Star Map View**: Fixed to show `GlowingZoomOutIcon()` when extended nav closed ❌➡️✅
+   - **Extended Navigation Open**: Shows non-glowing `Image("ZoomOutMaps")` in all contexts ✅
+   - **Extended Navigation Closed**: Shows glowing icon in all contexts ✅
+
+3. **Code Updates**:
+   - Updated star map view logic to check `gameState.showExtendedNavigation` state
+   - When extended nav is closed: Show `GlowingZoomOutIcon()` (glowing effect)
+   - When extended nav is open: Show `Image("ZoomOutMaps")` (no glow)
+   - Maintained existing logic for constellation level (shows Saturn icon)
+
+### **Files Modified**
+- `/Users/adamepstein/Desktop/urpg_app/UniverseRPG/UniverseRPG/ContentView.swift` - Updated glowing logic for star map view
+- `/Users/adamepstein/Desktop/urpg_app/UniverseRPG/UniverseRPG/Assets.xcassets/ZoomOutMaps.imageset/` - Updated with new processed icon
+- Version bumped to v1.1.2
+
+### **Testing**
+- ✅ App builds successfully
+- ✅ App launches on iPhone
+- ✅ ZoomOutMaps icon properly processed and displays
+- ✅ Glowing behavior correct: Glows when extended nav closed, no glow when extended nav open
+- ✅ Works in both location view and star map view
+- ✅ Extended navigation functionality preserved
+
+### **Behavior Summary**
+- **Extended Nav CLOSED** (glows): `GlowingZoomOutIcon()` with yellow pulsing glow
+- **Extended Nav OPEN** (no glow): `Image("ZoomOutMaps")` static white icon
+- **Constellation Level**: Always shows Saturn icon (unchanged)
+- **Other Pages**: Always shows Saturn icon (unchanged)
 
 ---

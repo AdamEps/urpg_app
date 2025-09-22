@@ -2748,29 +2748,32 @@ struct ResourceBadge: View {
     }
 }
 
-// MARK: - Glowing Telescope Icon
-struct GlowingTelescopeIcon: View {
+// MARK: - Glowing Zoom Out Icon
+struct GlowingZoomOutIcon: View {
     @State private var glowOpacity: Double = 0.3
 
     var body: some View {
         ZStack {
             // Outer glow layer
-            Text("🔭")
-                .font(.title2)
+            Image("ZoomOutMaps")
+                .resizable()
+                .frame(width: 28, height: 28)
                 .foregroundColor(.yellow.opacity(glowOpacity))
                 .scaleEffect(1.2)
                 .blur(radius: 8)
 
             // Middle glow layer
-            Text("🔭")
-                .font(.title2)
+            Image("ZoomOutMaps")
+                .resizable()
+                .frame(width: 28, height: 28)
                 .foregroundColor(.yellow.opacity(glowOpacity * 1.5))
                 .scaleEffect(1.1)
                 .blur(radius: 4)
 
-            // Core telescope
-            Text("🔭")
-                .font(.title2)
+            // Core zoom out icon
+            Image("ZoomOutMaps")
+                .resizable()
+                .frame(width: 28, height: 28)
                 .foregroundColor(.yellow)
         }
         .onAppear {
@@ -2785,134 +2788,259 @@ struct GlowingTelescopeIcon: View {
 // MARK: - Bottom Navigation
 struct BottomNavigationView: View {
     @ObservedObject var gameState: GameState
-    
+
     var body: some View {
-        HStack {
+        VStack(spacing: 0) {
+            // Extended navigation (appears above regular navigation when toggled)
+            if gameState.showExtendedNavigation {
+                ExtendedNavigationView(gameState: gameState)
+            }
+
+            // Regular navigation
+            HStack {
             Button(action: {
                 gameState.currentPage = .shop
                 gameState.starMapViaTelescope = false
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    gameState.showExtendedNavigation = false
+                }
             }) {
                 Image(systemName: "cart.fill")
                     .font(.title2)
                     .foregroundColor(gameState.currentPage == .shop ? .blue : .white)
             }
-            
-            Spacer()
-            
+
+                Spacer()
+
             Button(action: {
                 gameState.currentPage = .construction
                 gameState.starMapViaTelescope = false
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    gameState.showExtendedNavigation = false
+                }
             }) {
                 Image(systemName: "hammer.fill")
                     .font(.title2)
                     .foregroundColor((gameState.currentPage == .construction || gameState.currentPage == .blueprints) ? .blue : .white)
             }
-            
-            Spacer()
-            
-            Button(action: {
-                if gameState.currentPage == .starMap {
-                    // If we're in star map, zoom out or go back to location
-                    if case .constellation = gameState.starMapZoomLevel {
-                        // At furthest zoom out, go back to location view
+
+                Spacer()
+
+                Button(action: {
+                    // Toggle extended navigation instead of navigating
+                    // Only show extended navigation on location, star map, or when already showing extended navigation
+                    if gameState.currentPage == .location || gameState.currentPage == .starMap || gameState.showExtendedNavigation {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            gameState.showExtendedNavigation.toggle()
+                        }
+                    } else {
+                        // On other pages (shop, construction, resources, cards), go to location view first
                         gameState.currentPage = .location
                         gameState.starMapViaTelescope = false
-                    } else {
-                        // Zoom out to constellation level
-                        gameState.zoomOutToConstellation()
                     }
-                } else if gameState.currentPage == .location {
-                    // From location view, go to star map and ensure we start at solar system level
-                    // First ensure we're at the correct zoom level to prevent flicker
-                    if case .constellation = gameState.starMapZoomLevel {
-                        // If we're at constellation level, zoom into the current star system first
-                        if let constellation = gameState.getCurrentConstellation() {
-                            let currentSystem = constellation.starSystems.first { starSystem in
-                                starSystem.locations.contains { $0.id == gameState.currentLocation.id }
+                }) {
+                    // Dynamic icon based on current page, zoom level, and extended navigation state
+                    if gameState.showExtendedNavigation {
+                        // When extended navigation is shown, show the zoom out icon
+                        Image("ZoomOutMaps")
+                            .resizable()
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.blue)
+                    } else if gameState.currentPage == .starMap {
+                        if case .constellation = gameState.starMapZoomLevel {
+                            // At constellation level, show Saturn location icon (fallback to globe if image missing)
+                            if let _ = UIImage(named: "SaturnLocation") {
+                                Image("SaturnLocation")
+                                    .resizable()
+                                    .frame(width: 28, height: 28)
+                                    .foregroundColor(.blue)
+                            } else {
+                                Image(systemName: "globe")
+                                    .font(.title2)
+                                    .foregroundColor(.blue)
                             }
-                            if let system = currentSystem {
-                                gameState.zoomIntoStarSystem(system)
+                        } else {
+                            // In solar system view, show glowing zoom out icon when extended nav is closed
+                            if gameState.showExtendedNavigation {
+                                // When extended navigation is shown, show non-glowing zoom out icon
+                                if let _ = UIImage(named: "ZoomOutMaps") {
+                                    Image("ZoomOutMaps")
+                                        .resizable()
+                                        .frame(width: 28, height: 28)
+                                        .foregroundColor(.blue)
+                                } else {
+                                    Text("🔭")
+                                        .font(.title2)
+                                        .foregroundColor(.blue)
+                                }
+                            } else {
+                                // When extended navigation is closed, show glowing zoom out icon
+                                GlowingZoomOutIcon()
                             }
                         }
-                    }
-                    // Then change the page after zoom level is set
-                    gameState.currentPage = .starMap
-                    gameState.starMapViaTelescope = false
-                } else if gameState.currentPage == .shop || gameState.currentPage == .construction || 
-                         gameState.currentPage == .resources || gameState.currentPage == .cards || 
-                         gameState.currentPage == .statistics {
-                    // Go to location view from these pages only
-                    gameState.currentPage = .location
-                    gameState.starMapViaTelescope = false
-                } else if gameState.currentPage == .blueprints {
-                    // Go to star map from blueprints page
-                    gameState.currentPage = .starMap
-                    gameState.starMapViaTelescope = false
-                }
-            }) {
-                // Dynamic icon based on current page and zoom level
-                if gameState.currentPage == .starMap {
-                    if case .constellation = gameState.starMapZoomLevel {
-                        // At constellation level, show Saturn location icon (fallback to globe if image missing)
+                    } else if gameState.currentPage == .location {
+                        // From location view, show glowing zoom out icon
+                        GlowingZoomOutIcon()
+                    } else {
+                        // From other pages, show Saturn location icon (fallback to globe if image missing)
                         if let _ = UIImage(named: "SaturnLocation") {
                             Image("SaturnLocation")
                                 .resizable()
                                 .frame(width: 28, height: 28)
-                                .foregroundColor(.blue)
+                                .foregroundColor(.white)
                         } else {
                             Image(systemName: "globe")
                                 .font(.title2)
-                                .foregroundColor(.blue)
+                                .foregroundColor(.white)
                         }
-                    } else {
-                        // In solar system view, show telescope icon (locationMap)
-                        Text("🔭")
-                            .font(.title2)
-                            .foregroundColor(.blue)
-                    }
-                } else if gameState.currentPage == .location {
-                    // From location view, show glowing telescope icon
-                    GlowingTelescopeIcon()
-                } else {
-                    // From other pages, show Saturn location icon (fallback to globe if image missing)
-                    if let _ = UIImage(named: "SaturnLocation") {
-                        Image("SaturnLocation")
-                            .resizable()
-                            .frame(width: 28, height: 28)
-                            .foregroundColor(.white)
-                    } else {
-                        Image(systemName: "globe")
-                            .font(.title2)
-                            .foregroundColor(.white)
                     }
                 }
-            }
-            
-            Spacer()
-            
+
+                Spacer()
+
             Button(action: {
                 gameState.currentPage = .resources
                 gameState.starMapViaTelescope = false
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    gameState.showExtendedNavigation = false
+                }
             }) {
                 Image(systemName: "cube.box.fill")
                     .font(.title2)
                     .foregroundColor(gameState.currentPage == .resources ? .blue : .white)
             }
-            
-            Spacer()
-            
+
+                Spacer()
+
             Button(action: {
                 gameState.currentPage = .cards
                 gameState.starMapViaTelescope = false
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    gameState.showExtendedNavigation = false
+                }
             }) {
                 Image(systemName: "rectangle.stack.fill")
                     .font(.title2)
                     .foregroundColor(gameState.currentPage == .cards ? .blue : .white)
             }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 16)
+            .background(Color.gray.opacity(0.3))
+        }
+    }
+}
+
+// MARK: - Extended Navigation View
+struct ExtendedNavigationView: View {
+    @ObservedObject var gameState: GameState
+
+    var body: some View {
+        HStack {
+            // Location View button (leftmost)
+            Button(action: {
+                // Go to location view
+                gameState.currentPage = .location
+                gameState.starMapViaTelescope = false
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    gameState.showExtendedNavigation = false
+                }
+            }) {
+                if let image = UIImage(named: "LocationView") {
+                    Image(uiImage: image)
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(gameState.currentPage == .location ? .blue : .white)
+                } else {
+                    Text("🌍")
+                        .font(.title3)
+                        .foregroundColor(gameState.currentPage == .location ? .blue : .white)
+                }
+            }
+
+            Spacer()
+
+            // Star System View button
+            Button(action: {
+                // Go to star system view (zoom into current system)
+                if let constellation = gameState.getCurrentConstellation() {
+                    let currentSystem = constellation.starSystems.first { starSystem in
+                        starSystem.locations.contains { $0.id == gameState.currentLocation.id }
+                    }
+                    if let system = currentSystem {
+                        gameState.zoomIntoStarSystem(system)
+                        gameState.currentPage = .starMap
+                        gameState.starMapViaTelescope = false
+                    }
+                }
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    gameState.showExtendedNavigation = false
+                }
+            }) {
+                if let image = UIImage(named: "StarSystem") {
+                    Image(uiImage: image)
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(gameState.currentPage == .starMap && {
+    if case .constellation = gameState.starMapZoomLevel {
+        true
+    } else {
+        false
+    }
+}() ? .blue : .white)
+                } else {
+                    Text("🌟")
+                        .font(.title3)
+                        .foregroundColor(gameState.currentPage == .starMap && {
+    if case .constellation = gameState.starMapZoomLevel {
+        true
+    } else {
+        false
+    }
+}() ? .blue : .white)
+                }
+            }
+
+            Spacer()
+
+            // Multi-System View button (rightmost)
+            Button(action: {
+                // Go to constellation view (zoom out to multi-system)
+                gameState.zoomOutToConstellation()
+                gameState.currentPage = .starMap
+                gameState.starMapViaTelescope = false
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    gameState.showExtendedNavigation = false
+                }
+            }) {
+                if let image = UIImage(named: "MultiSystems") {
+                    Image(uiImage: image)
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(gameState.currentPage == .starMap && {
+    if case .constellation = gameState.starMapZoomLevel {
+        true
+    } else {
+        false
+    }
+}() ? .blue : .white)
+                } else {
+                    Text("🌌")
+                        .font(.title3)
+                        .foregroundColor(gameState.currentPage == .starMap && {
+    if case .constellation = gameState.starMapZoomLevel {
+        true
+    } else {
+        false
+    }
+}() ? .blue : .white)
+                }
+            }
         }
         .padding(.horizontal)
-        .padding(.vertical, 16)
-        .background(Color.gray.opacity(0.3))
+        .padding(.vertical, 12)
+        .background(Color.gray.opacity(0.4))
+        .transition(.move(edge: .top))
     }
 }
 
