@@ -2882,8 +2882,13 @@ struct BottomNavigationView: View {
                         // From location view, show glowing zoom out icon
                         GlowingZoomOutIcon()
                     } else {
-                        // From other pages, show Saturn location icon (fallback to globe if image missing)
-                        if let _ = UIImage(named: "SaturnLocation") {
+                        // From other pages, show LocationView icon (fallback to globe if image missing)
+                        if let image = UIImage(named: "LocationView") {
+                            Image(uiImage: image)
+                                .resizable()
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(.white)
+                        } else if let _ = UIImage(named: "SaturnLocation") {
                             Image("SaturnLocation")
                                 .resizable()
                                 .frame(width: 28, height: 28)

@@ -1180,4 +1180,63 @@ Replace the telescope icon with the zoomOutMaps icon from the In Game folder in 
 - **Constellation Level**: Always shows Saturn icon (unchanged)
 - **Other Pages**: Always shows Saturn icon (unchanged)
 
+### **Version 2.0.39 Release**
+- **Commit**: Successfully committed with message "v2.0.39: ZoomOutMaps Icon Implementation & Glowing Behavior Fix"
+- **App Icon**: Updated to version 2.0.39 using generate_app_icon.py script
+- **Files Changed**: 20 files changed, 575 insertions(+), 159 deletions(-)
+- **New Files**: Added processed icon files and asset catalog entries
+- **Chat History**: Updated with complete session details
+
+---
+
+## 2025-09-22 - LocationView Icon Replacement in Main Navigation Bar (v2.0.40)
+
+### **Request Summary**
+Fix the telescope button in the main navigation bar to show the new LocationView icon instead of the Saturn icon when on other pages (shop, construction, resources, cards).
+
+### **Problem Identified**
+The telescope button was showing the Saturn location icon when on other pages instead of the new LocationView icon that was already implemented in the extended navigation bar.
+
+### **Solution Implemented**
+Updated the telescope button logic in the main navigation bar to prioritize the LocationView icon over the Saturn location icon:
+
+1. **When on other pages** (shop, construction, resources, cards):
+   - **Primary**: Show `LocationView` icon (new custom icon)
+   - **Fallback**: Show `SaturnLocation` icon (existing icon)
+   - **Final fallback**: Show `globe` system icon
+
+2. **Icon Display Logic**:
+   ```swift
+   if let image = UIImage(named: "LocationView") {
+       Image(uiImage: image)
+           .resizable()
+           .frame(width: 28, height: 28)
+           .foregroundColor(.white)
+   } else if let _ = UIImage(named: "SaturnLocation") {
+       Image("SaturnLocation")
+           .resizable()
+           .frame(width: 28, height: 28)
+           .foregroundColor(.white)
+   } else {
+       Image(systemName: "globe")
+           .font(.title2)
+           .foregroundColor(.white)
+   }
+   ```
+
+3. **Consistent Sizing**: All icons use 28x28 frame size for visual consistency
+
+### **Files Modified**
+- `/Users/adamepstein/Desktop/urpg_app/UniverseRPG/UniverseRPG/ContentView.swift` - Updated telescope button icon priority logic
+
+### **Testing**
+- ✅ App builds successfully
+- ✅ App launches on iPhone
+- ✅ LocationView icon now appears in main navigation bar when on other pages
+- ✅ Proper fallback hierarchy: LocationView → SaturnLocation → Globe
+- ✅ Consistent icon sizing and positioning maintained
+
+### **Result**
+The telescope button now consistently shows the new LocationView icon when on other pages, matching the extended navigation bar implementation and providing a cohesive visual experience throughout the app.
+
 ---
