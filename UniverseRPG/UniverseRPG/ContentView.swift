@@ -2241,7 +2241,15 @@ struct TapCounterView: View {
 // MARK: - Construction View
 struct ConstructionView: View {
     @ObservedObject var gameState: GameState
+    let bottomBarHeight: CGFloat
+    let extendedBarHeight: CGFloat
     @Environment(\.colorScheme) private var colorScheme
+
+    init(gameState: GameState, bottomBarHeight: CGFloat = 0, extendedBarHeight: CGFloat = 0) {
+        self.gameState = gameState
+        self.bottomBarHeight = bottomBarHeight
+        self.extendedBarHeight = extendedBarHeight
+    }
     
     var body: some View {
         ZStack {
