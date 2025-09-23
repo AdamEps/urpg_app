@@ -715,7 +715,7 @@ struct LocationView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.bottom, gameState.showExtendedNavigation ? 50 : 0) // Push above extended nav when visible
+                .padding(.bottom, gameState.showExtendedNavigation && !gameState.showLocationSlots ? 50 : 0) // 50pts above extended nav when visible AND slots not open
                 
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showLocationSlots {
