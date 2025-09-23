@@ -2267,6 +2267,21 @@ class GameState: ObservableObject {
     func getCurrentConstellation() -> Constellation? {
         return constellations.first
     }
+    
+    // Helper methods for extended navigation highlighting
+    var isAtConstellationLevel: Bool {
+        if case .constellation = starMapZoomLevel {
+            return true
+        }
+        return false
+    }
+    
+    var isAtSolarSystemLevel: Bool {
+        if case .solarSystem = starMapZoomLevel {
+            return true
+        }
+        return false
+    }
 }
 
 // MARK: - Data Models

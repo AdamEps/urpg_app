@@ -2958,19 +2958,18 @@ struct ExtendedNavigationView: View {
                 // Go to location view
                 gameState.currentPage = .location
                 gameState.starMapViaTelescope = false
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    gameState.showExtendedNavigation = false
-                }
             }) {
                 if let image = UIImage(named: "LocationView") {
-                    Image(uiImage: image)
+                    Image(uiImage: image.withRenderingMode(.alwaysTemplate))
                         .resizable()
                         .frame(width: 24, height: 24)
-                        .foregroundColor(gameState.currentPage == .location ? .blue : .white)
+                        .foregroundColor(gameState.currentPage == .location ? .green : .white)
+                        .id("location-\(gameState.currentPage.rawValue)")
                 } else {
                     Text("🌍")
                         .font(.title3)
-                        .foregroundColor(gameState.currentPage == .location ? .blue : .white)
+                        .foregroundColor(gameState.currentPage == .location ? .green : .white)
+                        .id("location-text-\(gameState.currentPage.rawValue)")
                 }
             }
 
@@ -2989,31 +2988,18 @@ struct ExtendedNavigationView: View {
                         gameState.starMapViaTelescope = false
                     }
                 }
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    gameState.showExtendedNavigation = false
-                }
             }) {
                 if let image = UIImage(named: "StarSystem") {
-                    Image(uiImage: image)
+                    Image(uiImage: image.withRenderingMode(.alwaysTemplate))
                         .resizable()
                         .frame(width: 24, height: 24)
-                        .foregroundColor(gameState.currentPage == .starMap && {
-    if case .constellation = gameState.starMapZoomLevel {
-        true
-    } else {
-        false
-    }
-}() ? .blue : .white)
+                        .foregroundColor(gameState.currentPage == .starMap && gameState.isAtSolarSystemLevel ? .green : .white)
+                        .id("starsystem-\(gameState.currentPage.rawValue)-\(gameState.starMapZoomLevel)")
                 } else {
                     Text("🌟")
                         .font(.title3)
-                        .foregroundColor(gameState.currentPage == .starMap && {
-    if case .constellation = gameState.starMapZoomLevel {
-        true
-    } else {
-        false
-    }
-}() ? .blue : .white)
+                        .foregroundColor(gameState.currentPage == .starMap && gameState.isAtSolarSystemLevel ? .green : .white)
+                        .id("starsystem-text-\(gameState.currentPage.rawValue)-\(gameState.starMapZoomLevel)")
                 }
             }
 
@@ -3025,37 +3011,25 @@ struct ExtendedNavigationView: View {
                 gameState.zoomOutToConstellation()
                 gameState.currentPage = .starMap
                 gameState.starMapViaTelescope = false
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    gameState.showExtendedNavigation = false
-                }
             }) {
                 if let image = UIImage(named: "MultiSystems") {
-                    Image(uiImage: image)
+                    Image(uiImage: image.withRenderingMode(.alwaysTemplate))
                         .resizable()
                         .frame(width: 24, height: 24)
-                        .foregroundColor(gameState.currentPage == .starMap && {
-    if case .constellation = gameState.starMapZoomLevel {
-        true
-    } else {
-        false
-    }
-}() ? .blue : .white)
+                        .foregroundColor(gameState.currentPage == .starMap && gameState.isAtConstellationLevel ? .green : .white)
+                        .id("multisystem-\(gameState.currentPage.rawValue)-\(gameState.starMapZoomLevel)")
                 } else {
                     Text("🌌")
                         .font(.title3)
-                        .foregroundColor(gameState.currentPage == .starMap && {
-    if case .constellation = gameState.starMapZoomLevel {
-        true
-    } else {
-        false
-    }
-}() ? .blue : .white)
+                        .foregroundColor(gameState.currentPage == .starMap && gameState.isAtConstellationLevel ? .green : .white)
+                        .id("multisystem-text-\(gameState.currentPage.rawValue)-\(gameState.starMapZoomLevel)")
                 }
             }
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
         .background(Color(red: 0.25, green: 0.25, blue: 0.25))
+        .id("extended-nav-\(gameState.currentPage.rawValue)-\(gameState.starMapZoomLevel)")
         .transition(.move(edge: .bottom))
     }
 }

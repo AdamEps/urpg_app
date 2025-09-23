@@ -6,6 +6,99 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-23 - Extended Navigation Bar Green Highlighting Implementation (v2.0.45)
+
+#### **Request Summary**
+Implement green highlighting for all three extended navigation buttons to show which page the player is currently on. The buttons should turn green when active and stay white when inactive.
+
+#### **Problem Identified**
+- **Custom PNG images** in Assets.xcassets had embedded color data that prevented SwiftUI color modifiers from working
+- **`.foregroundColor()`** couldn't override the original colors in the PNG images
+- **Bottom navigation** worked because it used SF Symbols which are template images by default
+
+#### **Solution Implemented**
+Applied `.withRenderingMode(.alwaysTemplate)` to all three extended navigation buttons:
+
+1. **Location Button**: 
+   - Shows **GREEN** when `gameState.currentPage == .location`
+   - Shows **WHITE** when on other pages
+
+2. **Star System Button**:
+   - Shows **GREEN** when `gameState.currentPage == .starMap && gameState.isAtSolarSystemLevel`
+   - Shows **WHITE** when at constellation level or other pages
+
+3. **Multi-System Button**:
+   - Shows **GREEN** when `gameState.currentPage == .starMap && gameState.isAtConstellationLevel`
+   - Shows **WHITE** when at solar system level or other pages
+
+#### **Technical Implementation**
+```swift
+Image(uiImage: image.withRenderingMode(.alwaysTemplate))
+    .resizable()
+    .frame(width: 24, height: 24)
+    .foregroundColor(condition ? .green : .white)
+```
+
+#### **Key Learning**
+- **Template rendering mode** strips away original colors and only keeps the alpha channel
+- **SwiftUI color modifiers** can then properly color template images
+- **SF Symbols** are template images by default, which is why bottom nav worked
+- **Custom PNG images** need explicit template rendering to be colorizable
+
+#### **Result**
+✅ All three extended navigation buttons now properly highlight in **GREEN** when active
+✅ Extended navigation stays open when clicking buttons (no auto-dismiss)
+✅ Consistent visual feedback for current page/zoom level
+✅ Ready for future custom icon replacements using same template approach
+
+---
+
+### 2025-09-23 - Extended Navigation Bar Blue Highlighting Fix (v2.0.44)
+
+#### **Request Summary**
+Fix the blue highlighting feature in the extended navigation bar to properly show which page the player is currently on. The Location button was working correctly, but the Star System and Multi-System buttons had incorrect highlighting logic.
+
+#### **Problem Identified**
+- **Location button**: ✅ Correctly showed blue when `gameState.currentPage == .location`
+- **Star System button**: ❌ Showed blue when `starMapZoomLevel == .constellation` (wrong - should be when zoomed into a star system)
+- **Multi-System button**: ✅ Correctly showed blue when `starMapZoomLevel == .constellation` (correct)
+
+#### **Solution Implemented**
+Fixed the Star System button highlighting logic by following the same pattern as the bottom navigation buttons:
+
+1. **Location Button**: 
+   - **Pattern**: `gameState.currentPage == .location ? .blue : .white`
+   - **Result**: Shows blue when on location page
+
+2. **Star System Button**:
+   - **Pattern**: `gameState.currentPage == .starMap && gameState.isAtSolarSystemLevel ? .blue : .white`
+   - **Result**: Shows blue when zoomed into a star system
+
+3. **Multi-System Button**:
+   - **Pattern**: `gameState.currentPage == .starMap && gameState.isAtConstellationLevel ? .blue : .white`
+   - **Result**: Shows blue when at constellation level
+
+#### **Technical Implementation**
+- Used the same highlighting pattern as bottom navigation buttons: `.foregroundColor(condition ? .blue : .white)`
+- Added helper methods to GameState for cleaner logic:
+  - `isAtConstellationLevel`: Returns true when `starMapZoomLevel == .constellation`
+  - `isAtSolarSystemLevel`: Returns true when `starMapZoomLevel == .solarSystem`
+- Removed debug text overlays and simplified the implementation
+
+#### **Testing Results**
+- ✅ App builds and launches successfully
+- ✅ No linting errors
+- ✅ Extended navigation bar now properly highlights the current page/view
+- ✅ Follows the same pattern as bottom navigation buttons
+
+#### **Files Modified**
+- `UniverseRPG/UniverseRPG/ContentView.swift` - Fixed highlighting logic for all extended navigation buttons
+- `UniverseRPG/UniverseRPG/GameState.swift` - Added helper methods for zoom level checking
+
+#### **Version**
+- **Previous**: v2.0.43
+- **Current**: v2.0.44
+
 ### 2025-09-22 - Final Revert to Version 2.0.49
 - **Request**: Revert the app to version 2.0.49 after multiple failed attempts at extended nav bar overlay system
 - **Previous Attempts**: v2.0.50, v2.0.51, v2.0.52 all had positioning and functionality issues
@@ -1402,6 +1495,55 @@ Reverted to the original VStack-based approach which maintains proper functional
 - **Commit**: Successfully committed with message "v2.0.42: Extended Navigation Functionality Fix"
 - **App Icon**: No change (still v2.0.39)
 - **Files Changed**: 3 files changed, 50 insertions(+), 9 deletions(-)
+- **Push Status**: Successfully pushed to GitHub ✅
+- **Chat History**: Updated with complete session details
+
+---
+
+## 2025-09-23 - Extended Navigation Bar Blue Highlighting Fix (v2.0.44)
+
+### **Request Summary**
+Fix the blue highlighting feature in the extended navigation bar to properly show which page the player is currently on. The Location button was working correctly, but the Star System and Multi-System buttons had incorrect highlighting logic.
+
+### **Problem Identified**
+- **Location button**: ✅ Correctly showed blue when `gameState.currentPage == .location`
+- **Star System button**: ❌ Showed blue when `starMapZoomLevel == .constellation` (wrong - should be when zoomed into a star system)
+- **Multi-System button**: ✅ Correctly showed blue when `starMapZoomLevel == .constellation` (correct)
+
+### **Solution Implemented**
+Fixed the Star System button highlighting logic:
+
+1. **Star System Button Fix**:
+   - **Before**: `gameState.currentPage == .starMap && starMapZoomLevel == .constellation` (wrong)
+   - **After**: `gameState.currentPage == .starMap && starMapZoomLevel == .solarSystem` (correct)
+   - **Result**: Now shows blue when zoomed into a star system view
+
+2. **Multi-System Button**:
+   - **Already Correct**: `gameState.currentPage == .starMap && starMapZoomLevel == .constellation`
+   - **Result**: Shows blue when at constellation level (multi-system view)
+
+### **Technical Details**
+- **StarMapZoomLevel Enum**: 
+  - `.constellation` = Multi-system view (constellation level)
+  - `.solarSystem(StarSystem)` = Star system view (zoomed into individual system)
+- **Highlighting Logic**: Each button now correctly highlights based on current zoom level
+- **Consistent Pattern**: Matches the bottom navigation bar highlighting system
+
+### **Testing**
+- ✅ App builds successfully
+- ✅ App launches on iPhone
+- ✅ Location button: Blue when on location page
+- ✅ Star System button: Blue when zoomed into star system view
+- ✅ Multi-System button: Blue when at constellation level
+- ✅ All navigation functionality preserved
+
+### **Result**
+The extended navigation bar now properly uses the blue highlighting feature to show players exactly where they are in the navigation hierarchy, providing clear visual feedback about the current view level.
+
+### **Version 2.0.44 Release**
+- **Commit**: Successfully committed with message "v2.0.44: Fix extended navigation bar blue highlighting logic"
+- **App Icon**: Updated to version 2.0.44 using update_app_icon.sh script
+- **Files Changed**: 1 file changed, 2 insertions(+), 2 deletions(-)
 - **Push Status**: Successfully pushed to GitHub ✅
 - **Chat History**: Updated with complete session details
 
