@@ -681,16 +681,6 @@ struct LocationView: View {
                 Spacer()
             }
             
-            // Extended navigation overlay - positioned directly on navigation bar
-            if gameState.showExtendedNavigation {
-                VStack(spacing: 0) {
-                    Spacer()
-                    
-                    ExtendedNavigationView(gameState: gameState)
-                    // NO bottom padding - sits directly on nav bar
-                }
-            }
-            
             // Enhancement slots overlay - positioned at bottom without affecting layout
             VStack(spacing: 0) {
                 Spacer()
@@ -722,6 +712,16 @@ struct LocationView: View {
                     LocationSlotsView(gameState: gameState)
                         .padding(.bottom, gameState.showExtendedNavigation ? 50 : 0) // 50pts above extended nav when visible
                         .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            
+            // Extended navigation overlay - positioned directly on navigation bar
+            if gameState.showExtendedNavigation {
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    ExtendedNavigationView(gameState: gameState)
+                    // NO bottom padding - sits directly on nav bar
                 }
             }
         }
@@ -2940,10 +2940,10 @@ struct BottomNavigationView: View {
                     .font(.title2)
                     .foregroundColor(gameState.currentPage == .cards ? .blue : .white)
             }
-            .padding(.horizontal)
-            .padding(.vertical, 16)
-            .background(Color(red: 0.2, green: 0.2, blue: 0.2).opacity(1.0))
         }
+        .padding(.horizontal)
+        .padding(.vertical, 16)
+        .background(Color(red: 0.2, green: 0.2, blue: 0.2))
     }
 }
 
@@ -3055,7 +3055,7 @@ struct ExtendedNavigationView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
-        .background(Color(red: 0.3, green: 0.3, blue: 0.3).opacity(1.0))
+        .background(Color(red: 0.25, green: 0.25, blue: 0.25))
         .transition(.move(edge: .bottom))
     }
 }
