@@ -2942,7 +2942,7 @@ struct BottomNavigationView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 16)
-            .background(Color(red: 0.2, green: 0.2, blue: 0.2))
+            .background(Color(red: 0.2, green: 0.2, blue: 0.2).opacity(1.0))
         }
     }
 }
@@ -3055,7 +3055,7 @@ struct ExtendedNavigationView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
-        .background(Color.gray.opacity(0.4))
+        .background(Color(red: 0.3, green: 0.3, blue: 0.3).opacity(1.0))
         .transition(.move(edge: .bottom))
     }
 }
