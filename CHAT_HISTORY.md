@@ -817,6 +817,82 @@ Fixed the Star System button highlighting logic by following the same pattern as
 
 ---
 
+## 2025-01-27 - Navigation Bar Icon Replacement (v2.0.46)
+
+### **Request Summary**
+Replace the current navigation bar button icons with new custom icons from the Icons > In Game folder:
+1. **shop.png** for Shop page
+2. **constructionBays.png** for Construction Bays page  
+3. **resources.png** for Resources page
+4. **cards.png** for Cards page
+
+### **Requirements**
+1. Remove white background and make transparent
+2. Invert colors from black to white for visibility
+3. Replace current system icons with new custom icons
+4. Maintain blue highlight when clicked feature
+5. Keep location view button (button 3) unchanged
+6. No changes to extended nav bar or bottom nav structure
+
+### **Solutions Implemented**
+
+1. **Icon Processing**:
+   - Created Python script to process all 4 navigation icons
+   - Removed white backgrounds using pixel threshold detection (RGB > 240)
+   - Inverted black icons to white for navigation bar visibility
+   - Generated proper Xcode asset catalog structure with Contents.json files
+
+2. **Asset Catalog Integration**:
+   - Added processed icons to Assets.xcassets as individual imagesets:
+     - `shop.imageset` with shop.png
+     - `constructionBays.imageset` with constructionBays.png
+     - `resources.imageset` with resources.png
+     - `cards.imageset` with cards.png
+   - Each imageset includes proper Contents.json for 1x, 2x, 3x scaling
+
+3. **Navigation Bar Updates**:
+   - **Shop Button**: Replaced `Image(systemName: "cart.fill")` with `Image("shop")`
+   - **Construction Button**: Replaced `Image(systemName: "hammer.fill")` with `Image("constructionBays")`
+   - **Resources Button**: Replaced `Image(systemName: "cube.box.fill")` with `Image("resources")`
+   - **Cards Button**: Replaced `Image(systemName: "rectangle.stack.fill")` with `Image("cards")`
+   - **Location Button**: Left unchanged as requested
+
+4. **Icon Sizing & Styling**:
+   - All icons sized to 28x28 pixels for consistency
+   - Used `.resizable()` and `.frame(width: 28, height: 28)` for proper scaling
+   - Maintained existing blue highlight functionality with `.foregroundColor()` modifiers
+   - Preserved all existing button actions and navigation logic
+
+### **Technical Implementation**
+- **Python Script**: `process_nav_icons.py` for automated icon processing
+- **Image Processing**: Background removal + color inversion algorithm
+- **Asset Management**: Proper Xcode asset catalog structure
+- **Code Updates**: Updated `BottomNavigationView` in ContentView.swift
+- **Preserved Functionality**: All existing navigation and highlighting features maintained
+
+### **Files Modified**
+- `/Users/adamepstein/Desktop/urpg_app/UniverseRPG/UniverseRPG/ContentView.swift` - Updated navigation button icons
+- `/Users/adamepstein/Desktop/urpg_app/UniverseRPG/UniverseRPG/Assets.xcassets/` - Added 4 new imagesets
+- Created and deleted temporary `process_nav_icons.py` script
+
+### **Testing Results**
+- ✅ **Icon Processing**: All 4 icons successfully processed with transparent backgrounds and white colors
+- ✅ **Asset Integration**: Icons properly added to Xcode asset catalog
+- ✅ **Code Compilation**: No linting errors, clean build
+- ✅ **App Launch**: App successfully launched for testing
+- ✅ **Visual Consistency**: All icons display at 28x28 with proper white coloring
+- ✅ **Functionality Preserved**: Blue highlighting and navigation work exactly as before
+
+### **Result**
+The navigation bar now uses custom icons that match the game's visual style while maintaining all existing functionality. The icons are properly processed with transparent backgrounds and white coloring for optimal visibility against the dark navigation bar background.
+
+### **Version 2.0.46 Release**
+- **Status**: Ready for commit and app icon update
+- **Changes**: 4 navigation icons replaced with custom processed versions
+- **Functionality**: All existing features preserved and working correctly
+
+---
+
 *This file should be maintained during each development session. Each new conversation should start by reading this file and adding a new entry.*
 
 ## 2025-01-27 - Telescope Button Visibility Fix (v2.0.9)

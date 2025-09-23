@@ -2811,8 +2811,9 @@ struct BottomNavigationView: View {
                     gameState.showExtendedNavigation = false
                 }
             }) {
-                Image(systemName: "cart.fill")
-                    .font(.title2)
+                Image("shop")
+                    .resizable()
+                    .frame(width: 28, height: 28)
                     .foregroundColor(gameState.currentPage == .shop ? .blue : .white)
             }
 
@@ -2825,8 +2826,9 @@ struct BottomNavigationView: View {
                     gameState.showExtendedNavigation = false
                 }
             }) {
-                Image(systemName: "hammer.fill")
-                    .font(.title2)
+                Image("constructionBays")
+                    .resizable()
+                    .frame(width: 28, height: 28)
                     .foregroundColor((gameState.currentPage == .construction || gameState.currentPage == .blueprints) ? .blue : .white)
             }
 
@@ -2922,8 +2924,9 @@ struct BottomNavigationView: View {
                     gameState.showExtendedNavigation = false
                 }
             }) {
-                Image(systemName: "cube.box.fill")
-                    .font(.title2)
+                Image("resources")
+                    .resizable()
+                    .frame(width: 28, height: 28)
                     .foregroundColor(gameState.currentPage == .resources ? .blue : .white)
             }
 
@@ -2936,8 +2939,9 @@ struct BottomNavigationView: View {
                     gameState.showExtendedNavigation = false
                 }
             }) {
-                Image(systemName: "rectangle.stack.fill")
-                    .font(.title2)
+                Image("cards")
+                    .resizable()
+                    .frame(width: 28, height: 28)
                     .foregroundColor(gameState.currentPage == .cards ? .blue : .white)
             }
         }
@@ -4915,7 +4919,7 @@ struct SolarSystemView: View {
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showStarMapSlots {
                     StarMapSlotsView(gameState: gameState)
-                        .padding(.bottom, gameState.showExtendedNavigation ? 0 : 10) // Dynamic positioning: 0 when extended nav visible, 10 when hidden
+                        .padding(.bottom, gameState.showExtendedNavigation ? 50 : 60) // Moved 50pts higher to avoid extended nav overlap
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -5083,7 +5087,7 @@ struct ConstellationView: View {
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showStarMapSlots {
                     StarMapSlotsView(gameState: gameState)
-                        .padding(.bottom, gameState.showExtendedNavigation ? 0 : 10) // Dynamic positioning: 0 when extended nav visible, 10 when hidden
+                        .padding(.bottom, gameState.showExtendedNavigation ? 50 : 60) // Moved 50pts higher to avoid extended nav overlap
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
@@ -5227,7 +5231,7 @@ struct StarMapView: View {
                 // Enhancement slots - shown conditionally with animation
                 if gameState.showStarMapSlots {
                     StarMapSlotsView(gameState: gameState)
-                        .padding(.bottom, gameState.showExtendedNavigation ? 0 : 10) // Dynamic positioning: 0 when extended nav visible, 10 when hidden
+                        .padding(.bottom, gameState.showExtendedNavigation ? 50 : 60) // Moved 50pts higher to avoid extended nav overlap
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
