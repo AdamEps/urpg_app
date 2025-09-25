@@ -5478,10 +5478,37 @@ struct CardClassSection: View {
         gameState.getCardsForClass(cardClass)
     }
     
+    // Calculate how many rows we need based on visible cards
+    private var numberOfRows: Int {
+        let ownedCardIds = Set(gameState.ownedCards.map { $0.cardId })
+        
+        // Find the highest index of any visible card (owned or first undiscovered)
+        var maxVisibleIndex = -1
+        
+        for (index, cardDef) in cardsForClass.enumerated() {
+            if ownedCardIds.contains(cardDef.id) {
+                // Owned card is visible
+                maxVisibleIndex = max(maxVisibleIndex, index)
+            } else {
+                // Check if this is the first undiscovered card
+                let isFirstUndiscovered = !cardsForClass.prefix(index).contains { !ownedCardIds.contains($0.id) }
+                if isFirstUndiscovered {
+                    maxVisibleIndex = max(maxVisibleIndex, index)
+                }
+            }
+        }
+        
+        // Calculate rows needed (3 cards per row)
+        if maxVisibleIndex == -1 {
+            return 0 // No visible cards
+        }
+        return (maxVisibleIndex / 3) + 1
+    }
+    
     // Helper function to check if a card is in a specific row
     private func isCardInRow(_ cardId: String, rowIndex: Int) -> Bool {
         // Quick bounds check
-        guard rowIndex >= 0 && rowIndex < 3 else { return false }
+        guard rowIndex >= 0 && rowIndex < numberOfRows else { return false }
         
         let startIndex = rowIndex * 3
         let endIndex = min(startIndex + 3, cardsForClass.count)
@@ -5506,8 +5533,8 @@ struct CardClassSection: View {
                 .foregroundColor(.adaptivePrimaryText)
             
             VStack(spacing: 8) {
-                // Create rows of 3 cards each
-                ForEach(0..<3, id: \.self) { rowIndex in
+                // Create rows dynamically based on visible cards
+                ForEach(0..<numberOfRows, id: \.self) { rowIndex in
                     VStack(spacing: 0) {
                         // Show detail view above this row if any card in this row is selected
                         if let selectedCardId = gameState.selectedCardForDetail,
@@ -5521,7 +5548,7 @@ struct CardClassSection: View {
                             ForEach(0..<3, id: \.self) { colIndex in
                                 let cardIndex = rowIndex * 3 + colIndex
                                 
-                                if cardIndex < 8 {
+                                if cardIndex < cardsForClass.count {
                                     CardSlotView(
                                         cardClass: cardClass,
                                         slotIndex: cardIndex,
@@ -5530,7 +5557,7 @@ struct CardClassSection: View {
                                 } else {
                                     // Empty slot for incomplete rows
                                     Color.clear
-                                        .frame(height: 120)
+                                        .frame(height: 160)
                                 }
                             }
                         }
@@ -5556,10 +5583,24 @@ struct CardSlotView: View {
         return gameState.getUserCard(for: cardDef.id)
     }
     
+    // Check if this is the first empty slot in the class
+    private var isFirstEmptySlot: Bool {
+        let cardsForClass = gameState.getCardsForClass(cardClass)
+        let ownedCardIds = Set(gameState.ownedCards.map { $0.cardId })
+        
+        // Find the first card that is not owned
+        for (index, cardDef) in cardsForClass.enumerated() {
+            if !ownedCardIds.contains(cardDef.id) {
+                return index == slotIndex
+            }
+        }
+        return false
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             if let cardDef = cardDef, let userCard = userCard {
-                // Owned card
+                // Owned card - show normally
                 Button(action: {
                     // Toggle detail view - if same card is tapped again, close it
                     if gameState.selectedCardForDetail == cardDef.id {
@@ -5629,11 +5670,11 @@ struct CardSlotView: View {
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
-            } else {
-                // Empty slot
+            } else if isFirstEmptySlot {
+                // First empty slot - show "?" and "Undiscovered"
                 VStack(spacing: 0) {
                     // Card name placeholder
-                    Text("Empty Slot")
+                    Text("Undiscovered")
                         .font(.caption)
                         .fontWeight(.bold)
                         .foregroundColor(.gray)
@@ -5645,17 +5686,22 @@ struct CardSlotView: View {
                         .stroke(cardClassColor.opacity(0.3), lineWidth: 2)
                         .frame(height: 80)
                         .overlay(
-                            Image(systemName: "plus")
+                            Image(systemName: "questionmark")
                                 .font(.largeTitle)
                                 .foregroundColor(cardClassColor.opacity(0.5))
                         )
                         .padding(.horizontal, 4)
                         .padding(.top, 2)
                     
-                    // Empty space for ability text
-                    Spacer()
-                        .frame(height: 40)
+                    // Undiscovered text in bottom half
+                    Text("Undiscovered")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 4)
                         .padding(.top, 4)
+                        .frame(height: 40)
                     
                     // Bottom row placeholder
                     HStack {
@@ -5674,6 +5720,10 @@ struct CardSlotView: View {
                                 .stroke(cardClassColor.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
                         )
                 )
+            } else {
+                // Other empty slots - hide them
+                Color.clear
+                    .frame(height: 160)
             }
         }
         .frame(height: 160)

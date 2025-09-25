@@ -1047,6 +1047,68 @@ The navigation bar now uses custom icons that match the game's visual style whil
 
 ---
 
+## 2025-09-25 - Total Constructions Tracker Fix (v2.0.73)
+
+### **Request Summary**
+Fix the Total Constructions tracker on the statistics page that wasn't properly updating when collecting completed constructions.
+
+### **Problem Identified**
+- **Total Constructions counter** was properly defined in GameState.swift and displayed in the statistics page
+- **Construction completion logic** existed in `completeConstruction()` function with proper statistics tracking
+- **BUT the UI collection functions** (`collectCompletedItem` in ContentView.swift) were manually handling construction completion instead of calling the proper `completeConstruction` function
+- **Result**: Statistics were never updated because the proper completion function was bypassed
+
+### **Solution Implemented**
+
+1. **Made completeConstruction Function Public**:
+   - Changed `private func completeConstruction(at index: Int)` to `func completeConstruction(at index: Int)` in GameState.swift
+   - This allows the UI to call the proper completion function
+
+2. **Updated All collectCompletedItem Functions**:
+   - **SmallBaySlotView**: Updated to call `gameState.completeConstruction(at: bayIndex)` instead of manual completion
+   - **MediumBaySlotView**: Updated to call `gameState.completeConstruction(at: bayIndex)` instead of manual completion  
+   - **LargeBaySlotView**: Updated to call `gameState.completeConstruction(at: bayIndex)` instead of manual completion
+   - **Removed Manual Logic**: Eliminated manual reward handling, construction clearing, and XP awarding
+   - **Centralized Logic**: All completion logic now goes through the proper `completeConstruction` function
+
+3. **Fixed Compiler Warnings**:
+   - Replaced unused `construction` variables with `_` to eliminate compiler warnings
+
+### **What This Fixes**
+- ✅ **Total Constructions** counter now properly increments when collecting completed items
+- ✅ **Small/Medium/Large Constructions** counters are also properly tracked
+- ✅ **Statistics page** will now show accurate construction counts
+- ✅ **All construction completion logic** is centralized in one place for consistency
+- ✅ **Rewards, XP, and location unlocks** are handled properly through the centralized function
+
+### **Technical Details**
+The `completeConstruction` function in GameState.swift properly handles:
+- Incrementing `totalConstructionsCompleted`
+- Incrementing size-specific counters (`smallConstructionsCompleted`, `mediumConstructionsCompleted`, `largeConstructionsCompleted`)
+- Giving rewards to the player based on construction blueprint
+- Clearing the construction bay
+- Checking for location unlocks
+- All existing functionality preserved
+
+### **Files Modified**
+- `/Users/adamepstein/Desktop/urpg_app/UniverseRPG/UniverseRPG/GameState.swift` - Made completeConstruction function public
+- `/Users/adamepstein/Desktop/urpg_app/UniverseRPG/UniverseRPG/ContentView.swift` - Updated all collectCompletedItem functions to use proper completion logic
+
+### **Testing Results**
+- ✅ **Build Success**: App compiles without errors
+- ✅ **App Launch**: Successfully launched on iPhone for testing
+- ✅ **Statistics Tracking**: Total Constructions tracker now works correctly
+- ✅ **Functionality Preserved**: All existing construction features work as before
+- ✅ **Code Quality**: No linting errors, clean implementation
+
+### **Version 2.0.73 Release**
+- **Commit**: Successfully committed with message "v2.0.73: Fix Total Constructions tracker"
+- **App Icon**: Updated to version 2.0.73 using update_app_icon.sh script
+- **Files Changed**: 2 files changed, 13 insertions(+), 79 deletions(-)
+- **Chat History**: Updated with complete session details
+
+---
+
 *This file should be maintained during each development session. Each new conversation should start by reading this file and adding a new entry.*
 
 ## 2025-01-27 - Telescope Button Visibility Fix (v2.0.9)
@@ -1825,6 +1887,130 @@ The extended navigation now has the correct animation direction as originally re
 - **App Icon**: No change (still v2.0.39)
 - **Files Changed**: 2 files changed, 52 insertions(+), 2 deletions(-)
 - **Push Status**: Successfully pushed to GitHub ✅
+- **Chat History**: Updated with complete session details
+
+---
+
+### 2025-01-27 - Card Discovery System Implementation (v2.0.48)
+
+#### **Request Summary**
+User requested implementation of a card discovery system where:
+- All undiscovered cards (except the first empty slot in each class) should be hidden
+- The first empty slot in each class should show "?" instead of "+" symbol
+- The first empty slot should display "Undiscovered" text in the card description area
+
+#### **Problem Identified**
+The current card system showed all cards in each class, including empty slots with "+" symbols, which didn't create a sense of discovery or mystery for undiscovered cards.
+
+#### **Solution Implemented**
+Modified the `CardSlotView` in `ContentView.swift` to implement a discovery system:
+
+1. **Added Discovery Logic**: Created `isFirstEmptySlot` computed property that determines if a slot is the first undiscovered card in a class
+2. **Hidden Undiscovered Cards**: All undiscovered cards (except the first empty slot) are now hidden using `Color.clear`
+3. **Updated First Empty Slot**: 
+   - Replaced "+" symbol with "questionmark" system icon
+   - Changed "Empty Slot" text to "Undiscovered"
+   - Added "Undiscovered" text in the ability description area
+4. **Preserved Owned Cards**: Cards that are owned continue to display normally with full functionality
+
+#### **Code Changes**
+- **File**: `UniverseRPG/UniverseRPG/ContentView.swift`
+- **Function**: `CardSlotView` struct
+- **Key Changes**:
+  - Added `isFirstEmptySlot` computed property for discovery logic
+  - Modified `body` view to handle three states: owned cards, first empty slot, and hidden slots
+  - Updated UI elements for undiscovered state
+
+#### **Discovery System Logic**
+```swift
+private var isFirstEmptySlot: Bool {
+    let cardsForClass = gameState.getCardsForClass(cardClass)
+    let ownedCardIds = Set(gameState.ownedCards.map { $0.cardId })
+    
+    // Find the first card that is not owned
+    for (index, cardDef) in cardsForClass.enumerated() {
+        if !ownedCardIds.contains(cardDef.id) {
+            return index == slotIndex
+        }
+    }
+    return false
+}
+```
+
+#### **UI States**
+1. **Owned Cards**: Display normally with full card information
+2. **First Empty Slot**: Show "?" icon and "Undiscovered" text
+3. **Other Empty Slots**: Completely hidden (Color.clear)
+
+#### **Testing**
+- ✅ App builds successfully
+- ✅ App launches on iPhone
+- ✅ Undiscovered cards are hidden except first empty slot
+- ✅ First empty slot shows "?" and "Undiscovered" text
+- ✅ Owned cards display normally
+- ✅ Discovery system works across all card classes
+
+#### **Result**
+The card discovery system now creates a sense of mystery and progression, where players can only see the next undiscovered card in each class, encouraging exploration and card collection.
+
+#### **Spacing Fix Implementation**
+After implementing the discovery system, user identified excessive blank space between card categories due to fixed grid structure. Implemented dynamic row calculation:
+
+1. **Dynamic Row Calculation**: Added `numberOfRows` computed property that calculates rows needed based on visible cards
+2. **Smart Visibility Detection**: Determines highest visible card index (owned or first undiscovered) to calculate required rows
+3. **Adaptive Grid**: Grid now only shows rows containing visible cards, eliminating unnecessary blank space
+4. **Progressive Expansion**: As new cards are discovered, sections naturally expand to accommodate them
+
+#### **Code Changes for Spacing Fix**
+- **File**: `UniverseRPG/UniverseRPG/ContentView.swift`
+- **Function**: `CardClassSection` struct
+- **Key Changes**:
+  - Added `numberOfRows` computed property for dynamic row calculation
+  - Modified `ForEach` loop to use `numberOfRows` instead of fixed 3 rows
+  - Updated `isCardInRow` helper to work with dynamic row count
+
+#### **Dynamic Row Logic**
+```swift
+private var numberOfRows: Int {
+    let ownedCardIds = Set(gameState.ownedCards.map { $0.cardId })
+    
+    // Find the highest index of any visible card (owned or first undiscovered)
+    var maxVisibleIndex = -1
+    
+    for (index, cardDef) in cardsForClass.enumerated() {
+        if ownedCardIds.contains(cardDef.id) {
+            // Owned card is visible
+            maxVisibleIndex = max(maxVisibleIndex, index)
+        } else {
+            // Check if this is the first undiscovered card
+            let isFirstUndiscovered = !cardsForClass.prefix(index).contains { !ownedCardIds.contains($0.id) }
+            if isFirstUndiscovered {
+                maxVisibleIndex = max(maxVisibleIndex, index)
+            }
+        }
+    }
+    
+    // Calculate rows needed (3 cards per row)
+    if maxVisibleIndex == -1 {
+        return 0 // No visible cards
+    }
+    return (maxVisibleIndex / 3) + 1
+}
+```
+
+#### **Testing - Spacing Fix**
+- ✅ App builds successfully
+- ✅ App launches on iPhone
+- ✅ Card sections now dynamically adjust height based on visible cards
+- ✅ No excessive blank space between categories
+- ✅ Sections expand naturally as new cards are discovered
+- ✅ All existing functionality preserved
+
+#### **Version 2.0.48 Release**
+- **Commit**: Ready for commit
+- **App Icon**: No change (still v2.0.39)
+- **Files Changed**: 1 file changed, 150+ insertions(+), 50+ deletions(-)
+- **Push Status**: Pending
 - **Chat History**: Updated with complete session details
 
 ---
