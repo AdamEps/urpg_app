@@ -814,11 +814,14 @@ class GameState: ObservableObject {
         // Deduct currency cost
         currency -= blueprint.currencyCost
         
-        // Create construction
+        // Create construction with build time multiplier applied
+        let buildTimeMultiplier = getBuildTimeMultiplier()
+        let adjustedDuration = blueprint.duration * buildTimeMultiplier
+        
         let construction = Construction(
             id: UUID().uuidString,
             blueprint: blueprint,
-            timeRemaining: blueprint.duration,
+            timeRemaining: adjustedDuration,
             progress: 0.0
         )
         
@@ -2000,7 +2003,7 @@ class GameState: ObservableObject {
     }
     
     func isStorageFull() -> Bool {
-        return getTotalResourcesHeld() >= maxStorageCapacity
+        return getTotalResourcesHeld() >= (maxStorageCapacity + getStorageCapacityBonus())
     }
     
     func canAddResource(_ resourceType: ResourceType, amount: Int = 1) -> Bool {
@@ -2009,7 +2012,7 @@ class GameState: ObservableObject {
             return true
         }
         // Check if adding this amount would exceed storage capacity
-        return getTotalResourcesHeld() + amount <= maxStorageCapacity
+        return getTotalResourcesHeld() + amount <= (maxStorageCapacity + getStorageCapacityBonus())
     }
     
     func deleteResource(_ resourceType: ResourceType, amount: Int) {
@@ -2207,6 +2210,10 @@ class GameState: ObservableObject {
         let constructionBonus = getCardEffectMultiplier(effectKey: "storageCapBonus", page: "Construction")
         
         return Int(locationBonus + shopBonus + cardsBonus + resourcesBonus + constructionBonus)
+    }
+    
+    func getTotalStorageCapacity() -> Int {
+        return maxStorageCapacity + getStorageCapacityBonus()
     }
     
     // MARK: - Star Map Hierarchy Methods

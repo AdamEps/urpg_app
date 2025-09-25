@@ -1047,6 +1047,14 @@ struct SlottedCardView: View {
             return [percentageString, "Rare", "Items"]
         } else if cardName.contains("Mining Mastery") {
             return [percentageString, "XP", "Gain"]
+        } else if cardName.contains("Materials Engineer") {
+            // For Materials Engineer, show positive percentage since "Reduced" already implies negative
+            let positivePercentage = "\(Int(abs(percentage * 100)))%"
+            return [positivePercentage, "Reduced", "Time"]
+        } else if cardName.contains("Storage Bay") {
+            // For Storage Bay, show flat storage bonus (not percentage)
+            let storageBonus = "\(Int(percentage))"
+            return [storageBonus, "Storage", "Bonus"]
         } else if ability.contains("yield") && ability.contains("tap") {
             return [percentageString, "Tap", "Yield"]
         } else if ability.contains("rare") && ability.contains("chance") {
@@ -1059,6 +1067,8 @@ struct SlottedCardView: View {
             return [percentageString, "Better", "Efficiency"]
         } else if ability.contains("bonus") {
             return [percentageString, "Bonus", "Rewards"]
+        } else if ability.contains("construction time") {
+            return [percentageString, "Reduced", "Time"]
         } else {
             // Fallback to first few words
             let words = ability.components(separatedBy: " ")
@@ -1266,7 +1276,7 @@ struct CompactCardView: View {
         
         // Get the actual percentage value from the card data
         let percentage = getCardPercentage()
-        let percentageString = "[+\(Int(percentage * 100))%]"
+        let percentageString = percentage > 0 ? "[+\(Int(percentage * 100))%]" : "[\(Int(percentage * 100))%]"
         
         // Format abilities as requested with each word on different line
         if cardName.contains("Astro Prospector") {
@@ -1275,6 +1285,14 @@ struct CompactCardView: View {
             return [percentageString, "Rare", "Items"]
         } else if cardName.contains("Mining Mastery") {
             return [percentageString, "XP", "Gain"]
+        } else if cardName.contains("Materials Engineer") {
+            // For Materials Engineer, show positive percentage since "Reduced" already implies negative
+            let positivePercentage = "[\(Int(abs(percentage * 100)))%]"
+            return [positivePercentage, "Reduced", "Time"]
+        } else if cardName.contains("Storage Bay") {
+            // For Storage Bay, show flat storage bonus (not percentage)
+            let storageBonus = "[+\(Int(percentage))]"
+            return [storageBonus, "Storage", "Bonus"]
         } else if description.contains("yield") && description.contains("tap") {
             return [percentageString, "Tap", "Yield"]
         } else if description.contains("rare") && description.contains("chance") {
@@ -1287,6 +1305,8 @@ struct CompactCardView: View {
             return [percentageString, "Better", "Efficiency"]
         } else if description.contains("bonus") {
             return [percentageString, "Bonus", "Rewards"]
+        } else if description.contains("construction time") {
+            return [percentageString, "Reduced", "Time"]
         } else {
             // Fallback to first few words
             let words = getCardAbility().components(separatedBy: " ")
@@ -3891,7 +3911,7 @@ struct ResourcesPageView: View {
                     
                     Spacer()
                     
-                    Text("\(gameState.getTotalResourcesHeld()) / \(gameState.maxStorageCapacity)")
+                    Text("\(gameState.getTotalResourcesHeld()) / \(gameState.getTotalStorageCapacity())")
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .foregroundColor(.white)

@@ -6,6 +6,160 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-25 - Storage Bay Card Functionality Implementation (v2.0.47)
+
+#### **Request Summary**
+Make the Storage Bay card functional and fix its mini card text display issues.
+
+#### **Problem Identified**
+- **Storage Bay card** was properly defined with storage capacity bonuses (+100 to +1500 based on tier)
+- **Card slotting system** worked correctly - cards could be equipped to enhancement slots
+- **Storage capacity bonus function** existed and calculated correctly (`getStorageCapacityBonus()`)
+- **BUT the bonus was never applied** - storage calculations used only `maxStorageCapacity` (1000) without including card bonuses
+- **Mini card text was wrong** - showed "+100% Expands storage" instead of "+100 Storage Bonus"
+
+#### **Solution Implemented**
+
+**1. Fixed Storage Capacity Calculations**
+Updated storage-related functions in `GameState.swift` to include card bonuses:
+
+```swift
+func isStorageFull() -> Bool {
+    return getTotalResourcesHeld() >= (maxStorageCapacity + getStorageCapacityBonus())
+}
+
+func canAddResource(_ resourceType: ResourceType, amount: Int = 1) -> Bool {
+    // Check if adding this amount would exceed storage capacity
+    return getTotalResourcesHeld() + amount <= (maxStorageCapacity + getStorageCapacityBonus())
+}
+
+func getTotalStorageCapacity() -> Int {
+    return maxStorageCapacity + getStorageCapacityBonus()
+}
+```
+
+**2. Updated UI Display**
+Modified `ContentView.swift` to show total storage capacity including bonuses:
+```swift
+Text("\(gameState.getTotalResourcesHeld()) / \(gameState.getTotalStorageCapacity())")
+```
+
+**3. Fixed Mini Card Text**
+Added specific handling for Storage Bay card in both `getAbilityLines()` functions:
+
+```swift
+} else if cardName.contains("Storage Bay") {
+    // For Storage Bay, show flat storage bonus (not percentage)
+    let storageBonus = "\(Int(percentage))"
+    return [storageBonus, "Storage", "Bonus"]
+```
+
+#### **Storage Bay Card Effects**
+- **Tier 1 (2 copies)**: +100 storage capacity
+- **Tier 2 (5 copies)**: +250 storage capacity  
+- **Tier 3 (10 copies)**: +500 storage capacity
+- **Tier 4 (25 copies)**: +1000 storage capacity
+- **Tier 5 (100 copies)**: +1500 storage capacity
+
+#### **Example Calculation**
+- **Base storage capacity**: 1000 resources
+- **With Level 1 Storage Bay**: 1000 + 100 = 1100 total capacity
+- **With Level 5 Storage Bay**: 1000 + 1500 = 2500 total capacity
+
+#### **Result**
+✅ Storage Bay card now properly increases storage capacity when equipped
+✅ UI displays correct total storage capacity including bonuses
+✅ Mini card text shows "+100 Storage Bonus" instead of "+100% Expands storage"
+✅ Multiple Storage Bay cards can be slotted across different pages and stack together
+✅ App successfully built and launched for testing
+
+### 2025-09-25 - Material Engineer Card Build Time Fix (v2.0.46)
+
+#### **Request Summary**
+Fix the Material Engineer card so it properly reduces construction time when slotted into construction bay enhancement slots.
+
+#### **Problem Identified**
+- **Material Engineer card** was properly defined with build time reduction effects (-2% to -16% based on tier)
+- **Card slotting system** worked correctly - cards could be equipped to construction enhancement slots
+- **Build time multiplier function** existed and calculated correctly (`getBuildTimeMultiplier()`)
+- **BUT the multiplier was never applied** - `startConstruction()` function used `blueprint.duration` directly without applying the multiplier
+
+#### **Solution Implemented**
+Updated the `startConstruction()` function in `GameState.swift` to apply the build time multiplier:
+
+```swift
+// Create construction with build time multiplier applied
+let buildTimeMultiplier = getBuildTimeMultiplier()
+let adjustedDuration = blueprint.duration * buildTimeMultiplier
+
+let construction = Construction(
+    id: UUID().uuidString,
+    blueprint: blueprint,
+    timeRemaining: adjustedDuration,  // Now uses adjusted duration
+    progress: 0.0
+)
+```
+
+#### **Material Engineer Card Effects**
+- **Tier 1 (2 copies)**: -2% construction time (0.98x multiplier)
+- **Tier 2 (5 copies)**: -4% construction time (0.96x multiplier)  
+- **Tier 3 (10 copies)**: -7% construction time (0.93x multiplier)
+- **Tier 4 (25 copies)**: -11% construction time (0.89x multiplier)
+- **Tier 5 (100 copies)**: -16% construction time (0.84x multiplier)
+
+#### **Example Calculation**
+- **Starship Hull base duration**: 600 seconds (10 minutes)
+- **With Level 1 Material Engineer**: 600 × 0.98 = 588 seconds (9m 48s)
+- **Time saved**: 12 seconds per construction
+
+#### **Result**
+✅ Material Engineer card now properly reduces construction time when equipped
+✅ All construction types benefit from the time reduction
+✅ Higher tier cards provide progressively better time savings
+✅ App successfully built and launched for testing
+
+### 2025-09-25 - Material Engineer Card Text Standardization (v2.0.47)
+
+#### **Request Summary**
+Standardize the Material Engineer card text language across all card displays:
+1. Cards page: Show "[2%] reduced construction time"
+2. Construction page mini cards: Show "[2%] reduced time" (both in scroll window and when slotted)
+
+#### **Problem Identified**
+- **Inconsistent card text** across different views
+- **Cards page** and **construction page** used different text formatting
+- **Material Engineer card** wasn't specifically handled in the `getAbilityLines()` functions
+
+#### **Solution Implemented**
+Updated both `getAbilityLines()` functions in `ContentView.swift` to handle the Material Engineer card specifically:
+
+```swift
+// Added specific handling for Materials Engineer card
+} else if cardName.contains("Materials Engineer") {
+    return [percentageString, "Reduced", "Time"]
+} else if ability.contains("construction time") {
+    return [percentageString, "Reduced", "Time"]
+```
+
+**Key Changes:**
+1. **Cards page**: Now shows `[-2%]` `Reduced` `Time` (with brackets and negative percentage)
+2. **Construction page**: Shows `-2%` `Reduced` `Time` (without brackets, negative percentage)
+3. **Both views**: Use consistent "Reduced Time" text instead of generic fallback
+4. **Percentage formatting**: Properly handles negative values for time reduction
+
+#### **Technical Details**
+- **First `getAbilityLines()` function**: Used by slotted cards and construction page mini cards
+- **Second `getAbilityLines()` function**: Used by cards page display
+- **Percentage calculation**: `Int(percentage * 100)` converts -0.02 to -2
+- **String formatting**: Handles both positive and negative percentages correctly
+
+#### **Result**
+✅ Material Engineer card now shows consistent "[2%] reduced time" text across all views
+✅ Cards page displays with brackets: `[-2%] Reduced Time`
+✅ Construction page displays without brackets: `-2% Reduced Time`
+✅ Both scrollable cards and slotted cards use the same standardized text
+✅ App successfully built and launched for testing
+
 ### 2025-09-23 - Extended Navigation Bar Green Highlighting Implementation (v2.0.45)
 
 #### **Request Summary**
