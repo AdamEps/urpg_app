@@ -2797,6 +2797,43 @@ struct GlowingZoomOutIcon: View {
     }
 }
 
+// MARK: - Glowing Blueprints Icon
+struct GlowingBlueprintsIcon: View {
+    @State private var glowOpacity: Double = 0.3
+
+    var body: some View {
+        ZStack {
+            // Outer glow layer
+            Image("blueprints")
+                .resizable()
+                .frame(width: 28, height: 28)
+                .foregroundColor(.yellow.opacity(glowOpacity))
+                .scaleEffect(1.2)
+                .blur(radius: 8)
+
+            // Middle glow layer
+            Image("blueprints")
+                .resizable()
+                .frame(width: 28, height: 28)
+                .foregroundColor(.yellow.opacity(glowOpacity * 1.5))
+                .scaleEffect(1.1)
+                .blur(radius: 4)
+
+            // Core blueprints icon
+            Image("blueprints")
+                .resizable()
+                .frame(width: 28, height: 28)
+                .foregroundColor(.yellow)
+        }
+        .onAppear {
+            // Start oscillating animation
+            withAnimation(Animation.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                glowOpacity = 0.8
+            }
+        }
+    }
+}
+
 // MARK: - Bottom Navigation
 struct BottomNavigationView: View {
     @ObservedObject var gameState: GameState
@@ -2820,16 +2857,28 @@ struct BottomNavigationView: View {
                 Spacer()
 
             Button(action: {
-                gameState.currentPage = .construction
+                if gameState.currentPage == .construction {
+                    // If on construction page, navigate to blueprints
+                    gameState.currentPage = .blueprints
+                } else {
+                    // Otherwise, navigate to construction page
+                    gameState.currentPage = .construction
+                }
                 gameState.starMapViaTelescope = false
                 withAnimation(.easeInOut(duration: 0.3)) {
                     gameState.showExtendedNavigation = false
                 }
             }) {
-                Image("constructionBays")
-                    .resizable()
-                    .frame(width: 28, height: 28)
-                    .foregroundColor((gameState.currentPage == .construction || gameState.currentPage == .blueprints) ? .blue : .white)
+                if gameState.currentPage == .construction {
+                    // Show glowing blueprints icon when on construction page
+                    GlowingBlueprintsIcon()
+                } else {
+                    // Show regular construction icon when not on construction page
+                    Image("constructionBays")
+                        .resizable()
+                        .frame(width: 28, height: 28)
+                        .foregroundColor((gameState.currentPage == .blueprints) ? .blue : .white)
+                }
             }
 
                 Spacer()
@@ -2966,7 +3015,7 @@ struct ExtendedNavigationView: View {
                 if let image = UIImage(named: "LocationView") {
                     Image(uiImage: image.withRenderingMode(.alwaysTemplate))
                         .resizable()
-                        .frame(width: 24, height: 24)
+                        .frame(width: 28, height: 28)
                         .foregroundColor(gameState.currentPage == .location ? .green : .white)
                         .id("location-\(gameState.currentPage.rawValue)")
                 } else {
@@ -2996,7 +3045,7 @@ struct ExtendedNavigationView: View {
                 if let image = UIImage(named: "StarSystem") {
                     Image(uiImage: image.withRenderingMode(.alwaysTemplate))
                         .resizable()
-                        .frame(width: 24, height: 24)
+                        .frame(width: 28, height: 28)
                         .foregroundColor(gameState.currentPage == .starMap && gameState.isAtSolarSystemLevel ? .green : .white)
                         .id("starsystem-\(gameState.currentPage.rawValue)-\(gameState.starMapZoomLevel)")
                 } else {
@@ -3019,7 +3068,7 @@ struct ExtendedNavigationView: View {
                 if let image = UIImage(named: "MultiSystems") {
                     Image(uiImage: image.withRenderingMode(.alwaysTemplate))
                         .resizable()
-                        .frame(width: 24, height: 24)
+                        .frame(width: 28, height: 28)
                         .foregroundColor(gameState.currentPage == .starMap && gameState.isAtConstellationLevel ? .green : .white)
                         .id("multisystem-\(gameState.currentPage.rawValue)-\(gameState.starMapZoomLevel)")
                 } else {
