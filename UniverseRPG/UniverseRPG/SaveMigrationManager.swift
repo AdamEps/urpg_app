@@ -122,6 +122,12 @@ class SaveMigrationManager {
             smallConstructionsCompleted: json["smallConstructionsCompleted"] as? Int ?? 0,
             mediumConstructionsCompleted: json["mediumConstructionsCompleted"] as? Int ?? 0,
             largeConstructionsCompleted: json["largeConstructionsCompleted"] as? Int ?? 0,
+            uniqueItemsDiscovered: json["uniqueItemsDiscovered"] as? Int ?? 0,
+            commonItemsDiscovered: json["commonItemsDiscovered"] as? Int ?? 0,
+            uncommonItemsDiscovered: json["uncommonItemsDiscovered"] as? Int ?? 0,
+            rareItemsDiscovered: json["rareItemsDiscovered"] as? Int ?? 0,
+            showUniqueItemsDetails: json["showUniqueItemsDetails"] as? Bool ?? false,
+            discoveredItems: json["discoveredItems"] as? [String] ?? [],
             maxStorageCapacity: json["maxStorageCapacity"] as? Int ?? 1000,
             currentPage: json["currentPage"] as? String ?? "starMap",
             lastSaved: Date()

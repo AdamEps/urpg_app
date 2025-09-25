@@ -169,6 +169,12 @@ class GameState: ObservableObject {
         self.smallConstructionsCompleted = fresh.smallConstructionsCompleted
         self.mediumConstructionsCompleted = fresh.mediumConstructionsCompleted
         self.largeConstructionsCompleted = fresh.largeConstructionsCompleted
+        self.uniqueItemsDiscovered = fresh.uniqueItemsDiscovered
+        self.commonItemsDiscovered = fresh.commonItemsDiscovered
+        self.uncommonItemsDiscovered = fresh.uncommonItemsDiscovered
+        self.rareItemsDiscovered = fresh.rareItemsDiscovered
+        self.showUniqueItemsDetails = fresh.showUniqueItemsDetails
+        self.discoveredItems = fresh.discoveredItems
         self.maxStorageCapacity = fresh.maxStorageCapacity
         self.showLocationResources = fresh.showLocationResources
         self.showExtendedNavigation = fresh.showExtendedNavigation
@@ -210,6 +216,16 @@ class GameState: ObservableObject {
     @Published var mediumConstructionsCompleted: Int = 0
     @Published var largeConstructionsCompleted: Int = 0
     
+    // Unique items tracking
+    @Published var uniqueItemsDiscovered: Int = 0
+    @Published var commonItemsDiscovered: Int = 0
+    @Published var uncommonItemsDiscovered: Int = 0
+    @Published var rareItemsDiscovered: Int = 0
+    @Published var showUniqueItemsDetails: Bool = false
+    
+    // Set to track all items that have ever been collected (for unique items tracking)
+    var discoveredItems: Set<ResourceType> = []
+    
     // Visual feedback
     @Published var lastCollectedResource: ResourceType?
     @Published var lastCollectedAmount: Int = 1
@@ -240,6 +256,8 @@ class GameState: ObservableObject {
     private var gameTimer: Timer?
     
     init() {
+        print("🚀 GameState INIT - Starting initialization...")
+        
         // Initialize with starting location (Taragon Gamma system)
         self.currentLocation = Location(
             id: "taragam-7",
@@ -360,6 +378,9 @@ class GameState: ObservableObject {
         // Initialize star map hierarchy after locations are populated
         self.constellations = initializeStarMapHierarchy()
         
+        print("✅ GameState INIT - Initialization completed successfully")
+        print("📊 Unique items tracking initialized - Total: \(uniqueItemsDiscovered), Common: \(commonItemsDiscovered), Uncommon: \(uncommonItemsDiscovered), Rare: \(rareItemsDiscovered)")
+        
         // Initialize construction bays (start with 4 Small bays, 2 Medium bays, 1 Large bay)
         self.constructionBays = [
             // Small bays
@@ -476,6 +497,9 @@ class GameState: ObservableObject {
             return
         }
         
+        // Check for unique item discovery FIRST (before adding to resources)
+        checkAndTrackItemDiscovery(selectedResource)
+        
         // Add resources based on card multiplier (same logic as tapLocation)
         if let existingIndex = resources.firstIndex(where: { $0.type == selectedResource }) {
             // Resource already exists, increment amount
@@ -490,6 +514,7 @@ class GameState: ObservableObject {
                 color: getResourceColor(for: selectedResource)
             )
             resources.append(newResource)
+            
             print("Idle collected \(resourceAmount) \(selectedResource.rawValue) (x\(String(format: "%.1f", idleMultiplier))) - First collection!")
         }
         
@@ -563,6 +588,9 @@ class GameState: ObservableObject {
             return
         }
         
+        // Check for unique item discovery FIRST (before adding to resources)
+        checkAndTrackItemDiscovery(selectedResource)
+        
         // Add resources based on card multiplier
         if let existingIndex = resources.firstIndex(where: { $0.type == selectedResource }) {
             // Resource already exists, increment amount
@@ -577,6 +605,7 @@ class GameState: ObservableObject {
                 color: getResourceColor(for: selectedResource)
             )
             resources.append(newResource)
+            
             print("Collected \(resourceAmount) \(selectedResource.rawValue) (x\(String(format: "%.1f", tapMultiplier))) - First collection!")
         }
         
@@ -671,6 +700,36 @@ class GameState: ObservableObject {
             )
             ownedCards.append(newCard)
             print("Collected new card: \(selectedCardId)")
+        }
+    }
+    
+    // MARK: - Unique Items Discovery Tracking
+    func checkAndTrackItemDiscovery(_ resourceType: ResourceType) {
+        // Skip tracking for Numins
+        guard resourceType != .numins else { return }
+        
+        // Check if this item has never been collected before
+        if !discoveredItems.contains(resourceType) {
+            // Mark as discovered
+            discoveredItems.insert(resourceType)
+            
+            // Get the rarity and update counters
+            let rarity = getResourceRarity(for: resourceType)
+            
+            switch rarity {
+            case .common:
+                commonItemsDiscovered += 1
+            case .uncommon:
+                uncommonItemsDiscovered += 1
+            case .rare:
+                rareItemsDiscovered += 1
+            }
+            
+            // Update total unique items discovered
+            uniqueItemsDiscovered += 1
+            
+            print("🔍 FIRST TIME DISCOVERED \(rarity.rawValue) item: \(resourceType.rawValue)")
+            print("📊 Unique items stats - Total: \(uniqueItemsDiscovered), Common: \(commonItemsDiscovered), Uncommon: \(uncommonItemsDiscovered), Rare: \(rareItemsDiscovered)")
         }
     }
     
@@ -874,9 +933,21 @@ class GameState: ObservableObject {
         guard let construction = constructionBays[index].currentConstruction else { return }
         
         // Give rewards based on construction recipe
-        for i in resources.indices {
-            if let reward = construction.blueprint.reward[resources[i].type] {
-                resources[i].amount += reward
+        for (resourceType, amount) in construction.blueprint.reward {
+            // Check for unique item discovery FIRST (before adding to resources)
+            checkAndTrackItemDiscovery(resourceType)
+            
+            if let existingIndex = resources.firstIndex(where: { $0.type == resourceType }) {
+                resources[existingIndex].amount += Double(amount)
+            } else {
+                // Create new resource entry
+                let newResource = Resource(
+                    type: resourceType,
+                    amount: Double(amount),
+                    icon: getResourceIcon(for: resourceType),
+                    color: getResourceColor(for: resourceType)
+                )
+                resources.append(newResource)
             }
         }
         

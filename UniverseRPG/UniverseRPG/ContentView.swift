@@ -5924,6 +5924,35 @@ struct StatisticsAndObjectivesView: View {
                         .background(Color.purple.opacity(0.1))
                         .cornerRadius(8)
                         
+                        // Numins Tracker
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Numins")
+                                    .font(.headline)
+                                Text("The currency of the cosmos!")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text(gameState.getFormattedNumins())
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.yellow)
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(Color.yellow.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    
+                    // Locations Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Locations")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
                         // Total Taps Tracker (collapsible)
                         VStack(alignment: .leading, spacing: 8) {
                             Button(action: {
@@ -5982,13 +6011,6 @@ struct StatisticsAndObjectivesView: View {
                                 }
                             }
                         }
-                    }
-                    
-                    // Resources Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Resources")
-                            .font(.title2)
-                            .fontWeight(.bold)
                         
                         // Idle Collection Tracker (collapsible)
                         VStack(alignment: .leading, spacing: 8) {
@@ -6048,28 +6070,93 @@ struct StatisticsAndObjectivesView: View {
                                 }
                             }
                         }
+                    }
+                    
+                    // Resources Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Resources")
+                            .font(.title2)
+                            .fontWeight(.bold)
                         
-                        // Numins Tracker
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Numins")
-                                    .font(.headline)
-                                Text("The currency of the cosmos!")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                        // Unique Items Discovered Tracker (collapsible)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                gameState.showUniqueItemsDetails.toggle()
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Unique Items Discovered")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                        Text("Items found across all locations")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(gameState.uniqueItemsDiscovered)")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.green)
+                                    
+                                    Image(systemName: gameState.showUniqueItemsDetails ? "chevron.up" : "chevron.down")
+                                        .foregroundColor(.green)
+                                }
                             }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.green.opacity(0.1))
+                            .cornerRadius(8)
                             
-                            Spacer()
-                            
-                            Text(gameState.getFormattedNumins())
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.yellow)
+                            // Expanded details
+                            if gameState.showUniqueItemsDetails {
+                                VStack(spacing: 8) {
+                                    HStack {
+                                        Text("Common Items")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text("\(gameState.commonItemsDiscovered)")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.green)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.green.opacity(0.05))
+                                    .cornerRadius(6)
+                                    
+                                    HStack {
+                                        Text("Uncommon Items")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text("\(gameState.uncommonItemsDiscovered)")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.blue)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.blue.opacity(0.05))
+                                    .cornerRadius(6)
+                                    
+                                    HStack {
+                                        Text("Rare Items")
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text("\(gameState.rareItemsDiscovered)")
+                                            .font(.callout)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.purple)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(Color.purple.opacity(0.05))
+                                    .cornerRadius(6)
+                                }
+                            }
                         }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .background(Color.yellow.opacity(0.1))
-                        .cornerRadius(8)
                     }
                     
                     // Construction Section

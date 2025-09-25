@@ -59,6 +59,12 @@ struct SerializableGameState: Codable {
     let smallConstructionsCompleted: Int
     let mediumConstructionsCompleted: Int
     let largeConstructionsCompleted: Int
+    let uniqueItemsDiscovered: Int
+    let commonItemsDiscovered: Int
+    let uncommonItemsDiscovered: Int
+    let rareItemsDiscovered: Int
+    let showUniqueItemsDetails: Bool
+    let discoveredItems: [String]
     let maxStorageCapacity: Int
     let currentPage: String
     let lastSaved: Date
@@ -84,13 +90,19 @@ struct SerializableGameState: Codable {
         self.smallConstructionsCompleted = gameState.smallConstructionsCompleted
         self.mediumConstructionsCompleted = gameState.mediumConstructionsCompleted
         self.largeConstructionsCompleted = gameState.largeConstructionsCompleted
+        self.uniqueItemsDiscovered = gameState.uniqueItemsDiscovered
+        self.commonItemsDiscovered = gameState.commonItemsDiscovered
+        self.uncommonItemsDiscovered = gameState.uncommonItemsDiscovered
+        self.rareItemsDiscovered = gameState.rareItemsDiscovered
+        self.showUniqueItemsDetails = gameState.showUniqueItemsDetails
+        self.discoveredItems = Array(gameState.discoveredItems).map { $0.rawValue }
         self.maxStorageCapacity = gameState.maxStorageCapacity
         self.currentPage = gameState.currentPage.rawValue
         self.lastSaved = Date()
     }
     
     // Custom initializer for migration
-    init(version: String, playerName: String, playerLevel: Int, playerXP: Int, currency: Int, currentLocationId: String, resources: [SerializableResource], constructionBays: [SerializableConstructionBay], ownedCards: [SerializableUserCard], currentLocationTapCount: Int, locationTapCounts: [String: Int], totalTapsCount: Int, totalXPGained: Int, locationIdleCollectionCounts: [String: Int], totalIdleCollectionCount: Int, totalNuminsCollected: Int, totalConstructionsCompleted: Int, smallConstructionsCompleted: Int, mediumConstructionsCompleted: Int, largeConstructionsCompleted: Int, maxStorageCapacity: Int, currentPage: String, lastSaved: Date) {
+    init(version: String, playerName: String, playerLevel: Int, playerXP: Int, currency: Int, currentLocationId: String, resources: [SerializableResource], constructionBays: [SerializableConstructionBay], ownedCards: [SerializableUserCard], currentLocationTapCount: Int, locationTapCounts: [String: Int], totalTapsCount: Int, totalXPGained: Int, locationIdleCollectionCounts: [String: Int], totalIdleCollectionCount: Int, totalNuminsCollected: Int, totalConstructionsCompleted: Int, smallConstructionsCompleted: Int, mediumConstructionsCompleted: Int, largeConstructionsCompleted: Int, uniqueItemsDiscovered: Int, commonItemsDiscovered: Int, uncommonItemsDiscovered: Int, rareItemsDiscovered: Int, showUniqueItemsDetails: Bool, discoveredItems: [String], maxStorageCapacity: Int, currentPage: String, lastSaved: Date) {
         self.version = version
         self.playerName = playerName
         self.playerLevel = playerLevel
@@ -111,6 +123,12 @@ struct SerializableGameState: Codable {
         self.smallConstructionsCompleted = smallConstructionsCompleted
         self.mediumConstructionsCompleted = mediumConstructionsCompleted
         self.largeConstructionsCompleted = largeConstructionsCompleted
+        self.uniqueItemsDiscovered = uniqueItemsDiscovered
+        self.commonItemsDiscovered = commonItemsDiscovered
+        self.uncommonItemsDiscovered = uncommonItemsDiscovered
+        self.rareItemsDiscovered = rareItemsDiscovered
+        self.showUniqueItemsDetails = showUniqueItemsDetails
+        self.discoveredItems = discoveredItems
         self.maxStorageCapacity = maxStorageCapacity
         self.currentPage = currentPage
         self.lastSaved = lastSaved
@@ -218,9 +236,15 @@ class GameStateManager: ObservableObject {
     private init() {
         print("🚀 GameStateManager INIT - Starting initialization...")
         
-        // Initialize with default game state
-        self.gameState = GameState()
-        print("🚀 GameStateManager INIT - Created fresh GameState")
+        do {
+            // Initialize with default game state
+            self.gameState = GameState()
+            print("🚀 GameStateManager INIT - Created fresh GameState")
+        } catch {
+            print("❌ GameStateManager INIT - Failed to create GameState: \(error)")
+            // Create a minimal fallback state - this should not fail
+            self.gameState = GameState()
+        }
         
         // Connect GameState to GameStateManager for auto-save
         self.gameState.gameStateManager = self
@@ -678,6 +702,12 @@ class GameStateManager: ObservableObject {
         gameState.smallConstructionsCompleted = saveData.smallConstructionsCompleted
         gameState.mediumConstructionsCompleted = saveData.mediumConstructionsCompleted
         gameState.largeConstructionsCompleted = saveData.largeConstructionsCompleted
+        gameState.uniqueItemsDiscovered = saveData.uniqueItemsDiscovered
+        gameState.commonItemsDiscovered = saveData.commonItemsDiscovered
+        gameState.uncommonItemsDiscovered = saveData.uncommonItemsDiscovered
+        gameState.rareItemsDiscovered = saveData.rareItemsDiscovered
+        gameState.showUniqueItemsDetails = saveData.showUniqueItemsDetails
+        gameState.discoveredItems = Set(saveData.discoveredItems.compactMap { ResourceType(rawValue: $0) })
         
         // Update navigation
         if let page = AppPage(rawValue: saveData.currentPage) {

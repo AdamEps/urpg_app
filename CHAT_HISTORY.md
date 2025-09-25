@@ -777,6 +777,32 @@ Fixed the Star System button highlighting logic by following the same pattern as
 
 ## 2025-01-27 - App Logo Versioning Fix (v2.0.101)
 
+## 2025-01-27 - Statistics Section Reorganization
+**User Request:** Reorganize the statistics section by creating a new "Locations" header below "Gameplay" and moving trackers around.
+
+**Changes Made:**
+1. **Created new "Locations" section** below the "Gameplay" section in the statistics view
+2. **Moved trackers to new locations:**
+   - "Total Taps" tracker: moved from Gameplay section to new Locations section
+   - "Idle Collection" tracker: moved from Resources section to new Locations section  
+   - "Numins" tracker: moved from Resources section to Gameplay section
+3. **Added new "Unique items discovered" tracker** to Resources section with:
+   - Expandable view showing Common, Uncommon, and Rare items breakdown
+   - Green color scheme for the main tracker
+   - Individual color coding for each rarity level (green/blue/purple)
+4. **Added tracking variables to GameState:**
+   - `uniqueItemsDiscovered: Int`
+   - `commonItemsDiscovered: Int` 
+   - `uncommonItemsDiscovered: Int`
+   - `rareItemsDiscovered: Int`
+   - `showUniqueItemsDetails: Bool`
+
+**Files Modified:**
+- `UniverseRPG/UniverseRPG/ContentView.swift` - Reorganized statistics view structure
+- `UniverseRPG/UniverseRPG/GameState.swift` - Added unique items tracking variables
+
+**Result:** Statistics section now has better organization with Gameplay, Locations, and Resources sections, plus new unique items discovery tracking functionality.
+
 ### User Requests:
 1. **Fix app logo versioning system** - Logo was always updating to version 1.994 instead of correct commit version
 2. **Ensure rule compliance** - "Update the app logo with the correct commit version after each commit" rule wasn't working
@@ -2006,11 +2032,11 @@ private var numberOfRows: Int {
 - ✅ Sections expand naturally as new cards are discovered
 - ✅ All existing functionality preserved
 
-#### **Version 2.0.48 Release**
-- **Commit**: Ready for commit
-- **App Icon**: No change (still v2.0.39)
-- **Files Changed**: 1 file changed, 150+ insertions(+), 50+ deletions(-)
-- **Push Status**: Pending
+#### **Version 2.0.74 Release**
+- **Commit**: Successfully committed with message "v2.0.74: Card Discovery System with Dynamic Spacing"
+- **App Icon**: Updated to v2.0.74
+- **Files Changed**: 2 files changed, 249 insertions(+), 13 deletions(-)
+- **Push Status**: Successfully pushed to GitHub ✅
 - **Chat History**: Updated with complete session details
 
 ---
