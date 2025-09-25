@@ -995,6 +995,8 @@ struct SlottedCardView: View {
             return "🔭"
         case "deep-scan":
             return "waveform"
+        case "replication-matrix":
+            return "doc.on.doc"
         default:
             return getCardClassIcon()
         }
@@ -1055,6 +1057,11 @@ struct SlottedCardView: View {
             // For Storage Bay, show flat storage bonus (not percentage)
             let storageBonus = "\(Int(percentage))"
             return [storageBonus, "Storage", "Bonus"]
+        } else if cardName.contains("Replication Matrix") {
+            // For Replication Matrix, show the replication chance and item range
+            let level = Int(percentage) // 1.0 = Level 1, 2.0 = Level 2, etc.
+            let (chancePercent, itemRange) = getReplicationMatrixDisplayValues(level: level)
+            return [chancePercent, "for", itemRange]
         } else if ability.contains("yield") && ability.contains("tap") {
             return [percentageString, "Tap", "Yield"]
         } else if ability.contains("rare") && ability.contains("chance") {
@@ -1079,6 +1086,23 @@ struct SlottedCardView: View {
             } else {
                 return [percentageString, words.first ?? "Ability", ""]
             }
+        }
+    }
+    
+    private func getReplicationMatrixDisplayValues(level: Int) -> (chancePercent: String, itemRange: String) {
+        switch level {
+        case 1:
+            return ("[33%]", "[2]")
+        case 2:
+            return ("[50%]", "[2-3]")
+        case 3:
+            return ("[75%]", "[2-3]")
+        case 4:
+            return ("[75%]", "[2-4]")
+        case 5:
+            return ("[90%]", "[2-5]")
+        default:
+            return ("[0%]", "[0]")
         }
     }
     
@@ -1234,6 +1258,8 @@ struct CompactCardView: View {
             return "🔭"
         case "deep-scan":
             return "waveform"
+        case "replication-matrix":
+            return "doc.on.doc"
         default:
             return getCardClassIcon()
         }
@@ -1293,6 +1319,11 @@ struct CompactCardView: View {
             // For Storage Bay, show flat storage bonus (not percentage)
             let storageBonus = "[+\(Int(percentage))]"
             return [storageBonus, "Storage", "Bonus"]
+        } else if cardName.contains("Replication Matrix") {
+            // For Replication Matrix, show the replication chance and item range
+            let level = Int(percentage) // 1.0 = Level 1, 2.0 = Level 2, etc.
+            let (chancePercent, itemRange) = getReplicationMatrixDisplayValues(level: level)
+            return [chancePercent, "for", itemRange]
         } else if description.contains("yield") && description.contains("tap") {
             return [percentageString, "Tap", "Yield"]
         } else if description.contains("rare") && description.contains("chance") {
@@ -1317,6 +1348,23 @@ struct CompactCardView: View {
             } else {
                 return [percentageString, words.first ?? "Ability", ""]
             }
+        }
+    }
+    
+    private func getReplicationMatrixDisplayValues(level: Int) -> (chancePercent: String, itemRange: String) {
+        switch level {
+        case 1:
+            return ("[33%]", "[2]")
+        case 2:
+            return ("[50%]", "[2-3]")
+        case 3:
+            return ("[75%]", "[2-3]")
+        case 4:
+            return ("[75%]", "[2-4]")
+        case 5:
+            return ("[90%]", "[2-5]")
+        default:
+            return ("[0%]", "[0]")
         }
     }
     
@@ -5735,6 +5783,8 @@ struct CardSlotView: View {
             return "🔭"
         case "deep-scan":
             return "waveform"
+        case "replication-matrix":
+            return "doc.on.doc"
         default:
             return cardClassIcon
         }
@@ -5755,8 +5805,33 @@ struct CardSlotView: View {
             return "[+\(Int(tierValue))] storage capacity"
         case "xpGainMultiplier":
             return "[+\(percentage)%] XP gain"
+        case "replicationBonus":
+            let level = Int(tierValue)
+            let (chance, minItems, maxItems) = getReplicationMatrixCardText(level: level)
+            if minItems == maxItems {
+                return "[+\(chance)%] chance for [\(minItems)] additional items"
+            } else {
+                return "[+\(chance)%] chance for [\(minItems)-\(maxItems)] additional items"
+            }
         default:
             return cardDef.description
+        }
+    }
+    
+    private func getReplicationMatrixCardText(level: Int) -> (chance: Int, minItems: Int, maxItems: Int) {
+        switch level {
+        case 1:
+            return (33, 2, 2) // 33% chance for 2 items
+        case 2:
+            return (50, 2, 3) // 50% chance for 2-3 items
+        case 3:
+            return (75, 2, 3) // 75% chance for 2-3 items
+        case 4:
+            return (75, 2, 4) // 75% chance for 2-4 items
+        case 5:
+            return (90, 2, 5) // 90% chance for 2-5 items
+        default:
+            return (0, 0, 0)
         }
     }
     
