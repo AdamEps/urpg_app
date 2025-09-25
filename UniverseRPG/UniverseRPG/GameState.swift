@@ -870,7 +870,7 @@ class GameState: ObservableObject {
         return true
     }
     
-    private func completeConstruction(at index: Int) {
+    func completeConstruction(at index: Int) {
         guard let construction = constructionBays[index].currentConstruction else { return }
         
         // Give rewards based on construction recipe

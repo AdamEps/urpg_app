@@ -3414,7 +3414,7 @@ struct SmallBaySlotView: View {
     }
     
     private func collectCompletedItem() {
-        guard let bay = bay, let construction = bay.currentConstruction else { return }
+        guard let bay = bay, let _ = bay.currentConstruction else { return }
         
         // Start collection animation
         withAnimation(.easeInOut(duration: 0.5)) {
@@ -3423,33 +3423,11 @@ struct SmallBaySlotView: View {
         
         // Delay the actual collection to allow animation to play
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            // Add rewards to player resources
-            for (resourceType, amount) in construction.blueprint.reward {
-                if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
-                    gameState.resources[existingIndex].amount += amount
-                } else {
-                    let newResource = Resource(
-                        type: resourceType,
-                        amount: amount,
-                        icon: getResourceIcon(for: resourceType),
-                        color: getResourceColor(for: resourceType)
-                    )
-                    gameState.resources.append(newResource)
-                }
-            }
-            
-            // Clear the construction
+            // Find the bay index and complete the construction properly
             if let bayIndex = gameState.constructionBays.firstIndex(where: { $0.id == bay.id }) {
-                gameState.constructionBays[bayIndex].currentConstruction = nil
+                // Use the proper completion function that handles statistics tracking
+                gameState.completeConstruction(at: bayIndex)
             }
-            
-            // Award XP with multiplier
-            let xpMultiplier = gameState.getXPGainMultiplier(for: "Construction")
-            let xpAmount = Int(Double(construction.blueprint.xpReward) * xpMultiplier)
-            gameState.addXP(xpAmount)
-            
-            // Check for location unlocks
-            gameState.checkLocationUnlocks()
             
             // Reset animation state
             isCollecting = false
@@ -3586,7 +3564,7 @@ struct MediumBaySlotView: View {
     }
     
     private func collectCompletedItem() {
-        guard let bay = bay, let construction = bay.currentConstruction else { return }
+        guard let bay = bay, let _ = bay.currentConstruction else { return }
         
         // Start collection animation
         withAnimation(.easeInOut(duration: 0.5)) {
@@ -3595,33 +3573,11 @@ struct MediumBaySlotView: View {
         
         // Delay the actual collection to allow animation to play
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            // Add rewards to player resources
-            for (resourceType, amount) in construction.blueprint.reward {
-                if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
-                    gameState.resources[existingIndex].amount += amount
-                } else {
-                    let newResource = Resource(
-                        type: resourceType,
-                        amount: amount,
-                        icon: getResourceIcon(for: resourceType),
-                        color: getResourceColor(for: resourceType)
-                    )
-                    gameState.resources.append(newResource)
-                }
-            }
-            
-            // Clear the construction
+            // Find the bay index and complete the construction properly
             if let bayIndex = gameState.constructionBays.firstIndex(where: { $0.id == bay.id }) {
-                gameState.constructionBays[bayIndex].currentConstruction = nil
+                // Use the proper completion function that handles statistics tracking
+                gameState.completeConstruction(at: bayIndex)
             }
-            
-            // Award XP with multiplier
-            let xpMultiplier = gameState.getXPGainMultiplier(for: "Construction")
-            let xpAmount = Int(Double(construction.blueprint.xpReward) * xpMultiplier)
-            gameState.addXP(xpAmount)
-            
-            // Check for location unlocks
-            gameState.checkLocationUnlocks()
             
             // Reset animation state
             isCollecting = false
@@ -3758,7 +3714,7 @@ struct LargeBaySlotView: View {
     }
     
     private func collectCompletedItem() {
-        guard let bay = bay, let construction = bay.currentConstruction else { return }
+        guard let bay = bay, let _ = bay.currentConstruction else { return }
         
         // Start collection animation
         withAnimation(.easeInOut(duration: 0.5)) {
@@ -3767,33 +3723,11 @@ struct LargeBaySlotView: View {
         
         // Delay the actual collection to allow animation to play
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            // Add rewards to player resources
-            for (resourceType, amount) in construction.blueprint.reward {
-                if let existingIndex = gameState.resources.firstIndex(where: { $0.type == resourceType }) {
-                    gameState.resources[existingIndex].amount += amount
-                } else {
-                    let newResource = Resource(
-                        type: resourceType,
-                        amount: amount,
-                        icon: getResourceIcon(for: resourceType),
-                        color: getResourceColor(for: resourceType)
-                    )
-                    gameState.resources.append(newResource)
-                }
-            }
-            
-            // Clear the construction
+            // Find the bay index and complete the construction properly
             if let bayIndex = gameState.constructionBays.firstIndex(where: { $0.id == bay.id }) {
-                gameState.constructionBays[bayIndex].currentConstruction = nil
+                // Use the proper completion function that handles statistics tracking
+                gameState.completeConstruction(at: bayIndex)
             }
-            
-            // Award XP with multiplier
-            let xpMultiplier = gameState.getXPGainMultiplier(for: "Construction")
-            let xpAmount = Int(Double(construction.blueprint.xpReward) * xpMultiplier)
-            gameState.addXP(xpAmount)
-            
-            // Check for location unlocks
-            gameState.checkLocationUnlocks()
             
             // Reset animation state
             isCollecting = false
