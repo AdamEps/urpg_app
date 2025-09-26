@@ -117,6 +117,7 @@ class GameState: ObservableObject {
     @Published var showCardsSlots = false
     @Published var showConstructionSlots = false
     @Published var showStarMapSlots = false
+    @Published var showMiniCardView = false
     
     // Enhancement slot selection state
     @Published var selectedSlotIndex: Int? = nil
@@ -829,6 +830,7 @@ class GameState: ObservableObject {
             "astro-prospector": "AP",
             "deep-scan": "DS", 
             "materials-engineer": "ME",
+            "replication-matrix": "RM",
             "storage-bay": "SB"
         ]
         
@@ -937,13 +939,16 @@ class GameState: ObservableObject {
             // Check for unique item discovery FIRST (before adding to resources)
             checkAndTrackItemDiscovery(resourceType)
             
+            // Calculate total amount including replication bonus
+            let totalAmount = calculateReplicationBonus(for: Int(amount))
+            
             if let existingIndex = resources.firstIndex(where: { $0.type == resourceType }) {
-                resources[existingIndex].amount += Double(amount)
+                resources[existingIndex].amount += Double(totalAmount)
             } else {
                 // Create new resource entry
                 let newResource = Resource(
                     type: resourceType,
-                    amount: Double(amount),
+                    amount: Double(totalAmount),
                     icon: getResourceIcon(for: resourceType),
                     color: getResourceColor(for: resourceType)
                 )
@@ -1987,6 +1992,20 @@ class GameState: ObservableObject {
                 ],
                 description: "Reduces construction time when slotted"
             ),
+            CardDef(
+                id: "replication-matrix",
+                name: "Replication Matrix",
+                cardClass: .constructor,
+                effectKey: "replicationBonus",
+                tiers: [
+                    CardTier(copies: 2, value: 1.0),    // Level 1: 1/3 chance for 1-2 items
+                    CardTier(copies: 5, value: 2.0),    // Level 2: 50% chance for 1-3 items
+                    CardTier(copies: 10, value: 3.0),   // Level 3: 75% chance for 1-3 items
+                    CardTier(copies: 25, value: 4.0),   // Level 4: 75% chance for 1-4 items
+                    CardTier(copies: 100, value: 5.0)   // Level 5: 90% chance for 1-5 items
+                ],
+                description: "[33%] chance for [2] additional items"
+            ),
             
             // Collector Class
             CardDef(
@@ -2285,6 +2304,78 @@ class GameState: ObservableObject {
     
     func getTotalStorageCapacity() -> Int {
         return maxStorageCapacity + getStorageCapacityBonus()
+    }
+    
+    func calculateReplicationBonus(for baseAmount: Int) -> Int {
+        // Get replication bonus from construction page cards
+        let replicationMultiplier = getCardEffectMultiplier(effectKey: "replicationBonus", page: "Construction")
+        
+        // If no replication cards are slotted, return base amount
+        guard replicationMultiplier > 0 else { return baseAmount }
+        
+        // Determine level based on multiplier value (1.0 = Level 1, 2.0 = Level 2, etc.)
+        let level = Int(replicationMultiplier)
+        
+        // Get the exact probability distribution for this level
+        let totalItems = getReplicationResult(level: level)
+        
+        // Return the total items (base amount is always 1, so total = totalItems)
+        return totalItems
+    }
+    
+    private func getReplicationResult(level: Int) -> Int {
+        // Returns the exact probability distribution as specified
+        let roll = Double.random(in: 0...1)
+        
+        switch level {
+        case 1:
+            // Lvl 1: 66.66% chance to get 1, 33.33% chance to get 2
+            return roll < 2.0/3.0 ? 1 : 2
+        case 2:
+            // Level 2: 50% chance for 1, 25% chance for 2, 25% chance for 3
+            if roll < 0.5 {
+                return 1
+            } else if roll < 0.75 {
+                return 2
+            } else {
+                return 3
+            }
+        case 3:
+            // Level 3: 25% chance for 1, 37.5% chance for 2, 37.5% chance for 3
+            if roll < 0.25 {
+                return 1
+            } else if roll < 0.625 {
+                return 2
+            } else {
+                return 3
+            }
+        case 4:
+            // Level 4: 25% chance for 1, 25% chance for 2, 25% chance for 3, 25% chance for 4
+            if roll < 0.25 {
+                return 1
+            } else if roll < 0.5 {
+                return 2
+            } else if roll < 0.75 {
+                return 3
+            } else {
+                return 4
+            }
+        case 5:
+            // Level 5: 10% chance for 1, 22.5% chance for 2, 22.5% chance for 3, 22.5% chance for 4, 22.5% chance for 5
+            if roll < 0.1 {
+                return 1
+            } else if roll < 0.325 {
+                return 2
+            } else if roll < 0.55 {
+                return 3
+            } else if roll < 0.775 {
+                return 4
+            } else {
+                return 5
+            }
+        default:
+            return 1 // No bonus, just base item
+        }
     }
     
     // MARK: - Star Map Hierarchy Methods

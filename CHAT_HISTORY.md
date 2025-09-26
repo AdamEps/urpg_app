@@ -6,6 +6,265 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-01-25 - Mini Card View Toggle Feature (v2.0.77)
+
+#### **Request Summary**
+Add a Mini Card view toggle option to the Cards page, allowing players to switch between full card view and compact mini card view for better space efficiency when they have many cards.
+
+#### **Feature Specifications**
+- **Location**: Cards page, beneath the main header
+- **Toggle Button**: Switch between "Full View" and "Mini View" with appropriate icons
+- **Mini Card Design**: Compact 60x80 cards with colored borders and black interior (similar to SlottedCardView)
+- **Grid Layout**: 6 cards per row in mini view vs 3 cards per row in full view
+- **Functionality**: Smooth animation transition between views
+
+#### **Implementation Details**
+
+**1. GameState Property Added**
+```swift
+@Published var showMiniCardView = false
+```
+
+**2. Toggle Button Implementation**
+- Added beneath the Cards page header
+- Uses grid icons to indicate view mode
+- Smooth animation transition (0.3s easeInOut)
+- Centered layout with proper spacing
+
+**3. Card Display Logic**
+- **CardSlotView Modified**: Added conditional rendering based on `gameState.showMiniCardView`
+- **Mini Card View**: Uses SlottedCardView-style design with:
+  - Colored border matching card class
+  - Black interior background
+  - Abbreviated card name (initials)
+  - Ability text overlaid on card icon
+  - Level display at bottom
+- **Full Card View**: Maintains original large card design
+
+**4. Grid Layout Updates**
+- **Dynamic Columns**: 6 cards per row in mini view, 3 in full view
+- **Row Calculation**: Updated to handle different cards per row
+- **Card Indexing**: Proper calculation for different grid layouts
+
+**5. Helper Functions Added**
+- `getAbbreviatedName()`: Creates initials from card names
+- `getAbilityLines()`: Formats ability text for mini cards
+- `getCardAbility()`: Gets formatted ability description
+- `getCardPercentage()`: Extracts percentage value
+- `getReplicationMatrixDisplayValues()`: Handles special replication matrix formatting
+
+#### **User Experience**
+- **Space Efficiency**: Mini view shows 6 cards per row vs 3 in full view
+- **Visual Consistency**: Mini cards match the design of slotted cards
+- **Smooth Transitions**: Animated toggle between view modes
+- **Preserved Functionality**: All card interactions (tap for details) work in both views
+
+#### **Status**
+✅ **COMPLETED** - Feature fully implemented and tested
+- Mini card view toggle added to Cards page
+- Smooth animation transitions working
+- Grid layout properly adjusts between 3 and 6 cards per row
+- Mini cards display correctly with proper formatting
+- App successfully built and launched for testing
+
+#### **Layout Improvements (v2.0.78)**
+**User Feedback Implementation:**
+1. **Toggle Position**: Moved full/mini toggle to left justification under the header
+2. **Spacing Consistency**: Mini view now uses same vertical spacing as full view for natural feel:
+   - Section spacing: 24pt (consistent across both views)
+   - Card class spacing: 12pt (consistent across both views)
+   - Row spacing: 8pt (consistent across both views)
+   - Main padding: 16pt (consistent across both views)
+3. **Card Spacing**: Added proper spacing between mini cards for better visual separation:
+   - Grid item spacing: 12pt in mini view vs 8pt in full view
+   - Row spacing: 12pt in mini view vs 8pt in full view
+
+#### **Final Spacing Optimization (v2.0.79)**
+**User Request**: Remove 24pt section spacing in mini card view for more compact layout
+- **Section Spacing**: 0pt in mini view vs 24pt in full view
+- **Result**: Much more compact mini card view with sections directly adjacent to each other
+- **Benefit**: Maximum space efficiency for players with many cards
+
+#### **Ultimate Compact Layout (v2.0.80)**
+**User Request**: Remove 12pt card class spacing in mini card view for maximum compactness
+- **Card Class Spacing**: 0pt in mini view vs 12pt in full view
+- **Result**: Section titles now directly touch the first row of cards
+- **Benefit**: Ultra-compact mini card view with zero wasted vertical space
+
+#### **Final Spacing Refinement (v2.0.81)**
+**User Request**: Reduce VStack spacings to 4pt in mini card view for tighter layout
+- **Row Spacing**: 4pt in mini view vs 8pt in full view (between card rows)
+- **Card Row Spacing**: 4pt in mini view vs 0pt in full view (within card rows)
+- **Result**: Much tighter spacing throughout mini card view
+- **Benefit**: Even more compact layout while maintaining readability
+
+#### **Toggle Button Improvements (v2.0.82)**
+**User Request**: Fix toggle button padding and swap symbols for better UX
+- **Padding Fix**: Removed left padding from toggle button for cleaner alignment
+- **Symbol Swap**: Fixed symbol logic so Mini View shows 2x2 grid and Full View shows 3x2 grid
+- **Result**: More intuitive toggle button with proper visual indicators
+- **Benefit**: Better user experience with clear visual feedback
+
+#### **Spacing Corrections (v2.0.83)**
+**User Request**: Fix remaining spacing issues in mini card view
+- **Header Gaps**: Removed all spacing between section titles and first row of cards (0pt)
+- **Row Gaps**: Removed spacing between rows within sections (0pt)
+- **Card Spacing**: Increased spacing between mini cards from 12pt to 20pt for better visibility
+- **Result**: Ultra-compact mini card view with proper card separation
+- **Benefit**: Maximum space efficiency while maintaining card readability
+
+#### **Technical Notes**
+- Reused existing SlottedCardView design patterns for consistency
+- Maintained all existing card functionality in both view modes
+- Used SwiftUI animations for smooth user experience
+- No breaking changes to existing codebase
+- Dynamic spacing adjustments based on view mode for optimal UX
+
+### 2025-01-18 - Replication Matrix Card Implementation (v2.0.76)
+
+#### **Request Summary**
+Add a new constructor class card called "Replication Matrix" with complex probability mechanics for additional constructed items.
+
+#### **Card Specifications**
+- **Name**: Replication Matrix
+- **Class**: Constructor
+- **Ability**: Chance for additional constructed items with two-variable system:
+  - Variable 1: Chance to trigger replication (runs per constructed item)
+  - Variable 2: Range of extra items if chance hits (equal probability distribution)
+
+#### **Level Breakdown**
+- **Level 1**: 33.33% chance for 1-2 items (always gives 1 extra if chance hits)
+- **Level 2**: 50% chance for 1-3 items (50% for 1, 50% for 2 extra)
+- **Level 3**: 75% chance for 1-3 items (50% for 1, 50% for 2 extra)
+- **Level 4**: 75% chance for 1-4 items (1/3 chance each for 1, 2, 3 extra)
+- **Level 5**: 90% chance for 1-5 items (25% chance each for 1, 2, 3, 4 extra)
+
+#### **Implementation Details**
+
+**1. Card Definition Added**
+```swift
+CardDef(
+    id: "replication-matrix",
+    name: "Replication Matrix",
+    cardClass: .constructor,
+    effectKey: "replicationBonus",
+    tiers: [
+        CardTier(copies: 2, value: 1.0),    // Level 1
+        CardTier(copies: 5, value: 2.0),    // Level 2
+        CardTier(copies: 10, value: 3.0),   // Level 3
+        CardTier(copies: 25, value: 4.0),   // Level 4
+        CardTier(copies: 100, value: 5.0)   // Level 5
+    ],
+    description: "Chance for additional constructed items when slotted"
+)
+```
+
+**2. Game Logic Implementation**
+- **Modified `completeConstruction()`**: Added replication bonus calculation before giving rewards
+- **Created `calculateReplicationBonus()`**: Main function that handles probability logic
+- **Created `getReplicationStats()`**: Returns chance and max extra items based on card level
+- **Created `getExtraItemCount()`**: Determines how many extra items to give based on level-specific distributions
+
+**3. Probability System**
+- **Per-item rolls**: Each constructed item gets its own replication chance roll
+- **Two-stage system**: First roll determines if replication triggers, second roll determines quantity
+- **Level-specific distributions**: Each level has unique probability curves for extra items
+
+**4. Integration Points**
+- **Card abbreviation**: Added "RM" for location display
+- **Construction completion**: Integrated with existing reward system
+- **Dev tools**: Available through existing `addOneOfEachCard()` function
+
+#### **Files Modified**
+- `/Users/adamepstein/Desktop/urpg_app/UniverseRPG/UniverseRPG/GameState.swift` - Card definition, game logic, abbreviations
+
+#### **Testing Results**
+- ✅ **Build Success**: App compiles without errors
+- ✅ **Card Available**: Replication Matrix appears in constructor class section
+- ✅ **Dev Tools**: Card can be added via "+1 All Cards" dev tool
+- ✅ **Logic Ready**: Replication bonus system implemented and ready for testing
+
+#### **Status**: ✅ Completed - Replication Matrix card fully implemented with complex probability mechanics
+
+---
+
+### 2025-09-25 - Unique Items Tracker Fix (v2.0.75)
+
+#### **Request Summary**
+Fix the unique items discovered tracker to properly track items the first time they're ever collected across all collection methods (tapping, idle collection, construction).
+
+#### **Problem Identified**
+- **Unique items tracker was not working correctly** - some items were tracking but many weren't
+- **Wrong tracking logic** - was only tracking when items were first added to current inventory, not when first ever collected
+- **Missing construction tracking** - construction completion wasn't calling the tracking function at all
+- **No persistence of discovery state** - items could be counted multiple times if collected again later
+
+#### **Solution Implemented**
+
+**1. Added Discovered Items Set**
+```swift
+// Set to track all items that have ever been collected (for unique items tracking)
+var discoveredItems: Set<ResourceType> = []
+```
+
+**2. Created New Tracking Function**
+```swift
+func checkAndTrackItemDiscovery(_ resourceType: ResourceType) {
+    // Skip tracking for Numins
+    guard resourceType != .numins else { return }
+    
+    // Check if this item has never been collected before
+    if !discoveredItems.contains(resourceType) {
+        // Mark as discovered
+        discoveredItems.insert(resourceType)
+        
+        // Get the rarity and update counters
+        let rarity = getResourceRarity(for: resourceType)
+        
+        switch rarity {
+        case .common:
+            commonItemsDiscovered += 1
+        case .uncommon:
+            uncommonItemsDiscovered += 1
+        case .rare:
+            rareItemsDiscovered += 1
+        }
+        
+        // Update total unique items discovered
+        uniqueItemsDiscovered += 1
+        
+        print("🔍 FIRST TIME DISCOVERED \(rarity.rawValue) item: \(resourceType.rawValue)")
+    }
+}
+```
+
+**3. Updated All Collection Methods**
+- **Tap Collection**: Added `checkAndTrackItemDiscovery(selectedResource)` before adding to resources
+- **Idle Collection**: Added `checkAndTrackItemDiscovery(selectedResource)` before adding to resources
+- **Construction Completion**: Added `checkAndTrackItemDiscovery(resourceType)` for each reward item
+
+**4. Updated Save/Load System**
+- Added `discoveredItems: [String]` to `SerializableGameState`
+- Updated migration system to handle discovered items
+- Added proper loading of discovered items from save data
+
+#### **Key Benefits**
+- ✅ **Works for ALL collection methods** (tapping, idle, construction)
+- ✅ **Tracks items the first time they're EVER collected** (not just when added to inventory)
+- ✅ **Persistent across game sessions** (saved/loaded properly)
+- ✅ **No duplicate counting** (uses a Set to prevent duplicates)
+- ✅ **Proper rarity categorization** (Common, Uncommon, Rare)
+
+#### **Files Modified**
+- `GameState.swift` - Added discoveredItems set and new tracking function
+- `GameStateManager.swift` - Updated save/load system for discovered items
+- `SaveMigrationManager.swift` - Added migration support for discovered items
+
+#### **Status**
+✅ **COMPLETED** - Unique items tracker now works correctly and tracks first-time discoveries across all collection methods.
+
+---
+
 ### 2025-09-25 - Storage Bay Card Functionality Implementation (v2.0.47)
 
 #### **Request Summary**
@@ -2038,5 +2297,60 @@ private var numberOfRows: Int {
 - **Files Changed**: 2 files changed, 249 insertions(+), 13 deletions(-)
 - **Push Status**: Successfully pushed to GitHub ✅
 - **Chat History**: Updated with complete session details
+
+---
+
+## **Session 25 - Icon Update for Replication Matrix (v2.0.76)**
+**Date**: September 25, 2025  
+**Duration**: Short session  
+**Objective**: Update Replication Matrix card icon to better represent duplication
+
+### **User Request**
+- Think of an icon that represents "duplication"
+- Replace the old icon on the "Replication Matrix" card
+- Update both main card and mini card versions in enhancements window
+
+### **Analysis & Implementation**
+- **Current Icon**: `"arrow.triangle.2.circlepath"` (circular arrow)
+- **New Icon**: `"doc.on.doc"` (documents on top of each other)
+- **Rationale**: The document duplication icon better represents copying/replication concept
+
+### **Code Changes Made**
+#### **Main Card Icons (2 locations)**
+```swift
+// Line 999 & 1262 in ContentView.swift
+case "replication-matrix":
+    return "doc.on.doc"  // Changed from "arrow.triangle.2.circlepath"
+```
+
+#### **Mini Card Icons**
+```swift
+// Line 5787 in getCardIcon(for:) function
+case "replication-matrix":
+    return "doc.on.doc"  // Added missing case
+```
+
+### **Files Modified**
+- `UniverseRPG/UniverseRPG/ContentView.swift`: Updated all 3 icon functions
+
+### **Testing Results**
+- ✅ No linting errors
+- ✅ App builds successfully
+- ✅ App launches on iPhone without errors
+- ✅ New icon appears consistently across all card views
+
+### **Version 2.0.76 Release**
+- **Commit**: Successfully committed with message "v2.0.76: Update Replication Matrix icon to doc.on.doc for better duplication representation"
+- **App Icon**: Updated to v2.0.76
+- **Files Changed**: 1 file changed, 75 insertions(+)
+- **Commit Hash**: d1b5f6c
+- **Chat History**: Updated with complete session details
+
+### **Key Achievements**
+- ✅ Improved visual representation of duplication concept
+- ✅ Consistent icon implementation across all card views
+- ✅ Clean, intuitive icon choice (`doc.on.doc`)
+- ✅ Zero breaking changes
+- ✅ Successful app deployment
 
 ---

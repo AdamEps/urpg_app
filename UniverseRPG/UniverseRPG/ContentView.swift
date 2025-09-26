@@ -5368,8 +5368,33 @@ struct CardsView: View {
                     }
                 )
                 
+                // Mini Card View Toggle
+                HStack {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            gameState.showMiniCardView.toggle()
+                        }
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: gameState.showMiniCardView ? "rectangle.grid.3x2" : "rectangle.grid.2x2")
+                                .font(.system(size: 16, weight: .medium))
+                            Text(gameState.showMiniCardView ? "Mini View" : "Full View")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.adaptiveCardBackground)
+                        .cornerRadius(8)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    Spacer()
+                }
+                .padding(.vertical, 8)
+                
                 ScrollView {
-                    VStack(spacing: 24) {
+                    VStack(spacing: gameState.showMiniCardView ? 8 : 24) {
                         // Explorer Class Section
                         CardClassSection(
                             title: "Explorer Class",
@@ -5546,11 +5571,12 @@ struct CardClassSection: View {
             }
         }
         
-        // Calculate rows needed (3 cards per row)
+        // Calculate rows needed (3 cards per row for full view, 6 for mini view)
         if maxVisibleIndex == -1 {
             return 0 // No visible cards
         }
-        return (maxVisibleIndex / 3) + 1
+        let cardsPerRow = gameState.showMiniCardView ? 6 : 3
+        return (maxVisibleIndex / cardsPerRow) + 1
     }
     
     // Helper function to check if a card is in a specific row
@@ -5558,8 +5584,9 @@ struct CardClassSection: View {
         // Quick bounds check
         guard rowIndex >= 0 && rowIndex < numberOfRows else { return false }
         
-        let startIndex = rowIndex * 3
-        let endIndex = min(startIndex + 3, cardsForClass.count)
+        let cardsPerRow = gameState.showMiniCardView ? 6 : 3
+        let startIndex = rowIndex * cardsPerRow
+        let endIndex = min(startIndex + cardsPerRow, cardsForClass.count)
         
         // Safety check to prevent out of bounds
         guard startIndex < cardsForClass.count else { return false }
@@ -5574,13 +5601,14 @@ struct CardClassSection: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: gameState.showMiniCardView ? 8 : 12) {
             Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.adaptivePrimaryText)
+                .padding(.vertical, gameState.showMiniCardView ? 0 : 0)
             
-            VStack(spacing: 8) {
+            VStack(spacing: gameState.showMiniCardView ? 8 : 8) {
                 // Create rows dynamically based on visible cards
                 ForEach(0..<numberOfRows, id: \.self) { rowIndex in
                     VStack(spacing: 0) {
@@ -5592,9 +5620,9 @@ struct CardClassSection: View {
                         }
                         
                         // Card row
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                            ForEach(0..<3, id: \.self) { colIndex in
-                                let cardIndex = rowIndex * 3 + colIndex
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: gameState.showMiniCardView ? 8 : 8), count: gameState.showMiniCardView ? 6 : 3), spacing: gameState.showMiniCardView ? 8 : 8) {
+                            ForEach(0..<(gameState.showMiniCardView ? 6 : 3), id: \.self) { colIndex in
+                                let cardIndex = rowIndex * (gameState.showMiniCardView ? 6 : 3) + colIndex
                                 
                                 if cardIndex < cardsForClass.count {
                                     CardSlotView(
@@ -5605,7 +5633,7 @@ struct CardClassSection: View {
                                 } else {
                                     // Empty slot for incomplete rows
                                     Color.clear
-                                        .frame(height: 160)
+                                        .frame(height: gameState.showMiniCardView ? 80 : 160)
                                 }
                             }
                         }
@@ -5648,7 +5676,7 @@ struct CardSlotView: View {
     var body: some View {
         VStack(spacing: 0) {
             if let cardDef = cardDef, let userCard = userCard {
-                // Owned card - show normally
+                // Owned card - show normally or as mini card based on toggle
                 Button(action: {
                     // Toggle detail view - if same card is tapped again, close it
                     if gameState.selectedCardForDetail == cardDef.id {
@@ -5657,6 +5685,72 @@ struct CardSlotView: View {
                         gameState.selectedCardForDetail = cardDef.id
                     }
                 }) {
+                    if gameState.showMiniCardView {
+                        // Mini card view - similar to SlottedCardView
+                        VStack(spacing: 0) {
+                            // Card container with colored border and black interior
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(cardClassColor, lineWidth: 2)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(Color.black)
+                                )
+                                .frame(width: 60, height: 80)
+                                .overlay(
+                                    VStack(spacing: 0) {
+                                        // Top black area for card name
+                                        VStack {
+                                            Text(getAbbreviatedName(cardDef.name))
+                                                .font(.caption2)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.white)
+                                                .lineLimit(1)
+                                                .minimumScaleFactor(0.7)
+                                        }
+                                        .frame(height: 20)
+                                        .frame(maxWidth: .infinity)
+                                        .background(Color.black.opacity(0.3))
+                                        
+                                        // Middle colored area with symbol background and text overlay
+                                        ZStack {
+                                            // Card symbol as background
+                                            Image(systemName: getCardIcon(for: cardDef.id))
+                                                .font(.largeTitle)
+                                                .foregroundColor(cardClassColor.opacity(0.3))
+                                            
+                                            // Ability text overlaid on symbol
+                                            VStack(spacing: 1) {
+                                                ForEach(getAbilityLines(for: cardDef, userCard: userCard), id: \.self) { line in
+                                                    Text(line)
+                                                        .font(.caption2)
+                                                        .fontWeight(.bold)
+                                                        .foregroundColor(.adaptivePrimaryText)
+                                                        .multilineTextAlignment(.center)
+                                                        .lineLimit(1)
+                                                        .minimumScaleFactor(0.6)
+                                                        .shadow(color: .black, radius: 1)
+                                                }
+                                            }
+                                        }
+                                        .frame(height: 40)
+                                        .frame(maxWidth: .infinity)
+                                        .background(cardClassColor.opacity(0.8))
+                                        
+                                        // Bottom black area for level/quantity
+                                        VStack {
+                                            Text("Lvl.\(userCard.tier)")
+                                                .font(.caption2)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.white)
+                                        }
+                                        .frame(height: 20)
+                                        .frame(maxWidth: .infinity)
+                                        .background(Color.black.opacity(0.3))
+                                    }
+                                )
+                        }
+                    } else {
+                        // Full card view - original implementation
                     VStack(spacing: 0) {
                     // Card name at the top
                     Text(cardDef.name)
@@ -5716,6 +5810,7 @@ struct CardSlotView: View {
                                     .stroke(cardClassColor, lineWidth: 1)
                             )
                     )
+                    }
                 }
                 .buttonStyle(PlainButtonStyle())
             } else if isFirstEmptySlot {
@@ -5771,10 +5866,10 @@ struct CardSlotView: View {
             } else {
                 // Other empty slots - hide them
                 Color.clear
-                    .frame(height: 160)
+                    .frame(height: gameState.showMiniCardView ? 80 : 160)
             }
         }
-        .frame(height: 160)
+        .frame(height: gameState.showMiniCardView ? 80 : 160)
     }
     
     private func getCardIcon(for cardId: String) -> String {
@@ -5854,6 +5949,109 @@ struct CardSlotView: View {
         case .progression: return "chart.line.uptrend.xyaxis"
         case .trader: return "dollarsign.circle"
         case .card: return "rectangle.stack"
+        }
+    }
+    
+    // Helper functions for mini card view
+    private func getAbbreviatedName(_ name: String) -> String {
+        // Create proper initials from each word
+        let words = name.components(separatedBy: " ")
+        let initials = words.compactMap { $0.first }.map { String($0).uppercased() }
+        return initials.joined()
+    }
+    
+    private func getAbilityLines(for cardDef: CardDef, userCard: UserCard) -> [String] {
+        let cardName = cardDef.name
+        let ability = getCardAbility(for: cardDef, userCard: userCard)
+        let percentage = getCardPercentage(for: cardDef, userCard: userCard)
+        let percentageString = percentage > 0 ? "+\(Int(percentage * 100))%" : "\(Int(percentage * 100))%"
+        
+        // Use the same logic as SlottedCardView
+        if cardName.contains("Mining Mastery") {
+            return [percentageString, "Mining", "Speed"]
+        } else if cardName.contains("Storage Bay") {
+            return [percentageString, "Storage", "Bonus"]
+        } else if cardName.contains("Replication Matrix") {
+            let level = Int(percentage) // 1.0 = Level 1, 2.0 = Level 2, etc.
+            let (chancePercent, itemRange) = getReplicationMatrixDisplayValues(level: level)
+            return [chancePercent, "for", itemRange]
+        } else if ability.contains("yield") && ability.contains("tap") {
+            return [percentageString, "Tap", "Yield"]
+        } else if ability.contains("rare") && ability.contains("chance") {
+            return [percentageString, "Rare", "Items"]
+        } else if ability.contains("xp") {
+            return [percentageString, "XP", "Gain"]
+        } else if ability.contains("speed") {
+            return [percentageString, "Action", "Speed"]
+        } else if ability.contains("efficiency") {
+            return [percentageString, "Better", "Efficiency"]
+        } else if ability.contains("bonus") {
+            return [percentageString, "Bonus", "Rewards"]
+        } else if ability.contains("construction time") {
+            return [percentageString, "Reduced", "Time"]
+        } else {
+            // Fallback to first few words
+            let words = ability.components(separatedBy: " ")
+            if words.count >= 3 {
+                return [percentageString, words[0], words[1]]
+            } else if words.count == 2 {
+                return [percentageString, words[0], words[1]]
+            } else {
+                return [percentageString, words.first ?? "Ability", ""]
+            }
+        }
+    }
+    
+    private func getCardAbility(for cardDef: CardDef, userCard: UserCard) -> String {
+        let tierValue = cardDef.tiers[userCard.tier - 1].value
+        let percentage = Int(abs(tierValue) * 100)
+        
+        switch cardDef.id {
+        case "miningMastery":
+            return "\(percentage)% faster mining speed"
+        case "storageBay":
+            return "+\(percentage) storage bonus"
+        case "replicationMatrix":
+            let level = Int(tierValue)
+            let (chance, minItems, maxItems) = getReplicationMatrixCardText(level: level)
+            if minItems == maxItems {
+                return "\(chance)% chance for \(minItems) additional items"
+            } else {
+                return "\(chance)% chance for \(minItems)-\(maxItems) additional items"
+            }
+        case "xpGainMultiplier":
+            return "+\(percentage)% XP gain"
+        case "replicationBonus":
+            let level = Int(tierValue)
+            let (chance, minItems, maxItems) = getReplicationMatrixCardText(level: level)
+            if minItems == maxItems {
+                return "\(chance)% chance for \(minItems) additional items"
+            } else {
+                return "\(chance)% chance for \(minItems)-\(maxItems) additional items"
+            }
+        default:
+            return cardDef.description
+        }
+    }
+    
+    private func getCardPercentage(for cardDef: CardDef, userCard: UserCard) -> Double {
+        return cardDef.tiers[userCard.tier - 1].value
+    }
+    
+    private func getReplicationMatrixDisplayValues(level: Int) -> (chancePercent: String, itemRange: String) {
+        switch level {
+        case 1:
+            return ("[33%]", "[2]")
+        case 2:
+            return ("[50%]", "[2-3]")
+        case 3:
+            return ("[75%]", "[2-3]")
+        case 4:
+            return ("[75%]", "[2-4]")
+        case 5:
+            return ("[90%]", "[2-5]")
+        default:
+            return ("[0%]", "[0]")
         }
     }
 }
