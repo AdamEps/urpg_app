@@ -389,57 +389,75 @@ class GameState: ObservableObject {
                 id: "small-bay-1",
                 size: .small,
                 currentConstruction: nil,
-                isUnlocked: true
+                isUnlocked: true,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "small-bay-2",
                 size: .small,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "small-bay-3",
                 size: .small,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "small-bay-4",
                 size: .small,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             // Medium bays
             ConstructionBay(
                 id: "medium-bay-1",
                 size: .medium,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "medium-bay-2",
                 size: .medium,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "medium-bay-3",
                 size: .medium,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             // Large bays
             ConstructionBay(
                 id: "large-bay-1",
                 size: .large,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "large-bay-2",
                 size: .large,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             )
         ]
     }
@@ -965,6 +983,12 @@ class GameState: ObservableObject {
             mediumConstructionsCompleted += 1
         case .large:
             largeConstructionsCompleted += 1
+        }
+        
+        // Track construction progress for first small bay (circular progress border)
+        if constructionBays[index].id == "small-bay-1" {
+            constructionBays[index].itemsConstructed += 1
+            print("🔧 Construction progress: Bay 1 has completed \(constructionBays[index].itemsConstructed)/\(constructionBays[index].maxItemsForLevel) items")
         }
         
         // Clear the bay
@@ -1701,7 +1725,9 @@ class GameState: ObservableObject {
                 id: constructionBays[i].id,
                 size: constructionBays[i].size,
                 currentConstruction: constructionBays[i].currentConstruction,
-                isUnlocked: newUnlockedState
+                isUnlocked: newUnlockedState,
+                itemsConstructed: constructionBays[i].itemsConstructed,
+                maxItemsForLevel: constructionBays[i].maxItemsForLevel
             )
             updatedBays.append(updatedBay)
             
@@ -1723,57 +1749,75 @@ class GameState: ObservableObject {
                 id: "small-bay-1",
                 size: .small,
                 currentConstruction: nil,
-                isUnlocked: true
+                isUnlocked: true,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "small-bay-2",
                 size: .small,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "small-bay-3",
                 size: .small,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "small-bay-4",
                 size: .small,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             // Medium bays
             ConstructionBay(
                 id: "medium-bay-1",
                 size: .medium,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "medium-bay-2",
                 size: .medium,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "medium-bay-3",
                 size: .medium,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             // Large bays
             ConstructionBay(
                 id: "large-bay-1",
                 size: .large,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             ),
             ConstructionBay(
                 id: "large-bay-2",
                 size: .large,
                 currentConstruction: nil,
-                isUnlocked: false
+                isUnlocked: false,
+                itemsConstructed: 0,
+                maxItemsForLevel: 10
             )
         ]
         print("🔧 DEV TOOL - Initialized all 9 construction bays")
@@ -2681,6 +2725,8 @@ struct ConstructionBay: Identifiable {
     let size: BaySize
     var currentConstruction: Construction?
     var isUnlocked: Bool
+    var itemsConstructed: Int = 0 // Track completed constructions for level progress
+    var maxItemsForLevel: Int = 10 // Items needed to complete level (default 10)
 }
 
 enum BaySize: String, CaseIterable {

@@ -156,19 +156,25 @@ struct SerializableConstructionBay: Codable {
     let size: String
     let currentConstruction: SerializableConstruction?
     let isUnlocked: Bool
+    let itemsConstructed: Int
+    let maxItemsForLevel: Int
     
     init(from bay: ConstructionBay) {
         self.id = bay.id
         self.size = bay.size.rawValue
         self.currentConstruction = bay.currentConstruction.map { SerializableConstruction(from: $0) }
         self.isUnlocked = bay.isUnlocked
+        self.itemsConstructed = bay.itemsConstructed
+        self.maxItemsForLevel = bay.maxItemsForLevel
     }
     
-    init(id: String, size: String, currentConstruction: SerializableConstruction?, isUnlocked: Bool) {
+    init(id: String, size: String, currentConstruction: SerializableConstruction?, isUnlocked: Bool, itemsConstructed: Int = 0, maxItemsForLevel: Int = 10) {
         self.id = id
         self.size = size
         self.currentConstruction = currentConstruction
         self.isUnlocked = isUnlocked
+        self.itemsConstructed = itemsConstructed
+        self.maxItemsForLevel = maxItemsForLevel
     }
 }
 
@@ -675,7 +681,9 @@ class GameStateManager: ObservableObject {
                 id: serializableBay.id,
                 size: baySize,
                 currentConstruction: currentConstruction,
-                isUnlocked: serializableBay.isUnlocked
+                isUnlocked: serializableBay.isUnlocked,
+                itemsConstructed: serializableBay.itemsConstructed,
+                maxItemsForLevel: serializableBay.maxItemsForLevel
             )
         }
         

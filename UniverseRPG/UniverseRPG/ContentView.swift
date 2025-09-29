@@ -2343,6 +2343,183 @@ struct ConstructionView: View {
     }
 }
 
+// MARK: - Rounded Rectangle Progress Border Shape
+struct RoundedRectangleProgressBorder: Shape {
+    var progress: Double // 0.0 to 1.0
+    var lineWidth: CGFloat = 2
+    var cornerRadius: CGFloat = 8
+    
+    func path(in rect: CGRect) -> Path {
+        let inset = lineWidth / 2
+        let adjustedRect = rect.insetBy(dx: inset, dy: inset)
+        let adjustedCornerRadius = max(0, cornerRadius - inset)
+        
+        // Calculate the perimeter of the rounded rectangle
+        let width = adjustedRect.width
+        let height = adjustedRect.height
+        let perimeter = 2 * (width + height) - 8 * adjustedCornerRadius + 2 * .pi * adjustedCornerRadius
+        
+        // Calculate how far along the perimeter we should draw
+        let progressLength = perimeter * progress
+        
+        var path = Path()
+        var currentLength: CGFloat = 0
+        let startX = adjustedRect.minX + adjustedCornerRadius
+        let startY = adjustedRect.minY
+        
+        // Start at top center
+        path.move(to: CGPoint(x: adjustedRect.midX, y: startY))
+        
+        // Top edge (right half)
+        if currentLength + width/2 - adjustedCornerRadius <= progressLength {
+            path.addLine(to: CGPoint(x: adjustedRect.maxX - adjustedCornerRadius, y: startY))
+            currentLength += width/2 - adjustedCornerRadius
+        } else {
+            let remaining = progressLength - currentLength
+            path.addLine(to: CGPoint(x: startX + remaining, y: startY))
+            return path
+        }
+        
+        // Top-right corner
+        if currentLength + .pi * adjustedCornerRadius / 2 <= progressLength {
+            path.addArc(center: CGPoint(x: adjustedRect.maxX - adjustedCornerRadius, y: adjustedRect.minY + adjustedCornerRadius),
+                       radius: adjustedCornerRadius,
+                       startAngle: Angle.degrees(-90),
+                       endAngle: Angle.degrees(0),
+                       clockwise: false)
+            currentLength += .pi * adjustedCornerRadius / 2
+        } else {
+            let remaining = progressLength - currentLength
+            let angle = remaining / adjustedCornerRadius
+            path.addArc(center: CGPoint(x: adjustedRect.maxX - adjustedCornerRadius, y: adjustedRect.minY + adjustedCornerRadius),
+                       radius: adjustedCornerRadius,
+                       startAngle: Angle.degrees(-90),
+                       endAngle: Angle.degrees(-90 + angle * 180 / .pi),
+                       clockwise: false)
+            return path
+        }
+        
+        // Right edge
+        if currentLength + height - 2 * adjustedCornerRadius <= progressLength {
+            path.addLine(to: CGPoint(x: adjustedRect.maxX, y: adjustedRect.maxY - adjustedCornerRadius))
+            currentLength += height - 2 * adjustedCornerRadius
+        } else {
+            let remaining = progressLength - currentLength
+            path.addLine(to: CGPoint(x: adjustedRect.maxX, y: adjustedRect.minY + adjustedCornerRadius + remaining))
+            return path
+        }
+        
+        // Bottom-right corner
+        if currentLength + .pi * adjustedCornerRadius / 2 <= progressLength {
+            path.addArc(center: CGPoint(x: adjustedRect.maxX - adjustedCornerRadius, y: adjustedRect.maxY - adjustedCornerRadius),
+                       radius: adjustedCornerRadius,
+                       startAngle: Angle.degrees(0),
+                       endAngle: Angle.degrees(90),
+                       clockwise: false)
+            currentLength += .pi * adjustedCornerRadius / 2
+        } else {
+            let remaining = progressLength - currentLength
+            let angle = remaining / adjustedCornerRadius
+            path.addArc(center: CGPoint(x: adjustedRect.maxX - adjustedCornerRadius, y: adjustedRect.maxY - adjustedCornerRadius),
+                       radius: adjustedCornerRadius,
+                       startAngle: Angle.degrees(0),
+                       endAngle: Angle.degrees(angle * 180 / .pi),
+                       clockwise: false)
+            return path
+        }
+        
+        // Bottom edge
+        if currentLength + width - 2 * adjustedCornerRadius <= progressLength {
+            path.addLine(to: CGPoint(x: adjustedRect.minX + adjustedCornerRadius, y: adjustedRect.maxY))
+            currentLength += width - 2 * adjustedCornerRadius
+        } else {
+            let remaining = progressLength - currentLength
+            path.addLine(to: CGPoint(x: adjustedRect.maxX - adjustedCornerRadius - remaining, y: adjustedRect.maxY))
+            return path
+        }
+        
+        // Bottom-left corner
+        if currentLength + .pi * adjustedCornerRadius / 2 <= progressLength {
+            path.addArc(center: CGPoint(x: adjustedRect.minX + adjustedCornerRadius, y: adjustedRect.maxY - adjustedCornerRadius),
+                       radius: adjustedCornerRadius,
+                       startAngle: Angle.degrees(90),
+                       endAngle: Angle.degrees(180),
+                       clockwise: false)
+            currentLength += .pi * adjustedCornerRadius / 2
+        } else {
+            let remaining = progressLength - currentLength
+            let angle = remaining / adjustedCornerRadius
+            path.addArc(center: CGPoint(x: adjustedRect.minX + adjustedCornerRadius, y: adjustedRect.maxY - adjustedCornerRadius),
+                       radius: adjustedCornerRadius,
+                       startAngle: Angle.degrees(90),
+                       endAngle: Angle.degrees(90 + angle * 180 / .pi),
+                       clockwise: false)
+            return path
+        }
+        
+        // Left edge
+        if currentLength + height - 2 * adjustedCornerRadius <= progressLength {
+            path.addLine(to: CGPoint(x: adjustedRect.minX, y: adjustedRect.minY + adjustedCornerRadius))
+            currentLength += height - 2 * adjustedCornerRadius
+        } else {
+            let remaining = progressLength - currentLength
+            path.addLine(to: CGPoint(x: adjustedRect.minX, y: adjustedRect.maxY - adjustedCornerRadius - remaining))
+            return path
+        }
+        
+        // Top-left corner
+        if currentLength + .pi * adjustedCornerRadius / 2 <= progressLength {
+            path.addArc(center: CGPoint(x: adjustedRect.minX + adjustedCornerRadius, y: adjustedRect.minY + adjustedCornerRadius),
+                       radius: adjustedCornerRadius,
+                       startAngle: Angle.degrees(180),
+                       endAngle: Angle.degrees(270),
+                       clockwise: false)
+            currentLength += .pi * adjustedCornerRadius / 2
+        } else {
+            let remaining = progressLength - currentLength
+            let angle = remaining / adjustedCornerRadius
+            path.addArc(center: CGPoint(x: adjustedRect.minX + adjustedCornerRadius, y: adjustedRect.minY + adjustedCornerRadius),
+                       radius: adjustedCornerRadius,
+                       startAngle: Angle.degrees(180),
+                       endAngle: Angle.degrees(180 + angle * 180 / .pi),
+                       clockwise: false)
+            return path
+        }
+        
+        // Top edge (left half) - back to start
+        let remaining = progressLength - currentLength
+        path.addLine(to: CGPoint(x: adjustedRect.midX - remaining, y: adjustedRect.minY))
+        
+        return path
+    }
+}
+
+// MARK: - Two-Color Rounded Rectangle Progress Border View
+struct TwoColorRoundedRectangleProgressBorder: View {
+    var progress: Double // 0.0 to 1.0
+    var lineWidth: CGFloat = 2
+    var cornerRadius: CGFloat = 8
+    var progressColor: Color = .green
+    var backgroundColor: Color = .gray.opacity(0.5)
+    
+    var body: some View {
+        ZStack {
+            // Background border (always present) - use same inset as progress border
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .stroke(backgroundColor, lineWidth: lineWidth)
+                .padding(lineWidth / 2) // Apply same inset as RoundedRectangleProgressBorder
+            
+            // Progress overlay
+            RoundedRectangleProgressBorder(
+                progress: progress,
+                lineWidth: lineWidth,
+                cornerRadius: cornerRadius
+            )
+            .stroke(progressColor, lineWidth: lineWidth)
+        }
+    }
+}
+
 // MARK: - Construction Bay Row
 struct ConstructionBayRow: View {
     let bay: ConstructionBay
@@ -3405,10 +3582,27 @@ struct SmallBaySlotView: View {
                 }
             }
         }) {
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(isCompleted ? Color.yellow : Color.gray.opacity(0.5), lineWidth: 2)
-                .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
-                .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+            Group {
+                if let bay = bay, bay.id == "small-bay-1" {
+                    // First bay uses two-color progress border
+                    TwoColorRoundedRectangleProgressBorder(
+                        progress: min(Double(bay.itemsConstructed) / Double(bay.maxItemsForLevel), 1.0),
+                        lineWidth: 2,
+                        cornerRadius: 8,
+                        progressColor: .green,
+                        backgroundColor: .gray.opacity(0.5)
+                    )
+                    .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
+                    .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+                    .animation(.easeInOut(duration: 0.5), value: bay.itemsConstructed)
+                } else {
+                    // Other bays use normal rounded rectangle border
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isCompleted ? Color.yellow : Color.gray.opacity(0.5), lineWidth: 2)
+                        .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
+                        .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+                }
+            }
                 .overlay(
                     Group {
                         if isUnderConstruction {
