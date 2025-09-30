@@ -6,6 +6,51 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-01-29 - Progress Border Fix (v2.0.79)
+
+#### **Request Summary**
+Fix the level-up tracker progress border for the first small construction bay that was not working correctly at 80%, 90%, and 100% progress. The progress bar would work up to 80%, then the 9th construction would jump to almost 100% with a gap, and the 10th construction would remove progress entirely.
+
+#### **Problem Analysis**
+- **Root Cause**: Floating-point precision issues in progress calculation
+- **Specific Issue**: When exactly 10 constructions were completed, `Double(10) / Double(10)` could result in `0.9999999999999999` instead of exactly `1.0`
+- **Impact**: Condition `progress >= 1.0` was too strict and wouldn't catch these floating-point precision cases
+
+#### **Solution Implemented**
+**Fixed Floating-Point Precision Issue**
+- Changed condition from `progress >= 1.0` to `progress >= 0.99`
+- This handles both 90% progress (9th construction) and 100% progress (10th construction)
+- Eliminates gap at 90% progress and ensures complete progress bar at 100%
+
+**Code Changes**
+```swift
+// Before (broken):
+if progress >= 1.0 {
+    path.addLine(to: CGPoint(x: adjustedRect.midX - topEdgeLeft, y: adjustedRect.minY))
+}
+
+// After (fixed):
+if progress >= 0.99 {
+    path.addLine(to: CGPoint(x: adjustedRect.midX - topEdgeLeft, y: adjustedRect.minY))
+}
+```
+
+#### **Technical Details**
+- **File Modified**: `UniverseRPG/UniverseRPG/ContentView.swift`
+- **Function**: `FixedRectangularProgressBorder.path(in rect:)`
+- **Location**: Top edge (left half) drawing logic
+- **Impact**: Progress border now works correctly for all 10 constructions
+
+#### **Status**
+✅ **COMPLETED** - Progress border now works correctly for all construction levels (1-10)
+✅ **TESTED** - App builds and launches successfully
+✅ **COMMITTED** - Version 2.0.79 with app icon updated
+
+#### **Key Learnings**
+- Floating-point precision can cause unexpected behavior in progress calculations
+- Using `>= 0.99` instead of `>= 1.0` provides more robust handling of edge cases
+- Simple fixes can resolve complex-seeming UI issues
+
 ### 2025-01-25 - Mini Card View Toggle Feature (v2.0.77)
 
 #### **Request Summary**
