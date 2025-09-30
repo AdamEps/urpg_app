@@ -951,6 +951,64 @@ class GameState: ObservableObject {
         gameStateManager?.triggerAutoSave()
     }
     
+    func startConstructionMax(blueprint: ConstructionBlueprint) {
+        // Find all empty bays of the correct size
+        let availableBays = constructionBays.enumerated().filter { index, bay in
+            bay.currentConstruction == nil &&
+            bay.isUnlocked &&
+            bay.size == blueprint.requiredBaySize
+        }
+        
+        // Count how many we can actually afford to construct
+        var constructionsStarted = 0
+        
+        for (bayIndex, _) in availableBays {
+            // Check if we can still afford another construction
+            guard canAffordConstruction(blueprint: blueprint) else { break }
+            
+            // Deduct resource cost
+            for i in resources.indices {
+                if let cost = blueprint.cost[resources[i].type] {
+                    resources[i].amount -= cost
+                }
+            }
+            
+            // Deduct currency cost
+            currency -= blueprint.currencyCost
+            
+            // Create construction with build time multipliers applied
+            let bayLevelMultiplier = getBayLevelTimeMultiplier(bayId: constructionBays[bayIndex].id)
+            let cardMultiplier = getBuildTimeMultiplier()
+            let totalMultiplier = bayLevelMultiplier * cardMultiplier
+            let adjustedDuration = blueprint.duration * totalMultiplier
+
+            let construction = Construction(
+                id: UUID().uuidString,
+                blueprint: blueprint,
+                timeRemaining: devToolCompleteAllConstructions ? 0 : adjustedDuration,
+                progress: devToolCompleteAllConstructions ? 1.0 : 0.0
+            )
+
+            constructionBays[bayIndex].currentConstruction = construction
+            constructionsStarted += 1
+
+            print("🔧 Construction \(constructionsStarted) started in bay \(constructionBays[bayIndex].id): Base time=\(blueprint.duration)s, Bay multiplier=\(bayLevelMultiplier), Card multiplier=\(cardMultiplier), Total multiplier=\(totalMultiplier), Adjusted time=\(adjustedDuration)s")
+
+            // If dev tool is enabled, complete the construction immediately
+            if devToolCompleteAllConstructions {
+                completeConstruction(at: bayIndex)
+            }
+        }
+        
+        print("🔧 Construct Max: Started \(constructionsStarted) constructions out of \(availableBays.count) available bays")
+
+        // Navigate to construction page to show the new constructions
+        currentPage = .construction
+
+        // Trigger auto-save
+        gameStateManager?.triggerAutoSave()
+    }
+    
     func toggleStatisticsPage() {
         if currentPage == .statistics {
             // If we're on statistics page, go back to previous page

@@ -6,6 +6,88 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-30 - Blueprint Construct Max Feature (v2.0.89)
+
+#### **Request Summary**
+Add a new "Construct Max" button to blueprints that fills all available bays of the correct size with the selected item, while keeping the existing "Start Construction" button taking up the left half of the space.
+
+#### **Solutions Implemented**
+
+**Blueprint UI Enhancement**
+- **Problem**: Users wanted to be able to fill all available bays of the correct size with one action, instead of having to manually start construction in each bay
+- **Solution**: Added a new "Construct Max" button alongside the existing "Start Construction" button
+- **Files Modified**: `GameState.swift`, `ContentView.swift`
+- **Technical Implementation**:
+
+**1. New GameState Function: `startConstructionMax(blueprint:)`**
+```swift
+func startConstructionMax(blueprint: ConstructionBlueprint) {
+    // Find all empty bays of the correct size
+    let availableBays = constructionBays.enumerated().filter { index, bay in
+        bay.currentConstruction == nil &&
+        bay.isUnlocked &&
+        bay.size == blueprint.requiredBaySize
+    }
+    
+    // Count how many we can actually afford to construct
+    var constructionsStarted = 0
+    
+    for (bayIndex, _) in availableBays {
+        // Check if we can still afford another construction
+        guard canAffordConstruction(blueprint: blueprint) else { break }
+        
+        // Deduct costs and create construction for each bay
+        // ... (full implementation with resource deduction, time multipliers, etc.)
+        constructionsStarted += 1
+    }
+    
+    print("🔧 Construct Max: Started \(constructionsStarted) constructions out of \(availableBays.count) available bays")
+}
+```
+
+**2. Updated BlueprintCardView UI**
+```swift
+// Before: Single "Start Construction" button
+Button(action: onStartConstruction) {
+    // ... single button implementation
+}
+
+// After: Two buttons side by side
+HStack(spacing: 8) {
+    // Start Construction button (left half)
+    Button(action: onStartConstruction) {
+        // ... blue button implementation
+    }
+    
+    // Construct Max button (right half)
+    Button(action: onConstructMax) {
+        // ... green button implementation
+    }
+}
+```
+
+**3. Updated BlueprintCardView Parameters**
+- Added `onConstructMax: () -> Void` parameter
+- Updated BlueprintsView to pass `gameState.startConstructionMax(blueprint: blueprint)` callback
+
+#### **Key Features**
+- **Resource Dependent**: Only constructs as many items as resources allow
+- **Bay Size Aware**: Only fills bays of the correct size for the blueprint
+- **Smart Limiting**: Stops when resources run out, even if more bays are available
+- **Visual Distinction**: "Start Construction" is blue, "Construct Max" is green
+- **Consistent UX**: Both buttons are disabled when resources are insufficient
+- **Logging**: Provides detailed console output showing how many constructions were started
+
+#### **Example Usage**
+- If you have 4 empty small bays but only enough resources for 3 items, "Construct Max" will fill 3 bays and stop
+- If you have 2 empty medium bays and enough resources for 5 items, "Construct Max" will fill both bays
+- The function respects all existing game mechanics (bay levels, time multipliers, dev tools, etc.)
+
+#### **Version**: 2.0.89
+#### **Status**: ✅ Completed and tested successfully
+
+---
+
 ### 2025-09-30 - Construction Bay Progress Tracker Alignment Fix (v2.0.88)
 
 #### **Request Summary**

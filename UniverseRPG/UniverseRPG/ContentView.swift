@@ -7408,6 +7408,9 @@ struct BlueprintsView: View {
                             },
                             onStartConstruction: {
                                 gameState.startConstruction(blueprint: blueprint)
+                            },
+                            onConstructMax: {
+                                gameState.startConstructionMax(blueprint: blueprint)
                             }
                         )
                     }
@@ -7432,6 +7435,7 @@ struct BlueprintCardView: View {
     let isExpanded: Bool
     let onToggle: () -> Void
     let onStartConstruction: () -> Void
+    let onConstructMax: () -> Void
     
     private var canAfford: Bool {
         gameState.canAffordConstruction(blueprint: blueprint)
@@ -7524,22 +7528,42 @@ struct BlueprintCardView: View {
                                 .foregroundColor(gameState.currency >= blueprint.currencyCost ? .green : .red)
                         }
                         
-                        // Start construction button - separate button to prevent collapse when tapped
-                        Button(action: onStartConstruction) {
-                            HStack {
-                                Spacer()
-                                Text("Start Construction")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.white)
-                                Spacer()
+                        // Construction buttons - separate buttons to prevent collapse when tapped
+                        HStack(spacing: 8) {
+                            // Start Construction button (left half)
+                            Button(action: onStartConstruction) {
+                                HStack {
+                                    Spacer()
+                                    Text("Start Construction")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+                                .padding(.vertical, 8)
+                                .background(canAfford ? Color.blue : Color.gray)
+                                .cornerRadius(6)
                             }
-                            .padding(.vertical, 8)
-                            .background(canAfford ? Color.blue : Color.gray)
-                            .cornerRadius(6)
+                            .disabled(!canAfford)
+                            .buttonStyle(PlainButtonStyle()) // Prevent button from interfering with parent button
+                            
+                            // Construct Max button (right half)
+                            Button(action: onConstructMax) {
+                                HStack {
+                                    Spacer()
+                                    Text("Construct Max")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+                                .padding(.vertical, 8)
+                                .background(canAfford ? Color.green : Color.gray)
+                                .cornerRadius(6)
+                            }
+                            .disabled(!canAfford)
+                            .buttonStyle(PlainButtonStyle()) // Prevent button from interfering with parent button
                         }
-                        .disabled(!canAfford)
-                        .buttonStyle(PlainButtonStyle()) // Prevent button from interfering with parent button
                     }
                     .padding(.top, 4)
                 }
