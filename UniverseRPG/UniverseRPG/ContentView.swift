@@ -7552,6 +7552,7 @@ struct BlueprintCardView: View {
             .opacity(canAfford ? 1.0 : 0.5)
         }
         .buttonStyle(PlainButtonStyle())
+        .animation(nil, value: isExpanded) // Disable animation for expand/collapse
     }
     
     private func hasEnoughResource(_ resourceType: ResourceType, _ requiredAmount: Double) -> Bool {

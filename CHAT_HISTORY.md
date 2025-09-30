@@ -6,6 +6,33 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-30 - Blueprint Animation Fix (v2.0.86)
+
+#### **Request Summary**
+Fix the weird animation when blueprints are expanded and collapsed - the content appears/disappears immediately but the border animates to grow and shrink. Remove this animation so the border immediately appears expanded or collapsed like the content.
+
+#### **Solutions Implemented**
+
+**Blueprint Animation Fixed**
+- **Problem**: Blueprint expansion/collapse had a weird animation where content appeared/disappeared immediately but the border animated to grow/shrink
+- **Solution**: Added `.animation(nil, value: isExpanded)` to disable SwiftUI's default animation for the expand/collapse state
+- **Files Modified**: `ContentView.swift` - BlueprintCardView
+- **Code Change**:
+```swift
+// Added to BlueprintCardView body
+.animation(nil, value: isExpanded) // Disable animation for expand/collapse
+```
+
+#### **Technical Details**
+- The issue was SwiftUI applying default animations to conditional content changes
+- By explicitly setting animation to `nil` for the `isExpanded` value, we disabled the border animation
+- Now both content and border appear/disappear immediately without any animation
+
+#### **Version**: 2.0.86
+#### **Status**: ✅ Completed and tested
+
+---
+
 ### 2025-09-30 - Tap Area Improvements (v2.0.85)
 
 #### **Request Summary**
