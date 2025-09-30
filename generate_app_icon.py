@@ -55,7 +55,7 @@ def create_app_icon(version="2.0.69", size=1024):
 
 def main():
     import sys
-    version = sys.argv[1] if len(sys.argv) > 1 else "2.0.92"  # Use command line argument or default
+    version = sys.argv[1] if len(sys.argv) > 1 else "2.0.93"  # Use command line argument or default
     
     # Create the app icon
     print(f"Creating app icon for version {version}...")
