@@ -6,6 +6,70 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-30 - Construction Bay Level Indicators (v2.0.93)
+
+#### **Request Summary**
+Add level indicators and time reduction information to each construction bay:
+- Bottom left: "L1", "L2", "L3", etc. showing the bay's current level
+- Bottom right: Small hourglass icon with "-X%" showing the level's time reduction percentage
+- All text should use the bay's current level color (not the overlay progress color)
+
+#### **Solutions Implemented**
+
+**Construction Bay Level Indicators** ✅
+- **Problem**: Users wanted to see the current level and time reduction percentage for each bay at a glance
+- **Solution**: Added level indicators to all bay slot views (Small, Medium, Large) positioned at bottom corners
+- **Files Modified**: `ContentView.swift`
+- **Technical Implementation**:
+
+**Level Indicators Added to All Bay Slot Views**
+```swift
+// Level indicators - positioned at bottom corners
+if let bay = bay, bay.isUnlocked {
+    VStack {
+        Spacer()
+        HStack {
+            // Bottom left - Level indicator
+            Text("L\(bay.level)")
+                .font(.caption2)
+                .fontWeight(.bold)
+                .foregroundColor(bay.levelColor)
+            
+            Spacer()
+            
+            // Bottom right - Time reduction indicator
+            HStack(spacing: 2) {
+                Image(systemName: "hourglass")
+                    .font(.caption2)
+                    .foregroundColor(bay.levelColor)
+                Text("-\(Int(bay.timeReductionPercent * 100))%")
+                    .font(.caption2)
+                    .fontWeight(.bold)
+                    .foregroundColor(bay.levelColor)
+            }
+        }
+        .padding(.horizontal, 4)
+        .padding(.bottom, 2)
+    }
+}
+```
+
+**Key Features**:
+- **Level Display**: Shows current level (L1, L2, L3, etc.) in bottom left corner
+- **Time Reduction Display**: Shows hourglass icon with percentage reduction in bottom right corner
+- **Color Coordination**: Uses `bay.levelColor` for all text and icons (current level color, not progress overlay color)
+- **Conditional Display**: Only shows for unlocked bays
+- **Consistent Styling**: Applied to all three bay types (Small, Medium, Large)
+- **Proper Positioning**: Uses VStack with Spacer to push indicators to bottom, HStack with Spacer to separate left/right
+
+**Benefits**:
+- **Quick Reference**: Users can instantly see bay levels and time reductions
+- **Visual Clarity**: Color-coded indicators match the bay's current level
+- **Space Efficient**: Small, unobtrusive indicators that don't interfere with existing UI
+- **Consistent Experience**: Same indicator style across all bay types
+
+---
+
 ### 2025-09-30 - Bay Level Tracking Multiplier Fix (v2.0.92)
 
 #### **Request Summary**

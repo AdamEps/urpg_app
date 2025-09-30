@@ -3730,6 +3730,35 @@ struct SmallBaySlotView: View {
                             .foregroundColor(.yellow)
                     }
                 }
+                
+                // Level indicators - positioned at bottom corners
+                if let bay = bay, bay.isUnlocked {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            // Bottom left - Level indicator
+                            Text("L\(bay.level)")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(bay.levelColor)
+                            
+                            Spacer()
+                            
+                            // Bottom right - Time reduction indicator
+                            HStack(spacing: 2) {
+                                Image(systemName: "hourglass")
+                                    .font(.caption2)
+                                    .foregroundColor(bay.levelColor)
+                                Text("-\(Int(bay.timeReductionPercent * 100))%")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(bay.levelColor)
+                            }
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.bottom, 2)
+                    }
+                }
             }
         }
         .buttonStyle(PlainButtonStyle())
@@ -3914,6 +3943,35 @@ struct MediumBaySlotView: View {
                             .foregroundColor(.yellow)
                     }
                 }
+                
+                // Level indicators - positioned at bottom corners
+                if let bay = bay, bay.isUnlocked {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            // Bottom left - Level indicator
+                            Text("L\(bay.level)")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(bay.levelColor)
+                            
+                            Spacer()
+                            
+                            // Bottom right - Time reduction indicator
+                            HStack(spacing: 2) {
+                                Image(systemName: "hourglass")
+                                    .font(.caption2)
+                                    .foregroundColor(bay.levelColor)
+                                Text("-\(Int(bay.timeReductionPercent * 100))%")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(bay.levelColor)
+                            }
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.bottom, 2)
+                    }
+                }
             }
         }
         .buttonStyle(PlainButtonStyle())
@@ -4096,6 +4154,35 @@ struct LargeBaySlotView: View {
                         Image(systemName: "star.circle")
                             .font(.title2)
                             .foregroundColor(.yellow)
+                    }
+                }
+                
+                // Level indicators - positioned at bottom corners
+                if let bay = bay, bay.isUnlocked {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            // Bottom left - Level indicator
+                            Text("L\(bay.level)")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(bay.levelColor)
+                            
+                            Spacer()
+                            
+                            // Bottom right - Time reduction indicator
+                            HStack(spacing: 2) {
+                                Image(systemName: "hourglass")
+                                    .font(.caption2)
+                                    .foregroundColor(bay.levelColor)
+                                Text("-\(Int(bay.timeReductionPercent * 100))%")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(bay.levelColor)
+                            }
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.bottom, 2)
                     }
                 }
             }
