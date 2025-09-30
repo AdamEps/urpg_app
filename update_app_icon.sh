@@ -27,7 +27,7 @@ fi
 echo "🎨 Updating app icon for version $VERSION..."
 
 # Update the Python script with the new version
-sed -i '' "s/version = \".*\"/version = \"$VERSION\"/" generate_app_icon.py
+sed -i '' "s/else \"[^\"]*\"/else \"$VERSION\"/" generate_app_icon.py
 
 # Generate the new icon
 python3 generate_app_icon.py
