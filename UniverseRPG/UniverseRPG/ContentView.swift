@@ -7415,8 +7415,10 @@ struct BlueprintsView: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 100) // Space for bottom nav
             }
+            .animation(nil, value: expandedBlueprints) // Disable animations for blueprint expansion
         }
         .background(Color.black)
+        .animation(nil, value: expandedBlueprints) // Disable all animations for blueprint expansion
         .sheet(isPresented: $showEnhancementAbilities) {
             EnhancementAbilitiesView()
         }
@@ -7437,10 +7439,12 @@ struct BlueprintCardView: View {
     
     var body: some View {
         Button(action: {
-            if isExpanded {
-                onToggle() // Collapse when tapping anywhere in expanded view (except start construction button)
-            } else {
-                onToggle() // Expand when tapping anywhere in collapsed view
+            withAnimation(nil) {
+                if isExpanded {
+                    onToggle() // Collapse when tapping anywhere in expanded view (except start construction button)
+                } else {
+                    onToggle() // Expand when tapping anywhere in collapsed view
+                }
             }
         }) {
             VStack(alignment: .leading, spacing: 8) {

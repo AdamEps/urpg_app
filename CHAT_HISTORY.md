@@ -6,6 +6,45 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-30 - Enhanced Blueprint Animation Fix (v2.0.87)
+
+#### **Request Summary**
+The user reported that the blueprint expansion/collapse animation was still appearing despite previous fixes. Needed to apply more comprehensive animation disabling.
+
+#### **Solutions Implemented**
+
+**Enhanced Blueprint Animation Disabling**
+- **Problem**: Previous animation fixes weren't comprehensive enough - SwiftUI was still applying implicit animations from parent containers
+- **Solution**: Applied multiple layers of animation disabling:
+  1. **BlueprintCardView**: Added `withAnimation(nil)` wrapper around toggle action
+  2. **ScrollView**: Added `.animation(nil, value: expandedBlueprints)` 
+  3. **BlueprintsView**: Added `.animation(nil, value: expandedBlueprints)` on the entire view
+- **Files Modified**: `ContentView.swift` - BlueprintCardView and BlueprintsView
+- **Code Changes**:
+```swift
+// In BlueprintCardView button action
+Button(action: {
+    withAnimation(nil) {
+        if isExpanded {
+            onToggle() // Collapse when tapping anywhere in expanded view
+        } else {
+            onToggle() // Expand when tapping anywhere in collapsed view
+        }
+    }
+}) {
+
+// In BlueprintsView ScrollView
+ScrollView {
+    // ... blueprint list content ...
+}
+.animation(nil, value: expandedBlueprints) // Disable animations for blueprint expansion
+
+// In BlueprintsView body
+.animation(nil, value: expandedBlueprints) // Disable all animations for blueprint expansion
+```
+
+**Result**: Blueprint expansion/collapse now happens instantly without any border animation or content animation delays.
+
 ### 2025-09-30 - Blueprint Animation Fix (v2.0.86)
 
 #### **Request Summary**
