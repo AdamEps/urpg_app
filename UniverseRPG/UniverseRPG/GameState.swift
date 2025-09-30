@@ -1053,8 +1053,9 @@ class GameState: ObservableObject {
             // Check for unique item discovery FIRST (before adding to resources)
             checkAndTrackItemDiscovery(resourceType)
             
-            // Calculate total amount including replication bonus
-            let totalAmount = calculateReplicationBonus(for: Int(amount))
+            // Calculate total amount including replication bonus and dev tool multiplier
+            let baseAmount = Int(amount) * devToolConstructionMultiplier
+            let totalAmount = calculateReplicationBonus(for: baseAmount)
             
             if let existingIndex = resources.firstIndex(where: { $0.type == resourceType }) {
                 resources[existingIndex].amount += Double(totalAmount)
@@ -1787,6 +1788,7 @@ class GameState: ObservableObject {
     @Published var devToolBuildableWithoutIngredients = false
     @Published var devToolCompleteAllConstructions = false
     @Published var devToolResetBayLevels = false
+    @Published var devToolConstructionMultiplier = 1 // 1x, 5x, 10x, 100x
     @Published var devToolUnlockAllLocations = false
     @Published var showStarMapDevToolsDropdown = false
     @Published var showCardsDevToolsDropdown = false

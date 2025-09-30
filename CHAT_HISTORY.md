@@ -6,6 +6,66 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-30 - Construction Multiplier Dev Tool (v2.0.90)
+
+#### **Request Summary**
+Add a new dev tool in Construction Bays with a 4-part segmented control (1x, 5x, 10x, 100x) that multiplies the amount of items received when collecting completed constructions to help test the bay leveling system.
+
+#### **Solutions Implemented**
+
+**Construction Multiplier Dev Tool** ✅
+- **Problem**: Users needed a way to quickly test the bay leveling system by getting more items per construction
+- **Solution**: Added a 4-part segmented control with 1x, 5x, 10x, and 100x multipliers
+- **Files Modified**: `GameState.swift`, `ContentView.swift`
+- **Technical Implementation**:
+
+**1. New GameState Property: `devToolConstructionMultiplier`**
+```swift
+@Published var devToolConstructionMultiplier = 1 // 1x, 5x, 10x, 100x
+```
+
+**2. Modified Construction Completion Logic**
+```swift
+// Calculate total amount including replication bonus and dev tool multiplier
+let baseAmount = Int(amount) * devToolConstructionMultiplier
+let totalAmount = calculateReplicationBonus(for: baseAmount)
+```
+
+**3. UI Implementation in Construction Bays Dev Tools**
+```swift
+// Construction Multiplier Segmented Control
+HStack {
+    Text("Construction Multiplier")
+        .font(.caption)
+        .foregroundColor(.adaptivePrimaryText)
+    Spacer()
+    Picker("Multiplier", selection: $gameState.devToolConstructionMultiplier) {
+        Text("1x").tag(1)
+        Text("5x").tag(5)
+        Text("10x").tag(10)
+        Text("100x").tag(100)
+    }
+    .pickerStyle(SegmentedPickerStyle())
+    .frame(width: 120)
+}
+```
+
+#### **Features**
+- **4-Part Segmented Control**: Clean, compact UI with 1x, 5x, 10x, 100x options
+- **Resource Multiplication**: All construction rewards are multiplied by the selected factor
+- **Bay Leveling Testing**: Enables rapid testing of bay level progression
+- **Positioned Correctly**: Placed between existing toggles and Reset button as requested
+- **Compact Design**: 120px width keeps dev tools panel from expanding
+
+#### **Testing Results**
+✅ App builds and launches successfully
+✅ Dev tool appears in Construction Bays section
+✅ Segmented control functions properly
+✅ Multiplier affects construction rewards
+✅ Bay leveling system can be tested efficiently
+
+---
+
 ### 2025-09-30 - Blueprint Construct Max Feature (v2.0.89)
 
 #### **Request Summary**
