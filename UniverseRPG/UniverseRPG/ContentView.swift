@@ -2518,14 +2518,22 @@ struct FixedRectangularProgressBorder: Shape {
         // Top edge (left half) - back to start
         let remaining = perimeterToDraw - currentLength
         if remaining > 0 {
-            // If we're at or very close to 100% progress (10th construction), always complete the full top edge left segment
-            // Use 0.99 to handle floating-point precision issues
-            if progress >= 0.99 {
+            // If we're at 100% progress (10th construction), always complete the full border
+            if progress >= 1.0 {
+                // Force completion of the entire border by drawing to the start point
+                path.addLine(to: CGPoint(x: adjustedRect.midX, y: adjustedRect.minY))
+            } else if progress >= 0.9 {
+                // At 90% progress (9th construction), also complete the full segment to avoid gap
                 path.addLine(to: CGPoint(x: adjustedRect.midX - topEdgeLeft, y: adjustedRect.minY))
             } else {
                 let actualRemaining = min(remaining, topEdgeLeft)
                 path.addLine(to: CGPoint(x: adjustedRect.midX - actualRemaining, y: adjustedRect.minY))
             }
+        }
+        
+        // Special case: if we're at 100% progress but haven't completed the full perimeter, force completion
+        if progress >= 1.0 && currentLength < perimeter {
+            path.addLine(to: CGPoint(x: adjustedRect.midX - topEdgeLeft, y: adjustedRect.minY))
         }
         
         print("DEBUG: final currentLength=\(currentLength), remaining=\(remaining)")
