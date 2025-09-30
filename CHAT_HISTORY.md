@@ -6,10 +6,24 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
-### 2025-01-29 - Progress Border Fix (v2.0.79)
+### 2025-01-29 - Progress Border Fix (v2.0.80)
 
 #### **Request Summary**
 Fix the level-up tracker progress border for the first small construction bay that was not working correctly at 80%, 90%, and 100% progress. The progress bar would work up to 80%, then the 9th construction would jump to almost 100% with a gap, and the 10th construction would remove progress entirely.
+
+#### **Final Solution (v2.0.80)**
+**Fixed 10th Construction Perimeter Mismatch**
+- **Root Cause**: Perimeter calculation mismatch where `perimeterToDraw=314.65` but actual drawn path was only `currentLength=280.82`, leaving huge `remaining=33.83`
+- **Solution**: Force complete border when `progress >= 1.0` by drawing directly to start point
+- **Code Change**:
+```swift
+if progress >= 1.0 {
+    // Force completion of the entire border by drawing to the start point
+    path.addLine(to: CGPoint(x: adjustedRect.midX, y: adjustedRect.minY))
+}
+```
+
+### 2025-01-29 - Progress Border Fix (v2.0.79)
 
 #### **Problem Analysis**
 - **Root Cause**: Floating-point precision issues in progress calculation
