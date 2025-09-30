@@ -1083,9 +1083,15 @@ class GameState: ObservableObject {
         }
         
         // Track construction progress for this bay (level progress system)
-        constructionBays[index].itemsConstructed += 1
+        // Calculate total items collected including multiplier for bay level tracking
+        let totalItemsCollected = construction.blueprint.reward.values.reduce(0) { total, amount in
+            let baseAmount = Int(amount) * devToolConstructionMultiplier
+            let finalAmount = calculateReplicationBonus(for: baseAmount)
+            return total + finalAmount
+        }
+        constructionBays[index].itemsConstructed += totalItemsCollected
         updateBayLevel(bayId: constructionBays[index].id)
-        print("🔧 Construction progress: Bay \(constructionBays[index].id) has completed \(constructionBays[index].itemsConstructed) items")
+        print("🔧 Construction progress: Bay \(constructionBays[index].id) has completed \(constructionBays[index].itemsConstructed) items (added \(totalItemsCollected) from this construction)")
         
         // Award XP for construction completion
         let xpMultiplier = getXPGainMultiplier(for: "Construction")

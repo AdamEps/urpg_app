@@ -6,6 +6,49 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-30 - Bay Level Tracking Multiplier Fix (v2.0.92)
+
+#### **Request Summary**
+Fix the bay level tracking system to count the actual amount of resources collected (including the dev tool multiplier) instead of just counting the number of constructions completed. When collecting 100 items with the 100x multiplier, the bay should level up accordingly.
+
+#### **Solutions Implemented**
+
+**Bay Level Tracking Enhancement** ✅
+- **Problem**: The bay level tracking system was only incrementing `itemsConstructed` by 1 per construction, regardless of the dev tool multiplier. This meant that collecting 100 items with 100x multiplier would only count as 1 item toward bay leveling.
+- **Solution**: Modified the construction completion logic to calculate and add the total amount of resources collected (including multiplier and replication bonus) to the bay's `itemsConstructed` count.
+- **Files Modified**: `GameState.swift`
+- **Technical Implementation**:
+
+**Updated `completeConstruction` Function**
+```swift
+// Track construction progress for this bay (level progress system)
+// Calculate total items collected including multiplier for bay level tracking
+let totalItemsCollected = construction.blueprint.reward.values.reduce(0) { total, amount in
+    let baseAmount = Int(amount) * devToolConstructionMultiplier
+    let finalAmount = calculateReplicationBonus(for: baseAmount)
+    return total + finalAmount
+}
+constructionBays[index].itemsConstructed += totalItemsCollected
+updateBayLevel(bayId: constructionBays[index].id)
+print("🔧 Construction progress: Bay \(constructionBays[index].id) has completed \(constructionBays[index].itemsConstructed) items (added \(totalItemsCollected) from this construction)")
+```
+
+**Key Changes**:
+1. **Resource Calculation**: For each resource type in the blueprint's reward, calculate the base amount multiplied by the dev tool multiplier
+2. **Replication Bonus**: Apply the replication bonus to the multiplied amount (same as resource collection)
+3. **Total Summation**: Sum all resource amounts to get the total items collected for bay level tracking
+4. **Enhanced Logging**: Added detailed logging to show both total items and the amount added from the current construction
+
+**Benefits**:
+- **Accurate Leveling**: Bay levels now progress correctly based on actual items collected
+- **Multiplier Integration**: Dev tool multipliers now properly affect bay level progression
+- **Consistent Logic**: Bay level tracking uses the same calculation as resource collection (multiplier + replication bonus)
+- **Better Testing**: Users can now effectively test bay leveling with the multiplier dev tool
+
+**Example**: 
+- **Before**: 100x multiplier collecting 10 steel pylons → bay level tracker adds 1
+- **After**: 100x multiplier collecting 10 steel pylons → bay level tracker adds 1000 (10 × 100 multiplier)
+
 ### 2025-09-30 - Construction Multiplier Dev Tool UI Enhancement (v2.0.91)
 
 #### **Request Summary**
