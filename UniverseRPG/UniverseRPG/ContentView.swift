@@ -3530,20 +3530,13 @@ struct ConstructionPageView: View {
                             }
                             
                             // Construction Multiplier Segmented Control
-                            HStack {
-                                Text("Construction Multiplier")
-                                    .font(.caption)
-                                    .foregroundColor(.adaptivePrimaryText)
-                                Spacer()
-                                Picker("Multiplier", selection: $gameState.devToolConstructionMultiplier) {
-                                    Text("1x").tag(1)
-                                    Text("5x").tag(5)
-                                    Text("10x").tag(10)
-                                    Text("100x").tag(100)
-                                }
-                                .pickerStyle(SegmentedPickerStyle())
-                                .frame(width: 120)
+                            Picker("Multiplier", selection: $gameState.devToolConstructionMultiplier) {
+                                Text("1x").tag(1)
+                                Text("5x").tag(5)
+                                Text("10x").tag(10)
+                                Text("100x").tag(100)
                             }
+                            .pickerStyle(SegmentedPickerStyle())
                             
                             // Reset Bay Levels Toggle
                             HStack {

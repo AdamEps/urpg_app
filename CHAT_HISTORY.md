@@ -6,6 +6,57 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-30 - Construction Multiplier Dev Tool UI Enhancement (v2.0.91)
+
+#### **Request Summary**
+Remove the "Construction Multiplier" text label from the segmented control and make it span the full width of the dev window for a cleaner appearance.
+
+#### **Solutions Implemented**
+
+**UI Layout Enhancement** ✅
+- **Problem**: The segmented control had a text label that took up space and made the control appear smaller
+- **Solution**: Removed the text label and HStack wrapper, allowing the segmented control to span the full width
+- **Files Modified**: `ContentView.swift`
+- **Technical Implementation**:
+
+**Removed Text Label and HStack**
+```swift
+// Before: 
+HStack {
+    Text("Construction Multiplier")
+        .font(.caption)
+        .foregroundColor(.adaptivePrimaryText)
+    Spacer()
+    Picker("Multiplier", selection: $gameState.devToolConstructionMultiplier) {
+        Text("1x").tag(1)
+        Text("5x").tag(5)
+        Text("10x").tag(10)
+        Text("100x").tag(100)
+    }
+    .pickerStyle(SegmentedPickerStyle())
+    .frame(width: 120)
+}
+
+// After:
+Picker("Multiplier", selection: $gameState.devToolConstructionMultiplier) {
+    Text("1x").tag(1)
+    Text("5x").tag(5)
+    Text("10x").tag(10)
+    Text("100x").tag(100)
+}
+.pickerStyle(SegmentedPickerStyle())
+```
+
+**Benefits**:
+- **Cleaner UI**: Removed unnecessary text label for a more streamlined appearance
+- **Better Space Usage**: Segmented control now spans the full width of the dev window
+- **Improved Usability**: Larger touch targets for each segment (1x, 5x, 10x, 100x)
+- **Consistent Layout**: Matches the design pattern of other dev tools in the interface
+
+**Testing**: App successfully built and launched, confirming the UI enhancement works correctly.
+
+---
+
 ### 2025-09-30 - Construction Multiplier Dev Tool (v2.0.90)
 
 #### **Request Summary**
