@@ -2355,9 +2355,9 @@ struct FixedRectangularProgressBorder: Shape {
             return Path()
         }
         
-        let inset = lineWidth / 2
-        let adjustedRect = rect.insetBy(dx: inset, dy: inset)
-        let adjustedCornerRadius = max(0, cornerRadius - inset)
+        // Use the full rect without inset to match the background border exactly
+        let adjustedRect = rect
+        let adjustedCornerRadius = cornerRadius
         
         // Calculate the rectangular perimeter
         let width = adjustedRect.width

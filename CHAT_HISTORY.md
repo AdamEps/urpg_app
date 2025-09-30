@@ -6,6 +6,35 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-30 - Construction Bay Progress Tracker Alignment Fix (v2.0.88)
+
+#### **Request Summary**
+Fix the subtle sizing issue where construction bay progress trackers were slightly smaller than the bay borders behind them. The overlays needed to align exactly with the borders without affecting progress tracking functionality.
+
+#### **Solutions Implemented**
+
+**Progress Tracker Alignment Fixed**
+- **Problem**: The `FixedRectangularProgressBorder` shape was using `rect.insetBy(dx: inset, dy: inset)` where `inset = lineWidth / 2`, making progress trackers smaller than background borders
+- **Solution**: Removed the inset calculation and used the full rect dimensions to match the background border exactly
+- **Files Modified**: `ContentView.swift` - FixedRectangularProgressBorder shape
+- **Code Change**:
+```swift
+// Before:
+let inset = lineWidth / 2
+let adjustedRect = rect.insetBy(dx: inset, dy: inset)
+let adjustedCornerRadius = max(0, cornerRadius - inset)
+
+// After:
+// Use the full rect without inset to match the background border exactly
+let adjustedRect = rect
+let adjustedCornerRadius = cornerRadius
+```
+
+#### **Technical Details**
+- **Root Cause**: The progress border shape was applying an inset based on line width, creating a smaller drawing area
+- **Impact**: Progress trackers now align perfectly with bay borders while maintaining full progress tracking functionality
+- **Testing**: App successfully built and launched with perfect alignment
+
 ### 2025-09-30 - Enhanced Blueprint Animation Fix (v2.0.87)
 
 #### **Request Summary**
