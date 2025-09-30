@@ -6,6 +6,64 @@ This document tracks our development conversations and key decisions for the Uni
 
 ## Session Log
 
+### 2025-09-30 - Tap Area Improvements (v2.0.85)
+
+#### **Request Summary**
+Fix tap areas for Construction Bays and Blueprints to improve user experience:
+1. **Construction Bays**: Make the entire bay area (border + interior) tappable instead of just the border
+2. **Blueprints**: Make the entire blueprint tappable for expand/collapse and remove arrow controls
+
+#### **Solutions Implemented**
+
+**1. Construction Bay Tap Areas Fixed**
+- **Problem**: Only the border was tappable, not the interior content (icons, text, progress bars)
+- **Solution**: Wrapped overlay content inside the Button's ZStack instead of using `.overlay()`
+- **Files Modified**: `ContentView.swift` - All three bay slot views (SmallBaySlotView, MediumBaySlotView, LargeBaySlotView)
+- **Code Change**:
+```swift
+// Before: Button wrapped only bayContent, overlay was separate
+Button(action: { ... }) {
+    bayContent
+}
+.overlay(Group { ... })
+
+// After: Button wraps entire ZStack including overlay content
+Button(action: { ... }) {
+    ZStack {
+        bayContent
+        Group { /* overlay content */ }
+    }
+}
+```
+
+**2. Blueprint Tap Areas Fixed**
+- **Problem**: Only header button was tappable for expand/collapse, arrow controls were confusing
+- **Solution**: Made entire blueprint tappable, removed chevron arrows, kept "Start Construction" button separate
+- **Files Modified**: `ContentView.swift` - BlueprintCardView
+- **Code Changes**:
+```swift
+// Before: Separate header button with arrow
+Button(action: onToggle) { headerContent }
+Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+
+// After: Entire blueprint tappable, no arrows
+Button(action: { onToggle() }) {
+    VStack { /* entire blueprint content */ }
+}
+// Start Construction button remains separate with PlainButtonStyle
+```
+
+#### **Testing Results**
+- ✅ Build successful with no linting errors
+- ✅ App launched successfully on iPhone
+- ✅ All Construction Bay tap areas now include entire bay area
+- ✅ All Blueprint tap areas now work for expand/collapse without arrows
+
+#### **Technical Notes**
+- Used `PlainButtonStyle()` for nested buttons to prevent interference
+- Maintained all existing functionality while improving UX
+- No breaking changes to game state or logic
+
 ### 2025-01-29 - Progress Border Fix (v2.0.80)
 
 #### **Request Summary**

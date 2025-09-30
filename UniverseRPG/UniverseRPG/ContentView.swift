@@ -3674,53 +3674,55 @@ struct SmallBaySlotView: View {
                 }
             }
         }) {
-            bayContent
-        }
-        .overlay(
-            Group {
-                if isUnderConstruction {
-                    VStack(spacing: 4) {
-                        // Construction name
-                        Text(bay?.currentConstruction?.blueprint.name ?? "")
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .lineLimit(1)
-
-                        // Construction icon
-                        Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-                            .font(.caption)
-                            .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-
-                        if isCompleted {
-                            // Complete text
-                            Text("Complete")
+            ZStack {
+                bayContent
+                
+                // Overlay content (icons, text) - now part of the button
+                Group {
+                    if isUnderConstruction {
+                        VStack(spacing: 4) {
+                            // Construction name
+                            Text(bay?.currentConstruction?.blueprint.name ?? "")
                                 .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.green)
-                        } else {
-                            // Progress bar
-                            ProgressView(value: bay?.currentConstruction?.progress ?? 0)
-                                .frame(width: 40, height: 4)
-                                .tint(.blue)
-
-                            // Countdown timer
-                            Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
-                                .font(.caption2)
+                                .fontWeight(.medium)
                                 .foregroundColor(.white)
+                                .lineLimit(1)
+
+                            // Construction icon
+                            Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+                                .font(.caption)
+                                .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+
+                            if isCompleted {
+                                // Complete text
+                                Text("Complete")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.green)
+                            } else {
+                                // Progress bar
+                                ProgressView(value: bay?.currentConstruction?.progress ?? 0)
+                                    .frame(width: 40, height: 4)
+                                    .tint(.blue)
+
+                                // Countdown timer
+                                Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
+                                    .font(.caption2)
+                                    .foregroundColor(.white)
+                            }
                         }
+                    } else if let bay = bay, bay.isUnlocked {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    } else {
+                        Image(systemName: "star.circle")
+                            .font(.title2)
+                            .foregroundColor(.yellow)
                     }
-                } else if let bay = bay, bay.isUnlocked {
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.gray.opacity(0.6))
-                } else {
-                    Image(systemName: "star.circle")
-                        .font(.title2)
-                        .foregroundColor(.yellow)
                 }
             }
-        )
+        }
         .buttonStyle(PlainButtonStyle())
         .disabled(bay?.isUnlocked != true && !isCompleted)
         .scaleEffect(isCollecting ? 0.8 : 1.0)
@@ -3856,53 +3858,55 @@ struct MediumBaySlotView: View {
                 }
             }
         }) {
-            bayContent
-        }
-        .overlay(
-            Group {
-                if isUnderConstruction {
-                    VStack(spacing: 4) {
-                        // Construction name
-                        Text(bay?.currentConstruction?.blueprint.name ?? "")
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .lineLimit(1)
-
-                        // Construction icon
-                        Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-                            .font(.caption)
-                            .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-
-                        if isCompleted {
-                            // Complete text
-                            Text("Complete")
+            ZStack {
+                bayContent
+                
+                // Overlay content (icons, text) - now part of the button
+                Group {
+                    if isUnderConstruction {
+                        VStack(spacing: 4) {
+                            // Construction name
+                            Text(bay?.currentConstruction?.blueprint.name ?? "")
                                 .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.green)
-                        } else {
-                            // Progress bar
-                            ProgressView(value: bay?.currentConstruction?.progress ?? 0)
-                                .frame(width: 40, height: 4)
-                                .tint(.blue)
-
-                            // Countdown timer
-                            Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
-                                .font(.caption2)
+                                .fontWeight(.medium)
                                 .foregroundColor(.white)
+                                .lineLimit(1)
+
+                            // Construction icon
+                            Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+                                .font(.caption)
+                                .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+
+                            if isCompleted {
+                                // Complete text
+                                Text("Complete")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.green)
+                            } else {
+                                // Progress bar
+                                ProgressView(value: bay?.currentConstruction?.progress ?? 0)
+                                    .frame(width: 40, height: 4)
+                                    .tint(.blue)
+
+                                // Countdown timer
+                                Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
+                                    .font(.caption2)
+                                    .foregroundColor(.white)
+                            }
                         }
+                    } else if let bay = bay, bay.isUnlocked {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    } else {
+                        Image(systemName: "star.circle")
+                            .font(.title2)
+                            .foregroundColor(.yellow)
                     }
-                } else if let bay = bay, bay.isUnlocked {
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.gray.opacity(0.6))
-                } else {
-                    Image(systemName: "star.circle")
-                        .font(.title2)
-                        .foregroundColor(.yellow)
                 }
             }
-        )
+        }
         .buttonStyle(PlainButtonStyle())
         .disabled(bay?.isUnlocked != true && !isCompleted)
         .scaleEffect(isCollecting ? 0.8 : 1.0)
@@ -4038,53 +4042,55 @@ struct LargeBaySlotView: View {
                 }
             }
         }) {
-            bayContent
-        }
-        .overlay(
-            Group {
-                if isUnderConstruction {
-                    VStack(spacing: 4) {
-                        // Construction name
-                        Text(bay?.currentConstruction?.blueprint.name ?? "")
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                            .lineLimit(1)
-
-                        // Construction icon
-                        Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-                            .font(.caption)
-                            .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-
-                        if isCompleted {
-                            // Complete text
-                            Text("Complete")
+            ZStack {
+                bayContent
+                
+                // Overlay content (icons, text) - now part of the button
+                Group {
+                    if isUnderConstruction {
+                        VStack(spacing: 4) {
+                            // Construction name
+                            Text(bay?.currentConstruction?.blueprint.name ?? "")
                                 .font(.caption2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.green)
-                        } else {
-                            // Progress bar
-                            ProgressView(value: bay?.currentConstruction?.progress ?? 0)
-                                .frame(width: 40, height: 4)
-                                .tint(.blue)
-
-                            // Countdown timer
-                            Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
-                                .font(.caption2)
+                                .fontWeight(.medium)
                                 .foregroundColor(.white)
+                                .lineLimit(1)
+
+                            // Construction icon
+                            Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+                                .font(.caption)
+                                .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+
+                            if isCompleted {
+                                // Complete text
+                                Text("Complete")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.green)
+                            } else {
+                                // Progress bar
+                                ProgressView(value: bay?.currentConstruction?.progress ?? 0)
+                                    .frame(width: 40, height: 4)
+                                    .tint(.blue)
+
+                                // Countdown timer
+                                Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
+                                    .font(.caption2)
+                                    .foregroundColor(.white)
+                            }
                         }
+                    } else if let bay = bay, bay.isUnlocked {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .foregroundColor(.gray.opacity(0.6))
+                    } else {
+                        Image(systemName: "star.circle")
+                            .font(.title2)
+                            .foregroundColor(.yellow)
                     }
-                } else if let bay = bay, bay.isUnlocked {
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .foregroundColor(.gray.opacity(0.6))
-                } else {
-                    Image(systemName: "star.circle")
-                        .font(.title2)
-                        .foregroundColor(.yellow)
                 }
             }
-        )
+        }
         .buttonStyle(PlainButtonStyle())
         .disabled(bay?.isUnlocked != true && !isCompleted)
         .scaleEffect(isCollecting ? 0.8 : 1.0)
@@ -7430,9 +7436,15 @@ struct BlueprintCardView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Header with expand/collapse button
-            Button(action: onToggle) {
+        Button(action: {
+            if isExpanded {
+                onToggle() // Collapse when tapping anywhere in expanded view (except start construction button)
+            } else {
+                onToggle() // Expand when tapping anywhere in collapsed view
+            }
+        }) {
+            VStack(alignment: .leading, spacing: 8) {
+                // Header content (no separate button needed)
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
@@ -7468,79 +7480,78 @@ struct BlueprintCardView: View {
                         }
                     }
                     
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    // Remove the chevron arrow - no longer needed
                 }
-            }
-            .buttonStyle(PlainButtonStyle())
-            
-            // Expanded content
-            if isExpanded {
-                VStack(alignment: .leading, spacing: 4) {
-                    // Resource requirements with color coding
-                    ForEach(Array(blueprint.cost.keys.sorted(by: { $0.rawValue < $1.rawValue })), id: \.self) { resourceType in
-                        if let requiredAmount = blueprint.cost[resourceType] {
-                            HStack {
-                                Image(systemName: getResourceIcon(for: resourceType))
-                                    .foregroundColor(getResourceColor(for: resourceType))
-                                    .frame(width: 16)
-                                Text(resourceType.rawValue)
-                                    .font(.caption)
-                                    .foregroundColor(.white)
-                                Spacer()
-                                Text("(\(Int(getPlayerResourceAmount(resourceType)))/\(Int(requiredAmount)))")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(hasEnoughResource(resourceType, requiredAmount) ? .green : .red)
+                
+                // Expanded content
+                if isExpanded {
+                    VStack(alignment: .leading, spacing: 4) {
+                        // Resource requirements with color coding
+                        ForEach(Array(blueprint.cost.keys.sorted(by: { $0.rawValue < $1.rawValue })), id: \.self) { resourceType in
+                            if let requiredAmount = blueprint.cost[resourceType] {
+                                HStack {
+                                    Image(systemName: getResourceIcon(for: resourceType))
+                                        .foregroundColor(getResourceColor(for: resourceType))
+                                        .frame(width: 16)
+                                    Text(resourceType.rawValue)
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Text("(\(Int(getPlayerResourceAmount(resourceType)))/\(Int(requiredAmount)))")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(hasEnoughResource(resourceType, requiredAmount) ? .green : .red)
+                                }
                             }
                         }
-                    }
-                    
-                    // Currency requirement with color coding
-                    HStack {
-                        Image(systemName: "star.circle")
-                            .foregroundColor(.yellow)
-                            .frame(width: 16)
-                        Text("Numins")
-                            .font(.caption)
-                            .foregroundColor(.white)
-                        Spacer()
-                        Text("(\(blueprint.currencyCost))")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(gameState.currency >= blueprint.currencyCost ? .green : .red)
-                    }
-                    
-                    // Start construction button
-                    Button(action: onStartConstruction) {
+                        
+                        // Currency requirement with color coding
                         HStack {
-                            Spacer()
-                            Text("Start Construction")
+                            Image(systemName: "star.circle")
+                                .foregroundColor(.yellow)
+                                .frame(width: 16)
+                            Text("Numins")
                                 .font(.caption)
-                                .fontWeight(.medium)
                                 .foregroundColor(.white)
                             Spacer()
+                            Text("(\(blueprint.currencyCost))")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(gameState.currency >= blueprint.currencyCost ? .green : .red)
                         }
-                        .padding(.vertical, 8)
-                        .background(canAfford ? Color.blue : Color.gray)
-                        .cornerRadius(6)
+                        
+                        // Start construction button - separate button to prevent collapse when tapped
+                        Button(action: onStartConstruction) {
+                            HStack {
+                                Spacer()
+                                Text("Start Construction")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                Spacer()
+                            }
+                            .padding(.vertical, 8)
+                            .background(canAfford ? Color.blue : Color.gray)
+                            .cornerRadius(6)
+                        }
+                        .disabled(!canAfford)
+                        .buttonStyle(PlainButtonStyle()) // Prevent button from interfering with parent button
                     }
-                    .disabled(!canAfford)
+                    .padding(.top, 4)
                 }
-                .padding(.top, 4)
             }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.gray.opacity(0.1))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray, lineWidth: 1)
+                    )
+            )
+            .opacity(canAfford ? 1.0 : 0.5)
         }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.1))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.gray, lineWidth: 1)
-                )
-        )
-        .opacity(canAfford ? 1.0 : 0.5)
+        .buttonStyle(PlainButtonStyle())
     }
     
     private func hasEnoughResource(_ resourceType: ResourceType, _ requiredAmount: Double) -> Bool {
