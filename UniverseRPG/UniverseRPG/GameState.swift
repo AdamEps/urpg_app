@@ -466,6 +466,9 @@ class GameState: ObservableObject {
         // Only start the timer if it's not already running
         guard gameTimer == nil else { return }
         
+        // Initialize all bay levels on app startup
+        initializeAllBayLevels()
+        
         // Start the game timer for idle collection
         gameTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             self.updateGame()
@@ -893,9 +896,14 @@ class GameState: ObservableObject {
         // Deduct currency cost
         currency -= blueprint.currencyCost
         
-        // Create construction with build time multiplier applied
-        let buildTimeMultiplier = getBuildTimeMultiplier()
-        let adjustedDuration = blueprint.duration * buildTimeMultiplier
+        // Create construction with build time multipliers applied
+        // Order of boost calculation: 1. Bay Level, 2. Card Enhancements, 3. Item Enhancements
+        let bayLevelMultiplier = getBayLevelTimeMultiplier(bayId: constructionBays[bayIndex].id)
+        let cardMultiplier = getBuildTimeMultiplier() // Card enhancements
+        // Item enhancements would go here in the future
+        
+        let totalMultiplier = bayLevelMultiplier * cardMultiplier
+        let adjustedDuration = blueprint.duration * totalMultiplier
         
         let construction = Construction(
             id: UUID().uuidString,
@@ -905,6 +913,8 @@ class GameState: ObservableObject {
         )
         
         constructionBays[bayIndex].currentConstruction = construction
+        
+        print("🔧 Construction started in bay \(constructionBays[bayIndex].id): Base time=\(blueprint.duration)s, Bay multiplier=\(bayLevelMultiplier), Card multiplier=\(cardMultiplier), Total multiplier=\(totalMultiplier), Adjusted time=\(adjustedDuration)s")
         
         // If dev tool is enabled, complete the construction immediately
         if devToolCompleteAllConstructions {
@@ -990,11 +1000,18 @@ class GameState: ObservableObject {
             largeConstructionsCompleted += 1
         }
         
-        // Track construction progress for first small bay (circular progress border)
+        // Track construction progress for first small bay (level progress system)
         if constructionBays[index].id == "small-bay-1" {
             constructionBays[index].itemsConstructed += 1
-            print("🔧 Construction progress: Bay 1 has completed \(constructionBays[index].itemsConstructed)/\(constructionBays[index].maxItemsForLevel) items")
+            updateBayLevel(bayId: constructionBays[index].id)
+            print("🔧 Construction progress: Bay 1 has completed \(constructionBays[index].itemsConstructed) items")
         }
+        
+        // Award XP for construction completion
+        let xpMultiplier = getXPGainMultiplier(for: "Construction")
+        let xpAmount = Int(Double(construction.blueprint.xpReward) * xpMultiplier)
+        addXP(xpAmount)
+        print("🔧 Construction completed: +\(xpAmount) XP (base: \(construction.blueprint.xpReward), multiplier: \(xpMultiplier))")
         
         // Clear the bay
         constructionBays[index].currentConstruction = nil
@@ -2510,6 +2527,98 @@ class GameState: ObservableObject {
         }
         return false
     }
+    
+    // MARK: - Bay Level System Methods
+    
+    /// Get level information for a given total items constructed
+    func getBayLevelInfo(totalItemsConstructed: Int) -> (level: Int, itemsForNextLevel: Int, color: Color, nextColor: Color, timeReduction: Double) {
+        // Level progression thresholds
+        let levelThresholds: [(threshold: Int, level: Int, color: Color, nextColor: Color, timeReduction: Double)] = [
+            (0, 1, .gray, .green, 0.0),           // Level 1: Base level
+            (10, 2, .green, .blue, 0.02),         // Level 2: 10 items, 2% reduction
+            (25, 3, .blue, Color(red: 0.29, green: 0.0, blue: 0.51), 0.03),  // Level 3: 25 items, 3% reduction (indigo)
+            (50, 4, Color(red: 0.29, green: 0.0, blue: 0.51), .purple, 0.04), // Level 4: 50 items, 4% reduction (indigo)
+            (100, 5, .purple, .pink, 0.05),       // Level 5: 100 items, 5% reduction
+            (250, 6, .pink, .red, 0.07),          // Level 6: 250 items, 7% reduction
+            (500, 7, .red, .orange, 0.10),        // Level 7: 500 items, 10% reduction
+            (1000, 8, .orange, .yellow, 0.14),    // Level 8: 1000 items, 14% reduction
+            (2500, 9, .yellow, .clear, 0.19),     // Level 9: 2500 items, 19% reduction (clear = rainbow placeholder)
+            (5000, 10, .clear, .clear, 0.25)      // Level 10: 5000 items, 25% reduction (rainbow)
+        ]
+        
+        // Find the current level based on total items constructed
+        var currentLevel = 1
+        var currentColor = Color.gray
+        var nextColor = Color.green
+        var timeReduction = 0.0
+        var itemsForNextLevel = 10
+        
+        for (i, threshold) in levelThresholds.enumerated() {
+            if totalItemsConstructed >= threshold.threshold {
+                currentLevel = threshold.level
+                currentColor = threshold.color
+                nextColor = threshold.nextColor
+                timeReduction = threshold.timeReduction
+                
+                // Calculate items needed for next level
+                if i < levelThresholds.count - 1 {
+                    itemsForNextLevel = levelThresholds[i + 1].threshold - totalItemsConstructed
+                } else {
+                    itemsForNextLevel = 0 // Max level reached
+                }
+            }
+        }
+        
+        return (currentLevel, itemsForNextLevel, currentColor, nextColor, timeReduction)
+    }
+    
+    /// Update bay level, progress, colors, and time reduction
+    func updateBayLevel(bayId: String) {
+        guard let bayIndex = constructionBays.firstIndex(where: { $0.id == bayId }) else { return }
+        
+        let totalConstructed = constructionBays[bayIndex].itemsConstructed
+        let levelInfo = getBayLevelInfo(totalItemsConstructed: totalConstructed)
+        
+        // Update bay properties
+        constructionBays[bayIndex].level = levelInfo.level
+        constructionBays[bayIndex].levelColor = levelInfo.color
+        constructionBays[bayIndex].nextLevelColor = levelInfo.nextColor
+        constructionBays[bayIndex].timeReductionPercent = levelInfo.timeReduction
+        
+        // Calculate progress within current level
+        let levelThresholds = [0, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000]
+        let currentLevelIndex = levelInfo.level - 1
+        
+        if currentLevelIndex < levelThresholds.count - 1 {
+            let currentLevelStart = levelThresholds[currentLevelIndex]
+            let nextLevelStart = levelThresholds[currentLevelIndex + 1]
+            let itemsIntoLevel = totalConstructed - currentLevelStart
+            let itemsNeededForLevel = nextLevelStart - currentLevelStart
+            
+            constructionBays[bayIndex].levelProgress = Double(itemsIntoLevel) / Double(itemsNeededForLevel)
+            constructionBays[bayIndex].maxItemsForLevel = itemsNeededForLevel
+        } else {
+            // Max level reached
+            constructionBays[bayIndex].levelProgress = 1.0
+            constructionBays[bayIndex].maxItemsForLevel = 1
+        }
+        
+        print("🔧 Bay \(bayId) updated: Level \(levelInfo.level), Progress \(constructionBays[bayIndex].levelProgress), Time Reduction: \(levelInfo.timeReduction * 100)%")
+    }
+    
+    /// Get bay level time reduction multiplier (e.g., 0.98 for 2% reduction)
+    func getBayLevelTimeMultiplier(bayId: String) -> Double {
+        guard let bay = constructionBays.first(where: { $0.id == bayId }) else { return 1.0 }
+        return 1.0 - bay.timeReductionPercent
+    }
+    
+    /// Initialize all bay levels (call on app startup)
+    func initializeAllBayLevels() {
+        for bay in constructionBays {
+            updateBayLevel(bayId: bay.id)
+        }
+        print("🔧 All bay levels initialized on app startup")
+    }
 }
 
 // MARK: - Data Models
@@ -2742,6 +2851,13 @@ struct ConstructionBay: Identifiable {
     var isUnlocked: Bool
     var itemsConstructed: Int = 0 // Track completed constructions for level progress
     var maxItemsForLevel: Int = 10 // Items needed to complete level (default 10)
+    
+    // Bay Level System
+    var level: Int = 1 // Current bay level (1-10)
+    var levelProgress: Double = 0.0 // Progress within current level (0.0-1.0)
+    var levelColor: Color = .gray // Current level color
+    var nextLevelColor: Color = .green // Next level color
+    var timeReductionPercent: Double = 0.0 // Time reduction from bay level
 }
 
 enum BaySize: String, CaseIterable {
