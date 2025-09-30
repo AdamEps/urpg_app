@@ -900,11 +900,16 @@ class GameState: ObservableObject {
         let construction = Construction(
             id: UUID().uuidString,
             blueprint: blueprint,
-            timeRemaining: adjustedDuration,
-            progress: 0.0
+            timeRemaining: devToolCompleteAllConstructions ? 0 : adjustedDuration,
+            progress: devToolCompleteAllConstructions ? 1.0 : 0.0
         )
         
         constructionBays[bayIndex].currentConstruction = construction
+        
+        // If dev tool is enabled, complete the construction immediately
+        if devToolCompleteAllConstructions {
+            completeConstruction(at: bayIndex)
+        }
         
         // Navigate to construction page to show the new construction
         currentPage = .construction
@@ -1684,6 +1689,8 @@ class GameState: ObservableObject {
     @Published var showDevToolsDropdown = false
     @Published var devToolUnlockAllBays = false
     @Published var devToolBuildableWithoutIngredients = false
+    @Published var devToolCompleteAllConstructions = false
+    @Published var devToolResetBayLevels = false
     @Published var devToolUnlockAllLocations = false
     @Published var showStarMapDevToolsDropdown = false
     @Published var showCardsDevToolsDropdown = false
@@ -1832,6 +1839,14 @@ class GameState: ObservableObject {
             }
         }
         print("🔧 DEV TOOL - All constructions completed instantly!")
+    }
+    
+    func resetBayLevels() {
+        for i in 0..<constructionBays.count {
+            constructionBays[i].itemsConstructed = 0
+            constructionBays[i].maxItemsForLevel = 10 // Reset to default level requirement
+        }
+        print("🔧 DEV TOOL - All bay levels reset!")
     }
     
     // MARK: - Location Unlocking System

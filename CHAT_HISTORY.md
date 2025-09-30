@@ -47,6 +47,58 @@ Add a Mini Card view toggle option to the Cards page, allowing players to switch
 - **Card Indexing**: Proper calculation for different grid layouts
 
 **5. Helper Functions Added**
+
+### 2025-01-25 - Construction Bay Dev Tools Enhancement (v2.0.78)
+
+#### **Request Summary**
+Add new dev tools to construction bays page:
+1. Convert "Complete All Constructions" button to a toggle switch for immediate construction completion
+2. Add new "Reset Bay Levels" toggle switch to reset individual bay progress bars
+
+#### **Feature Specifications**
+- **Complete All Constructions Toggle**: When enabled, all constructions are immediately ready when selected for a bay
+- **Reset Bay Levels Toggle**: Resets progress in individual bay progress bars
+- **UI Design**: Both toggles follow existing dev tools pattern with appropriate colors (orange for complete, red for reset)
+
+#### **Implementation Details**
+
+**1. GameState Properties Added**
+```swift
+@Published var devToolCompleteAllConstructions = false
+@Published var devToolResetBayLevels = false
+```
+
+**2. Construction Logic Modified**
+- **startConstruction Function**: Modified to check `devToolCompleteAllConstructions` flag
+- **Immediate Completion**: When enabled, constructions are created with 0 time remaining and 100% progress
+- **Auto-Complete**: Construction is automatically completed when dev tool is active
+
+**3. Reset Bay Levels Function**
+```swift
+func resetBayLevels() {
+    for i in 0..<constructionBays.count {
+        constructionBays[i].itemsConstructed = 0
+        constructionBays[i].maxItemsForLevel = 10 // Reset to default level requirement
+    }
+}
+```
+
+**4. UI Updates**
+- **Replaced Button**: Converted "Complete All Constructions" button to toggle switch
+- **Added Reset Toggle**: New "Reset Bay Levels" toggle with red color scheme
+- **Auto-Reset**: Reset toggle automatically resets to off after use
+- **Consistent Styling**: Both toggles follow existing dev tools design pattern
+
+**5. Toggle Behavior**
+- **Complete All Constructions**: Persistent toggle that affects all new constructions
+- **Reset Bay Levels**: One-time action toggle that resets and turns off automatically
+
+#### **Status**
+✅ **COMPLETED** - All dev tools implemented and tested
+- Construction completion toggle working
+- Bay level reset functionality implemented
+- UI updated with consistent toggle design
+- App launched for testing
 - `getAbbreviatedName()`: Creates initials from card names
 - `getAbilityLines()`: Formats ability text for mini cards
 - `getCardAbility()`: Gets formatted ability description
