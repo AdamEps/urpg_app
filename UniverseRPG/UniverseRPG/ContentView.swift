@@ -3626,6 +3626,40 @@ struct SmallBaySlotView: View {
         return construction.timeRemaining <= 0
     }
     
+    private var bayContent: some View {
+        Group {
+            if let bay = bay, bay.levelProgress > 0 && bay.isUnlocked {
+                progressBorderView
+            } else {
+                simpleBorderView
+            }
+        }
+    }
+
+    private var progressBorderView: some View {
+        TwoColorFixedRectangularProgressBorder(
+            progress: bay?.levelProgress ?? 0.0,
+            lineWidth: 2,
+            cornerRadius: 8,
+            progressColor: bay?.nextLevelColor ?? Color.green,
+            backgroundColor: (bay?.levelColor ?? Color.gray).opacity(1.0)
+        )
+        .onAppear {
+            if let bay = bay {
+                print("🔧 BAY PROGRESS DEBUG: Bay \(bay.id) - Level: \(bay.level), itemsConstructed: \(bay.itemsConstructed), levelProgress: \(bay.levelProgress), Time Reduction: \(bay.timeReductionPercent * 100)%")
+            }
+        }
+        .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
+        .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+    }
+
+    private var simpleBorderView: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .stroke(isCompleted ? Color.yellow : (bay?.levelColor ?? Color.gray).opacity(1.0), lineWidth: 2)
+            .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
+            .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+    }
+
     var body: some View {
         Button(action: {
             if let bay = bay, bay.isUnlocked {
@@ -3635,84 +3669,58 @@ struct SmallBaySlotView: View {
                 } else if !isUnderConstruction {
                     // Start construction
                     gameState.selectedBaySizeForBlueprints = .small
+                    gameState.selectedBayIdForConstruction = bay.id
                     gameState.currentPage = .blueprints
                 }
             }
         }) {
+            bayContent
+        }
+        .overlay(
             Group {
-                if let bay = bay, bay.levelProgress > 0 {
-                    // Bay with progress uses two-color fixed rectangular progress border
-                    TwoColorFixedRectangularProgressBorder(
-                        progress: bay.levelProgress,
-                        lineWidth: 2,
-                        cornerRadius: 8,
-                        progressColor: bay.nextLevelColor,
-                        backgroundColor: bay.levelColor.opacity(1.0)
-                    )
-                    .onAppear {
-                        print("🔧 BAY PROGRESS DEBUG: Bay \(bay.id) - Level: \(bay.level), itemsConstructed: \(bay.itemsConstructed), levelProgress: \(bay.levelProgress), Time Reduction: \(bay.timeReductionPercent * 100)%")
-                    }
-                    .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
-                    .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
-                    .animation(.easeInOut(duration: 0.5), value: bay.itemsConstructed)
-                    .animation(.easeInOut(duration: 0.5), value: bay.levelProgress)
-                    .animation(.easeInOut(duration: 0.5), value: bay.levelColor)
-                    .animation(.easeInOut(duration: 0.5), value: bay.nextLevelColor)
-                } else {
-                    // Bays without progress use normal rounded rectangle border
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(isCompleted ? Color.yellow : bay?.levelColor ?? Color.gray.opacity(1.0), lineWidth: 2)
-                        .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
-                        .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
-                        .animation(.easeInOut(duration: 0.5), value: bay?.levelColor)
-                }
-            }
-                .overlay(
-                    Group {
-                        if isUnderConstruction {
-                            VStack(spacing: 4) {
-                                // Construction name
-                                Text(bay?.currentConstruction?.blueprint.name ?? "")
-                                    .font(.caption2)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
-                                
-                                // Construction icon
-                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-                                    .font(.caption)
-                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-                                
-                                if isCompleted {
-                                    // Complete text
-                                    Text("Complete")
-                                        .font(.caption2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.green)
-                                } else {
-                                    // Progress bar
-                                    ProgressView(value: bay?.currentConstruction?.progress ?? 0)
-                                        .frame(width: 40, height: 4)
-                                        .tint(.blue)
-                                    
-                                    // Countdown timer
-                                    Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
-                                        .font(.caption2)
-                                        .foregroundColor(.white)
-                                }
-                            }
-                        } else if let bay = bay, bay.isUnlocked {
-                            Image(systemName: "plus")
-                                .font(.title2)
-                                .foregroundColor(.gray.opacity(0.6))
+                if isUnderConstruction {
+                    VStack(spacing: 4) {
+                        // Construction name
+                        Text(bay?.currentConstruction?.blueprint.name ?? "")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+
+                        // Construction icon
+                        Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+                            .font(.caption)
+                            .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+
+                        if isCompleted {
+                            // Complete text
+                            Text("Complete")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.green)
                         } else {
-                            Image(systemName: "star.circle")
-                                .font(.title2)
-                                .foregroundColor(.yellow)
+                            // Progress bar
+                            ProgressView(value: bay?.currentConstruction?.progress ?? 0)
+                                .frame(width: 40, height: 4)
+                                .tint(.blue)
+
+                            // Countdown timer
+                            Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
+                                .font(.caption2)
+                                .foregroundColor(.white)
                         }
                     }
-                )
-        }
+                } else if let bay = bay, bay.isUnlocked {
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.gray.opacity(0.6))
+                } else {
+                    Image(systemName: "star.circle")
+                        .font(.title2)
+                        .foregroundColor(.yellow)
+                }
+            }
+        )
         .buttonStyle(PlainButtonStyle())
         .disabled(bay?.isUnlocked != true && !isCompleted)
         .scaleEffect(isCollecting ? 0.8 : 1.0)
@@ -3800,6 +3808,40 @@ struct MediumBaySlotView: View {
         return construction.timeRemaining <= 0
     }
     
+    private var bayContent: some View {
+        Group {
+            if let bay = bay, bay.levelProgress > 0 && bay.isUnlocked {
+                progressBorderView
+            } else {
+                simpleBorderView
+            }
+        }
+    }
+
+    private var progressBorderView: some View {
+        TwoColorFixedRectangularProgressBorder(
+            progress: bay?.levelProgress ?? 0.0,
+            lineWidth: 2,
+            cornerRadius: 8,
+            progressColor: bay?.nextLevelColor ?? Color.green,
+            backgroundColor: (bay?.levelColor ?? Color.gray).opacity(1.0)
+        )
+        .onAppear {
+            if let bay = bay {
+                print("🔧 BAY PROGRESS DEBUG: Bay \(bay.id) - Level: \(bay.level), itemsConstructed: \(bay.itemsConstructed), levelProgress: \(bay.levelProgress), Time Reduction: \(bay.timeReductionPercent * 100)%")
+            }
+        }
+        .frame(width: (availableWidth - 24) / 3, height: (availableWidth - 24) / 3)
+        .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+    }
+
+    private var simpleBorderView: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .stroke(isCompleted ? Color.yellow : (bay?.levelColor ?? Color.gray).opacity(1.0), lineWidth: 2)
+            .frame(width: (availableWidth - 24) / 3, height: (availableWidth - 24) / 3)
+            .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+    }
+
     var body: some View {
         Button(action: {
             if let bay = bay, bay.isUnlocked {
@@ -3809,84 +3851,58 @@ struct MediumBaySlotView: View {
                 } else if !isUnderConstruction {
                     // Start construction
                     gameState.selectedBaySizeForBlueprints = .medium
+                    gameState.selectedBayIdForConstruction = bay.id
                     gameState.currentPage = .blueprints
                 }
             }
         }) {
+            bayContent
+        }
+        .overlay(
             Group {
-                if let bay = bay, bay.levelProgress > 0 {
-                    // Bay with progress uses two-color fixed rectangular progress border
-                    TwoColorFixedRectangularProgressBorder(
-                        progress: bay.levelProgress,
-                        lineWidth: 2,
-                        cornerRadius: 8,
-                        progressColor: bay.nextLevelColor,
-                        backgroundColor: bay.levelColor.opacity(1.0)
-                    )
-                    .onAppear {
-                        print("🔧 BAY PROGRESS DEBUG: Bay \(bay.id) - Level: \(bay.level), itemsConstructed: \(bay.itemsConstructed), levelProgress: \(bay.levelProgress), Time Reduction: \(bay.timeReductionPercent * 100)%")
-                    }
-                    .frame(width: (availableWidth - 24) / 3, height: (availableWidth - 24) / 3)
-                    .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
-                    .animation(.easeInOut(duration: 0.5), value: bay.itemsConstructed)
-                    .animation(.easeInOut(duration: 0.5), value: bay.levelProgress)
-                    .animation(.easeInOut(duration: 0.5), value: bay.levelColor)
-                    .animation(.easeInOut(duration: 0.5), value: bay.nextLevelColor)
-                } else {
-                    // Bays without progress use normal rounded rectangle border
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(isCompleted ? Color.yellow : bay?.levelColor ?? Color.gray.opacity(1.0), lineWidth: 2)
-                        .frame(width: (availableWidth - 24) / 3, height: (availableWidth - 24) / 3)
-                        .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
-                        .animation(.easeInOut(duration: 0.5), value: bay?.levelColor)
-                }
-            }
-                .overlay(
-                    Group {
-                        if isUnderConstruction {
-                            VStack(spacing: 4) {
-                                // Construction name
-                                Text(bay?.currentConstruction?.blueprint.name ?? "")
-                                    .font(.caption2)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
-                                
-                                // Construction icon
-                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-                                    .font(.caption)
-                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-                                
-                                if isCompleted {
-                                    // Complete text
-                                    Text("Complete")
-                                        .font(.caption2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.green)
-                                } else {
-                                    // Progress bar
-                                    ProgressView(value: bay?.currentConstruction?.progress ?? 0)
-                                        .frame(width: 40, height: 4)
-                                        .tint(.blue)
-                                    
-                                    // Countdown timer
-                                    Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
-                                        .font(.caption2)
-                                        .foregroundColor(.white)
-                                }
-                            }
-                        } else if let bay = bay, bay.isUnlocked {
-                            Image(systemName: "plus")
-                                .font(.title2)
-                                .foregroundColor(.gray.opacity(0.6))
+                if isUnderConstruction {
+                    VStack(spacing: 4) {
+                        // Construction name
+                        Text(bay?.currentConstruction?.blueprint.name ?? "")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+
+                        // Construction icon
+                        Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+                            .font(.caption)
+                            .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+
+                        if isCompleted {
+                            // Complete text
+                            Text("Complete")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.green)
                         } else {
-                            Image(systemName: "star.circle")
-                                .font(.title2)
-                                .foregroundColor(.yellow)
+                            // Progress bar
+                            ProgressView(value: bay?.currentConstruction?.progress ?? 0)
+                                .frame(width: 40, height: 4)
+                                .tint(.blue)
+
+                            // Countdown timer
+                            Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
+                                .font(.caption2)
+                                .foregroundColor(.white)
                         }
                     }
-                )
-        }
+                } else if let bay = bay, bay.isUnlocked {
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.gray.opacity(0.6))
+                } else {
+                    Image(systemName: "star.circle")
+                        .font(.title2)
+                        .foregroundColor(.yellow)
+                }
+            }
+        )
         .buttonStyle(PlainButtonStyle())
         .disabled(bay?.isUnlocked != true && !isCompleted)
         .scaleEffect(isCollecting ? 0.8 : 1.0)
@@ -3974,6 +3990,40 @@ struct LargeBaySlotView: View {
         return construction.timeRemaining <= 0
     }
     
+    private var bayContent: some View {
+        Group {
+            if let bay = bay, bay.levelProgress > 0 && bay.isUnlocked {
+                progressBorderView
+            } else {
+                simpleBorderView
+            }
+        }
+    }
+
+    private var progressBorderView: some View {
+        TwoColorFixedRectangularProgressBorder(
+            progress: bay?.levelProgress ?? 0.0,
+            lineWidth: 2,
+            cornerRadius: 8,
+            progressColor: bay?.nextLevelColor ?? Color.green,
+            backgroundColor: (bay?.levelColor ?? Color.gray).opacity(1.0)
+        )
+        .onAppear {
+            if let bay = bay {
+                print("🔧 BAY PROGRESS DEBUG: Bay \(bay.id) - Level: \(bay.level), itemsConstructed: \(bay.itemsConstructed), levelProgress: \(bay.levelProgress), Time Reduction: \(bay.timeReductionPercent * 100)%")
+            }
+        }
+        .frame(width: (availableWidth - 12) / 2, height: (availableWidth - 12) / 2)
+        .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+    }
+
+    private var simpleBorderView: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .stroke(isCompleted ? Color.yellow : (bay?.levelColor ?? Color.gray).opacity(1.0), lineWidth: 2)
+            .frame(width: (availableWidth - 12) / 2, height: (availableWidth - 12) / 2)
+            .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+    }
+
     var body: some View {
         Button(action: {
             if let bay = bay, bay.isUnlocked {
@@ -3983,84 +4033,58 @@ struct LargeBaySlotView: View {
                 } else if !isUnderConstruction {
                     // Start construction
                     gameState.selectedBaySizeForBlueprints = .large
+                    gameState.selectedBayIdForConstruction = bay.id
                     gameState.currentPage = .blueprints
                 }
             }
         }) {
+            bayContent
+        }
+        .overlay(
             Group {
-                if let bay = bay, bay.levelProgress > 0 {
-                    // Bay with progress uses two-color fixed rectangular progress border
-                    TwoColorFixedRectangularProgressBorder(
-                        progress: bay.levelProgress,
-                        lineWidth: 2,
-                        cornerRadius: 8,
-                        progressColor: bay.nextLevelColor,
-                        backgroundColor: bay.levelColor.opacity(1.0)
-                    )
-                    .onAppear {
-                        print("🔧 BAY PROGRESS DEBUG: Bay \(bay.id) - Level: \(bay.level), itemsConstructed: \(bay.itemsConstructed), levelProgress: \(bay.levelProgress), Time Reduction: \(bay.timeReductionPercent * 100)%")
-                    }
-                    .frame(width: (availableWidth - 12) / 2, height: (availableWidth - 12) / 2)
-                    .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
-                    .animation(.easeInOut(duration: 0.5), value: bay.itemsConstructed)
-                    .animation(.easeInOut(duration: 0.5), value: bay.levelProgress)
-                    .animation(.easeInOut(duration: 0.5), value: bay.levelColor)
-                    .animation(.easeInOut(duration: 0.5), value: bay.nextLevelColor)
-                } else {
-                    // Bays without progress use normal rounded rectangle border
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(isCompleted ? Color.yellow : bay?.levelColor ?? Color.gray.opacity(1.0), lineWidth: 2)
-                        .frame(width: (availableWidth - 12) / 2, height: (availableWidth - 12) / 2)
-                        .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
-                        .animation(.easeInOut(duration: 0.5), value: bay?.levelColor)
-                }
-            }
-                .overlay(
-                    Group {
-                        if isUnderConstruction {
-                            VStack(spacing: 4) {
-                                // Construction name
-                                Text(bay?.currentConstruction?.blueprint.name ?? "")
-                                    .font(.caption2)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
-                                
-                                // Construction icon
-                                Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-                                    .font(.caption)
-                                    .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
-                                
-                                if isCompleted {
-                                    // Complete text
-                                    Text("Complete")
-                                        .font(.caption2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.green)
-                                } else {
-                                    // Progress bar
-                                    ProgressView(value: bay?.currentConstruction?.progress ?? 0)
-                                        .frame(width: 40, height: 4)
-                                        .tint(.blue)
-                                    
-                                    // Countdown timer
-                                    Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
-                                        .font(.caption2)
-                                        .foregroundColor(.white)
-                                }
-                            }
-                        } else if let bay = bay, bay.isUnlocked {
-                            Image(systemName: "plus")
-                                .font(.title2)
-                                .foregroundColor(.gray.opacity(0.6))
+                if isUnderConstruction {
+                    VStack(spacing: 4) {
+                        // Construction name
+                        Text(bay?.currentConstruction?.blueprint.name ?? "")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+
+                        // Construction icon
+                        Image(systemName: getResourceIcon(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+                            .font(.caption)
+                            .foregroundColor(getResourceColor(for: bay?.currentConstruction?.blueprint.reward.keys.first ?? .ironOre))
+
+                        if isCompleted {
+                            // Complete text
+                            Text("Complete")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.green)
                         } else {
-                            Image(systemName: "star.circle")
-                                .font(.title2)
-                                .foregroundColor(.yellow)
+                            // Progress bar
+                            ProgressView(value: bay?.currentConstruction?.progress ?? 0)
+                                .frame(width: 40, height: 4)
+                                .tint(.blue)
+
+                            // Countdown timer
+                            Text("\(Int(bay?.currentConstruction?.timeRemaining ?? 0))s")
+                                .font(.caption2)
+                                .foregroundColor(.white)
                         }
                     }
-                )
-        }
+                } else if let bay = bay, bay.isUnlocked {
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.gray.opacity(0.6))
+                } else {
+                    Image(systemName: "star.circle")
+                        .font(.title2)
+                        .foregroundColor(.yellow)
+                }
+            }
+        )
         .buttonStyle(PlainButtonStyle())
         .disabled(bay?.isUnlocked != true && !isCompleted)
         .scaleEffect(isCollecting ? 0.8 : 1.0)

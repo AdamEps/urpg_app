@@ -101,6 +101,7 @@ class GameState: ObservableObject {
     @Published var showConstructionMenu = false
     @Published var showLocations = false
     @Published var selectedBaySizeForBlueprints: BaySize = .small
+    @Published var selectedBayIdForConstruction: String?
     @Published var showResourcesPage = false
     @Published var showCards = false
     @Published var showLocationResources = false
@@ -878,13 +879,32 @@ class GameState: ObservableObject {
     
     func startConstruction(blueprint: ConstructionBlueprint) {
         guard canAffordConstruction(blueprint: blueprint) else { return }
-        
-        // Find an empty bay of the right size
-        guard let bayIndex = constructionBays.firstIndex(where: { 
-            $0.currentConstruction == nil && 
-            $0.isUnlocked && 
-            $0.size == blueprint.requiredBaySize 
-        }) else { return }
+
+        // Find the bay to use for construction
+        var bayIndex: Int?
+
+        // First, try to use the specifically selected bay if available
+        if let selectedBayId = selectedBayIdForConstruction,
+           let selectedIndex = constructionBays.firstIndex(where: { $0.id == selectedBayId }) {
+            let selectedBay = constructionBays[selectedIndex]
+            if selectedBay.currentConstruction == nil &&
+               selectedBay.isUnlocked &&
+               selectedBay.size == blueprint.requiredBaySize {
+                bayIndex = selectedIndex
+                print("🔧 Using specifically selected bay: \(selectedBayId)")
+            }
+        }
+
+        // If no specific bay selected or it's not available, find the first empty bay of the right size
+        if bayIndex == nil {
+            bayIndex = constructionBays.firstIndex(where: {
+                $0.currentConstruction == nil &&
+                $0.isUnlocked &&
+                $0.size == blueprint.requiredBaySize
+            })
+        }
+
+        guard let finalBayIndex = bayIndex else { return }
         
         // Deduct resource cost
         for i in resources.indices {
@@ -898,32 +918,35 @@ class GameState: ObservableObject {
         
         // Create construction with build time multipliers applied
         // Order of boost calculation: 1. Bay Level, 2. Card Enhancements, 3. Item Enhancements
-        let bayLevelMultiplier = getBayLevelTimeMultiplier(bayId: constructionBays[bayIndex].id)
+        let bayLevelMultiplier = getBayLevelTimeMultiplier(bayId: constructionBays[finalBayIndex].id)
         let cardMultiplier = getBuildTimeMultiplier() // Card enhancements
         // Item enhancements would go here in the future
-        
+
         let totalMultiplier = bayLevelMultiplier * cardMultiplier
         let adjustedDuration = blueprint.duration * totalMultiplier
-        
+
         let construction = Construction(
             id: UUID().uuidString,
             blueprint: blueprint,
             timeRemaining: devToolCompleteAllConstructions ? 0 : adjustedDuration,
             progress: devToolCompleteAllConstructions ? 1.0 : 0.0
         )
-        
-        constructionBays[bayIndex].currentConstruction = construction
-        
-        print("🔧 Construction started in bay \(constructionBays[bayIndex].id): Base time=\(blueprint.duration)s, Bay multiplier=\(bayLevelMultiplier), Card multiplier=\(cardMultiplier), Total multiplier=\(totalMultiplier), Adjusted time=\(adjustedDuration)s")
-        
+
+        constructionBays[finalBayIndex].currentConstruction = construction
+
+        print("🔧 Construction started in bay \(constructionBays[finalBayIndex].id): Base time=\(blueprint.duration)s, Bay multiplier=\(bayLevelMultiplier), Card multiplier=\(cardMultiplier), Total multiplier=\(totalMultiplier), Adjusted time=\(adjustedDuration)s")
+
         // If dev tool is enabled, complete the construction immediately
         if devToolCompleteAllConstructions {
-            completeConstruction(at: bayIndex)
+            completeConstruction(at: finalBayIndex)
         }
         
+        // Clear the selected bay after using it
+        selectedBayIdForConstruction = nil
+
         // Navigate to construction page to show the new construction
         currentPage = .construction
-        
+
         // Trigger auto-save
         gameStateManager?.triggerAutoSave()
     }
