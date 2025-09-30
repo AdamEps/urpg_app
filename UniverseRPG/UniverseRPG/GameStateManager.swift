@@ -663,7 +663,7 @@ class GameStateManager: ObservableObject {
         // Update construction bays
         gameState.constructionBays = saveData.constructionBays.compactMap { serializableBay in
             guard let baySize = BaySize(rawValue: serializableBay.size) else { return nil }
-            
+
             let currentConstruction: Construction?
             if let serializableConstruction = serializableBay.currentConstruction,
                let blueprint = ConstructionBlueprint.allBlueprints.first(where: { $0.id == serializableConstruction.blueprintId }) {
@@ -676,14 +676,19 @@ class GameStateManager: ObservableObject {
             } else {
                 currentConstruction = nil
             }
-            
+
             return ConstructionBay(
                 id: serializableBay.id,
                 size: baySize,
                 currentConstruction: currentConstruction,
                 isUnlocked: serializableBay.isUnlocked,
                 itemsConstructed: serializableBay.itemsConstructed,
-                maxItemsForLevel: serializableBay.maxItemsForLevel
+                maxItemsForLevel: serializableBay.maxItemsForLevel,
+                level: 1, // Will be recalculated by initializeAllBayLevels
+                levelProgress: 0.0, // Will be recalculated by initializeAllBayLevels
+                levelColor: .gray, // Will be recalculated by initializeAllBayLevels
+                nextLevelColor: .green, // Will be recalculated by initializeAllBayLevels
+                timeReductionPercent: 0.0 // Will be recalculated by initializeAllBayLevels
             )
         }
         
@@ -722,7 +727,10 @@ class GameStateManager: ObservableObject {
             // Allow .location page to be restored from save data
             gameState.currentPage = page
         }
-        
+
+        // Initialize bay levels after loading save data
+        gameState.initializeAllBayLevels()
+
         // Explicitly trigger UI updates after applying save data
         DispatchQueue.main.async {
             self.objectWillChange.send()

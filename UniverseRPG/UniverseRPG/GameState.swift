@@ -1000,12 +1000,10 @@ class GameState: ObservableObject {
             largeConstructionsCompleted += 1
         }
         
-        // Track construction progress for first small bay (level progress system)
-        if constructionBays[index].id == "small-bay-1" {
-            constructionBays[index].itemsConstructed += 1
-            updateBayLevel(bayId: constructionBays[index].id)
-            print("🔧 Construction progress: Bay 1 has completed \(constructionBays[index].itemsConstructed) items")
-        }
+        // Track construction progress for this bay (level progress system)
+        constructionBays[index].itemsConstructed += 1
+        updateBayLevel(bayId: constructionBays[index].id)
+        print("🔧 Construction progress: Bay \(constructionBays[index].id) has completed \(constructionBays[index].itemsConstructed) items")
         
         // Award XP for construction completion
         let xpMultiplier = getXPGainMultiplier(for: "Construction")
@@ -1862,6 +1860,12 @@ class GameState: ObservableObject {
         for i in 0..<constructionBays.count {
             constructionBays[i].itemsConstructed = 0
             constructionBays[i].maxItemsForLevel = 10 // Reset to default level requirement
+            constructionBays[i].level = 1 // Reset to level 1
+            constructionBays[i].levelProgress = 0.0 // Reset progress immediately
+            // Update colors for reset level
+            let levelInfo = getBayLevelInfo(totalItemsConstructed: 0)
+            constructionBays[i].levelColor = levelInfo.color
+            constructionBays[i].nextLevelColor = levelInfo.nextColor
         }
         print("🔧 DEV TOOL - All bay levels reset!")
     }

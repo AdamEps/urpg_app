@@ -3531,19 +3531,15 @@ struct ConstructionPageView: View {
                             
                             // Reset Bay Levels Toggle
                             HStack {
-                                Text("Reset Bay Levels")
-                                    .font(.caption)
-                                    .foregroundColor(.adaptivePrimaryText)
+                                Button(action: {
+                                    gameState.resetBayLevels()
+                                }) {
+                                    Text("Reset Bay Levels")
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                }
+                                .buttonStyle(.plain)
                                 Spacer()
-                                Toggle("", isOn: $gameState.devToolResetBayLevels)
-                                    .toggleStyle(SwitchToggleStyle(tint: .red))
-                                    .scaleEffect(0.8)
-                                    .onChange(of: gameState.devToolResetBayLevels) { isOn in
-                                        if isOn {
-                                            gameState.resetBayLevels()
-                                            gameState.devToolResetBayLevels = false // Reset toggle after use
-                                        }
-                                    }
                             }
                         }
                         .padding(12)
@@ -3638,33 +3634,37 @@ struct SmallBaySlotView: View {
                     collectCompletedItem()
                 } else if !isUnderConstruction {
                     // Start construction
+                    gameState.selectedBaySizeForBlueprints = .small
                     gameState.currentPage = .blueprints
                 }
             }
         }) {
             Group {
-                if let bay = bay, bay.id == "small-bay-1" {
-                    // First bay uses two-color fixed rectangular progress border
+                if let bay = bay, bay.levelProgress > 0 {
+                    // Bay with progress uses two-color fixed rectangular progress border
                     TwoColorFixedRectangularProgressBorder(
-                        progress: min(Double(bay.itemsConstructed) / Double(bay.maxItemsForLevel), 1.0),
+                        progress: bay.levelProgress,
                         lineWidth: 2,
                         cornerRadius: 8,
-                        progressColor: .green,
-                        backgroundColor: .gray.opacity(0.5)
+                        progressColor: bay.nextLevelColor,
+                        backgroundColor: bay.levelColor.opacity(1.0)
                     )
                     .onAppear {
-                        let progress = min(Double(bay.itemsConstructed) / Double(bay.maxItemsForLevel), 1.0)
-                        print("🔧 BAY PROGRESS DEBUG: Bay \(bay.id) - itemsConstructed: \(bay.itemsConstructed), maxItemsForLevel: \(bay.maxItemsForLevel), progress: \(progress)")
+                        print("🔧 BAY PROGRESS DEBUG: Bay \(bay.id) - Level: \(bay.level), itemsConstructed: \(bay.itemsConstructed), levelProgress: \(bay.levelProgress), Time Reduction: \(bay.timeReductionPercent * 100)%")
                     }
                     .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
                     .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
                     .animation(.easeInOut(duration: 0.5), value: bay.itemsConstructed)
+                    .animation(.easeInOut(duration: 0.5), value: bay.levelProgress)
+                    .animation(.easeInOut(duration: 0.5), value: bay.levelColor)
+                    .animation(.easeInOut(duration: 0.5), value: bay.nextLevelColor)
                 } else {
-                    // Other bays use normal rounded rectangle border
+                    // Bays without progress use normal rounded rectangle border
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(isCompleted ? Color.yellow : Color.gray.opacity(0.5), lineWidth: 2)
+                        .stroke(isCompleted ? Color.yellow : bay?.levelColor ?? Color.gray.opacity(1.0), lineWidth: 2)
                         .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
                         .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+                        .animation(.easeInOut(duration: 0.5), value: bay?.levelColor)
                 }
             }
                 .overlay(
@@ -3813,10 +3813,34 @@ struct MediumBaySlotView: View {
                 }
             }
         }) {
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(isCompleted ? Color.yellow : Color.gray.opacity(0.5), lineWidth: 2)
-                .frame(width: (availableWidth - 24) / 3, height: (availableWidth - 24) / 3)
-                .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+            Group {
+                if let bay = bay, bay.levelProgress > 0 {
+                    // Bay with progress uses two-color fixed rectangular progress border
+                    TwoColorFixedRectangularProgressBorder(
+                        progress: bay.levelProgress,
+                        lineWidth: 2,
+                        cornerRadius: 8,
+                        progressColor: bay.nextLevelColor,
+                        backgroundColor: bay.levelColor.opacity(1.0)
+                    )
+                    .onAppear {
+                        print("🔧 BAY PROGRESS DEBUG: Bay \(bay.id) - Level: \(bay.level), itemsConstructed: \(bay.itemsConstructed), levelProgress: \(bay.levelProgress), Time Reduction: \(bay.timeReductionPercent * 100)%")
+                    }
+                    .frame(width: (availableWidth - 24) / 3, height: (availableWidth - 24) / 3)
+                    .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+                    .animation(.easeInOut(duration: 0.5), value: bay.itemsConstructed)
+                    .animation(.easeInOut(duration: 0.5), value: bay.levelProgress)
+                    .animation(.easeInOut(duration: 0.5), value: bay.levelColor)
+                    .animation(.easeInOut(duration: 0.5), value: bay.nextLevelColor)
+                } else {
+                    // Bays without progress use normal rounded rectangle border
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isCompleted ? Color.yellow : bay?.levelColor ?? Color.gray.opacity(1.0), lineWidth: 2)
+                        .frame(width: (availableWidth - 24) / 3, height: (availableWidth - 24) / 3)
+                        .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+                        .animation(.easeInOut(duration: 0.5), value: bay?.levelColor)
+                }
+            }
                 .overlay(
                     Group {
                         if isUnderConstruction {
@@ -3963,10 +3987,34 @@ struct LargeBaySlotView: View {
                 }
             }
         }) {
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(isCompleted ? Color.yellow : Color.gray.opacity(0.5), lineWidth: 2)
-                .frame(width: (availableWidth - 12) / 2, height: (availableWidth - 12) / 2)
-                .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+            Group {
+                if let bay = bay, bay.levelProgress > 0 {
+                    // Bay with progress uses two-color fixed rectangular progress border
+                    TwoColorFixedRectangularProgressBorder(
+                        progress: bay.levelProgress,
+                        lineWidth: 2,
+                        cornerRadius: 8,
+                        progressColor: bay.nextLevelColor,
+                        backgroundColor: bay.levelColor.opacity(1.0)
+                    )
+                    .onAppear {
+                        print("🔧 BAY PROGRESS DEBUG: Bay \(bay.id) - Level: \(bay.level), itemsConstructed: \(bay.itemsConstructed), levelProgress: \(bay.levelProgress), Time Reduction: \(bay.timeReductionPercent * 100)%")
+                    }
+                    .frame(width: (availableWidth - 12) / 2, height: (availableWidth - 12) / 2)
+                    .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+                    .animation(.easeInOut(duration: 0.5), value: bay.itemsConstructed)
+                    .animation(.easeInOut(duration: 0.5), value: bay.levelProgress)
+                    .animation(.easeInOut(duration: 0.5), value: bay.levelColor)
+                    .animation(.easeInOut(duration: 0.5), value: bay.nextLevelColor)
+                } else {
+                    // Bays without progress use normal rounded rectangle border
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isCompleted ? Color.yellow : bay?.levelColor ?? Color.gray.opacity(1.0), lineWidth: 2)
+                        .frame(width: (availableWidth - 12) / 2, height: (availableWidth - 12) / 2)
+                        .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+                        .animation(.easeInOut(duration: 0.5), value: bay?.levelColor)
+                }
+            }
                 .overlay(
                     Group {
                         if isUnderConstruction {
