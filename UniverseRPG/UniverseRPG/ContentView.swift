@@ -1043,25 +1043,25 @@ struct SlottedCardView: View {
         let percentageString = percentage > 0 ? "+\(Int(percentage * 100))%" : "\(Int(percentage * 100))%"
         
         // Format abilities as requested with each word on different line
-        if cardName.contains("Astro Prospector") {
+        if userCard.cardId == "astro-prospector" {
             return [percentageString, "Tap", "Yield"]
-        } else if cardName.contains("Deep Scan") {
+        } else if userCard.cardId == "deep-scan" {
             return [percentageString, "Rare", "Items"]
         } else if cardName.contains("Mining Mastery") {
             return [percentageString, "XP", "Gain"]
         } else if cardName.contains("Materials Engineer") {
-            // For Materials Engineer, show positive percentage since "Reduced" already implies negative
-            let positivePercentage = "\(Int(abs(percentage * 100)))%"
-            return [positivePercentage, "Reduced", "Time"]
+            // For Materials Engineer, show negative percentage with "Construct" instead of "Reduced"
+            let negativePercentage = "-\(Int(abs(percentage * 100)))%"
+            return [negativePercentage, "Construct", "Time"]
         } else if cardName.contains("Storage Bay") {
             // For Storage Bay, show flat storage bonus (not percentage)
-            let storageBonus = "\(Int(percentage))"
+            let storageBonus = "+\(Int(percentage))"
             return [storageBonus, "Storage", "Bonus"]
         } else if cardName.contains("Replication Matrix") {
             // For Replication Matrix, show the replication chance and item range
             let level = Int(percentage) // 1.0 = Level 1, 2.0 = Level 2, etc.
             let (chancePercent, itemRange) = getReplicationMatrixDisplayValues(level: level)
-            return [chancePercent, "for", itemRange]
+            return [chancePercent, "chance", itemRange]
         } else if ability.contains("yield") && ability.contains("tap") {
             return [percentageString, "Tap", "Yield"]
         } else if ability.contains("rare") && ability.contains("chance") {
@@ -1092,17 +1092,17 @@ struct SlottedCardView: View {
     private func getReplicationMatrixDisplayValues(level: Int) -> (chancePercent: String, itemRange: String) {
         switch level {
         case 1:
-            return ("[33%]", "[2]")
+            return ("33%", "for 2")
         case 2:
-            return ("[50%]", "[2-3]")
+            return ("50%", "for 2-3")
         case 3:
-            return ("[75%]", "[2-3]")
+            return ("75%", "for 2-3")
         case 4:
-            return ("[75%]", "[2-4]")
+            return ("75%", "for 2-4")
         case 5:
-            return ("[90%]", "[2-5]")
+            return ("90%", "for 2-5")
         default:
-            return ("[0%]", "[0]")
+            return ("0%", "for 0")
         }
     }
     
@@ -1302,28 +1302,28 @@ struct CompactCardView: View {
         
         // Get the actual percentage value from the card data
         let percentage = getCardPercentage()
-        let percentageString = percentage > 0 ? "[+\(Int(percentage * 100))%]" : "[\(Int(percentage * 100))%]"
+        let percentageString = percentage > 0 ? "+\(Int(percentage * 100))%" : "\(Int(percentage * 100))%"
         
         // Format abilities as requested with each word on different line
-        if cardName.contains("Astro Prospector") {
+        if userCard.cardId == "astro-prospector" {
             return [percentageString, "Tap", "Yield"]
-        } else if cardName.contains("Deep Scan") {
+        } else if userCard.cardId == "deep-scan" {
             return [percentageString, "Rare", "Items"]
         } else if cardName.contains("Mining Mastery") {
             return [percentageString, "XP", "Gain"]
         } else if cardName.contains("Materials Engineer") {
-            // For Materials Engineer, show positive percentage since "Reduced" already implies negative
-            let positivePercentage = "[\(Int(abs(percentage * 100)))%]"
-            return [positivePercentage, "Reduced", "Time"]
+            // For Materials Engineer, show negative percentage with "Construct" instead of "Reduced"
+            let negativePercentage = "-\(Int(abs(percentage * 100)))%"
+            return [negativePercentage, "Construct", "Time"]
         } else if cardName.contains("Storage Bay") {
             // For Storage Bay, show flat storage bonus (not percentage)
-            let storageBonus = "[+\(Int(percentage))]"
+            let storageBonus = "+\(Int(percentage))"
             return [storageBonus, "Storage", "Bonus"]
         } else if cardName.contains("Replication Matrix") {
             // For Replication Matrix, show the replication chance and item range
             let level = Int(percentage) // 1.0 = Level 1, 2.0 = Level 2, etc.
             let (chancePercent, itemRange) = getReplicationMatrixDisplayValues(level: level)
-            return [chancePercent, "for", itemRange]
+            return [chancePercent, "chance", itemRange]
         } else if description.contains("yield") && description.contains("tap") {
             return [percentageString, "Tap", "Yield"]
         } else if description.contains("rare") && description.contains("chance") {
@@ -1354,17 +1354,17 @@ struct CompactCardView: View {
     private func getReplicationMatrixDisplayValues(level: Int) -> (chancePercent: String, itemRange: String) {
         switch level {
         case 1:
-            return ("[33%]", "[2]")
+            return ("33%", "for 2")
         case 2:
-            return ("[50%]", "[2-3]")
+            return ("50%", "for 2-3")
         case 3:
-            return ("[75%]", "[2-3]")
+            return ("75%", "for 2-3")
         case 4:
-            return ("[75%]", "[2-4]")
+            return ("75%", "for 2-4")
         case 5:
-            return ("[90%]", "[2-5]")
+            return ("90%", "for 2-5")
         default:
-            return ("[0%]", "[0]")
+            return ("0%", "for 0")
         }
     }
     
@@ -5931,6 +5931,22 @@ struct CardsView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     
+                    // -1 All Cards Button
+                    Button(action: {
+                        gameState.removeOneOfEachCard()
+                        // Note: Removed line that closes dropdown to keep it open
+                    }) {
+                        Text("-1 All Cards")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .frame(width: 100)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.red.opacity(0.8))
+                            .cornerRadius(4)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
                     // Level Up Button
                     Button(action: {
                         gameState.levelUpAllCards()
@@ -6107,7 +6123,7 @@ struct CardSlotView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            if let cardDef = cardDef, let userCard = userCard {
+            if let cardDef = cardDef, let userCard = userCard, !isFirstEmptySlot {
                 // Owned card - show normally or as mini card based on toggle
                 Button(action: {
                     // Toggle detail view - if same card is tapped again, close it
@@ -6247,54 +6263,107 @@ struct CardSlotView: View {
                 .buttonStyle(PlainButtonStyle())
             } else if isFirstEmptySlot {
                 // First empty slot - show "?" and "Undiscovered"
-                VStack(spacing: 0) {
-                    // Card name placeholder
-                    Text("Undiscovered")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.gray)
-                        .padding(.horizontal, 4)
-                        .padding(.top, 4)
-                    
-                    // Card icon/art placeholder
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(cardClassColor.opacity(0.3), lineWidth: 2)
-                        .frame(height: 80)
-                        .overlay(
-                            Image(systemName: "questionmark")
-                                .font(.largeTitle)
-                                .foregroundColor(cardClassColor.opacity(0.5))
-                        )
-                        .padding(.horizontal, 4)
-                        .padding(.top, 2)
-                    
-                    // Undiscovered text in bottom half
-                    Text("Undiscovered")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 4)
-                        .padding(.top, 4)
-                        .frame(height: 40)
-                    
-                    // Bottom row placeholder
-                    HStack {
-                        Text("")
-                        Spacer()
-                        Text("")
+                if gameState.showMiniCardView {
+                    // Mini card placeholder - similar to SlottedCardView
+                    VStack(spacing: 0) {
+                        // Card container with colored border and black interior
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(cardClassColor.opacity(0.3), lineWidth: 2)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(Color.black)
+                            )
+                            .frame(width: 60, height: 80)
+                            .overlay(
+                                VStack(spacing: 0) {
+                                    // Top black area for card name
+                                    VStack {
+                                        Text("???")
+                                            .font(.caption2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.gray)
+                                            .lineLimit(1)
+                                            .minimumScaleFactor(0.7)
+                                    }
+                                    .frame(height: 20)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.black.opacity(0.3))
+                                    
+                                    // Middle colored area with question mark
+                                    ZStack {
+                                        // Question mark as background
+                                        Image(systemName: "questionmark")
+                                            .font(.largeTitle)
+                                            .foregroundColor(cardClassColor.opacity(0.3))
+                                    }
+                                    .frame(height: 40)
+                                    .frame(maxWidth: .infinity)
+                                    .background(cardClassColor.opacity(0.2))
+                                    
+                                    // Bottom black area
+                                    VStack {
+                                        Text("???")
+                                            .font(.caption2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.gray)
+                                    }
+                                    .frame(height: 20)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.black.opacity(0.3))
+                                }
+                            )
                     }
-                    .padding(.horizontal, 4)
-                    .padding(.bottom, 4)
+                } else {
+                    // Full card placeholder - original implementation
+                    VStack(spacing: 0) {
+                        // Card name placeholder
+                        Text("Undiscovered")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.gray)
+                            .padding(.horizontal, 4)
+                            .padding(.top, 4)
+                        
+                        // Card icon/art placeholder
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(cardClassColor.opacity(0.3), lineWidth: 2)
+                            .frame(height: 80)
+                            .overlay(
+                                Image(systemName: "questionmark")
+                                    .font(.largeTitle)
+                                    .foregroundColor(cardClassColor.opacity(0.5))
+                            )
+                            .padding(.horizontal, 4)
+                            .padding(.top, 2)
+                        
+                        // Undiscovered text in bottom half
+                        Text("Undiscovered")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 4)
+                            .padding(.top, 4)
+                            .frame(height: 40)
+                        
+                        // Bottom row placeholder
+                        HStack {
+                            Text("")
+                            Spacer()
+                            Text("")
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.bottom, 4)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.black.opacity(0.1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(cardClassColor.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                            )
+                    )
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.black.opacity(0.1))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(cardClassColor.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
-                        )
-                )
             } else {
                 // Other empty slots - hide them
                 Color.clear
@@ -6323,22 +6392,22 @@ struct CardSlotView: View {
         
         switch cardDef.effectKey {
         case "tapYieldMultiplier":
-            return "[+\(percentage)%] Tap Yield"
+            return "+\(percentage)% Tap Yield"
         case "idleRareBias":
-            return "[+\(percentage)%] to rare items"
+            return "+\(percentage)% to rare items"
         case "buildTimeMultiplier":
-            return "[\(percentage)%] faster construction time"
+            return "-\(percentage)% faster construction time"
         case "storageCapBonus":
-            return "[+\(Int(tierValue))] storage capacity"
+            return "+\(Int(tierValue)) storage capacity"
         case "xpGainMultiplier":
-            return "[+\(percentage)%] XP gain"
+            return "+\(percentage)% XP gain"
         case "replicationBonus":
             let level = Int(tierValue)
             let (chance, minItems, maxItems) = getReplicationMatrixCardText(level: level)
             if minItems == maxItems {
-                return "[+\(chance)%] chance for [\(minItems)] additional items"
+                return "+\(chance)% chance for \(minItems) additional items"
             } else {
-                return "[+\(chance)%] chance for [\(minItems)-\(maxItems)] additional items"
+                return "+\(chance)% chance for \(minItems)-\(maxItems) additional items"
             }
         default:
             return cardDef.description
@@ -6402,11 +6471,13 @@ struct CardSlotView: View {
         if cardName.contains("Mining Mastery") {
             return [percentageString, "Mining", "Speed"]
         } else if cardName.contains("Storage Bay") {
-            return [percentageString, "Storage", "Bonus"]
+            // For Storage Bay, show flat storage bonus (not percentage)
+            let storageBonus = "+\(Int(percentage))"
+            return [storageBonus, "Storage", "Bonus"]
         } else if cardName.contains("Replication Matrix") {
             let level = Int(percentage) // 1.0 = Level 1, 2.0 = Level 2, etc.
             let (chancePercent, itemRange) = getReplicationMatrixDisplayValues(level: level)
-            return [chancePercent, "for", itemRange]
+            return [chancePercent, "chance", itemRange]
         } else if ability.contains("yield") && ability.contains("tap") {
             return [percentageString, "Tap", "Yield"]
         } else if ability.contains("rare") && ability.contains("chance") {
@@ -6473,17 +6544,17 @@ struct CardSlotView: View {
     private func getReplicationMatrixDisplayValues(level: Int) -> (chancePercent: String, itemRange: String) {
         switch level {
         case 1:
-            return ("[33%]", "[2]")
+            return ("33%", "for 2")
         case 2:
-            return ("[50%]", "[2-3]")
+            return ("50%", "for 2-3")
         case 3:
-            return ("[75%]", "[2-3]")
+            return ("75%", "for 2-3")
         case 4:
-            return ("[75%]", "[2-4]")
+            return ("75%", "for 2-4")
         case 5:
-            return ("[90%]", "[2-5]")
+            return ("90%", "for 2-5")
         default:
-            return ("[0%]", "[0]")
+            return ("0%", "for 0")
         }
     }
 }

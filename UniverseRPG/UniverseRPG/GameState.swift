@@ -2012,6 +2012,18 @@ class GameState: ObservableObject {
         print("🔧 DEV TOOL - Added 1 copy of each card type!")
     }
     
+    func removeOneOfEachCard() {
+        let allCardDefinitions = getAllCardDefinitions()
+        for cardDef in allCardDefinitions {
+            // Only remove cards that the player actually has
+            if let userCard = getUserCard(for: cardDef.id), userCard.copies > 0 {
+                removeCard(cardDef.id, copies: 1)
+                print("🔧 DEV TOOL - Removed 1 copy of \(cardDef.name)")
+            }
+        }
+        print("🔧 DEV TOOL - Removed 1 copy of each collected card type!")
+    }
+    
     func isTelescopeUnlocked() -> Bool {
         // Telescope is unlocked if all locations are unlocked OR if we're not in Taragon Gamma system
         return devToolUnlockAllLocations || currentLocation.system != "Taragon Gamma"
@@ -2231,6 +2243,16 @@ class GameState: ObservableObject {
                 tier: 1
             )
             ownedCards.append(newCard)
+        }
+    }
+    
+    func removeCard(_ cardId: String, copies: Int = 1) {
+        if let existingIndex = ownedCards.firstIndex(where: { $0.cardId == cardId }) {
+            ownedCards[existingIndex].copies = max(0, ownedCards[existingIndex].copies - copies)
+            // Remove the card entirely if copies reach 0
+            if ownedCards[existingIndex].copies == 0 {
+                ownedCards.remove(at: existingIndex)
+            }
         }
     }
     
