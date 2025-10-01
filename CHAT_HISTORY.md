@@ -2918,3 +2918,87 @@ case "replication-matrix":
 - ✅ Successful app deployment
 
 ---
+
+### 2025-10-01 - Deep Scan and Replication Matrix Card Text Fixes (v2.0.95)
+
+#### **Request Summary**
+Fix two card text formatting issues:
+1. Deep Scan mini card text showing "Improved chances" instead of "Rare Items"
+2. Update Replication Matrix mini card text format to show percent, "chance", "for X"
+
+#### **Solutions Implemented**
+
+**Deep Scan Card Text Fix** ✅
+- **Problem**: Deep Scan was showing "Improved chances" instead of "Rare Items" due to fallback logic using card description
+- **Root Cause**: Card was falling through to fallback logic which used first words from description "Improves chances of getting..."
+- **Solution**: Changed condition from `cardName.contains("Deep Scan")` to `userCard.cardId == "deep-scan"` for reliable matching
+- **Files Modified**: `ContentView.swift`
+- **Technical Implementation**:
+```swift
+// Old: cardName.contains("Deep Scan")
+// New: userCard.cardId == "deep-scan"
+if userCard.cardId == "deep-scan" {
+    return [percentageString, "Rare", "Items"]
+}
+```
+
+**Replication Matrix Card Text Format Update** ✅
+- **Problem**: Replication Matrix format needed updating to new specification
+- **New Format**: 
+  - Top line: Percent (e.g., "33%")
+  - Middle line: "chance"
+  - Bottom line: "for X" (e.g., "for 2")
+- **Example Level 1**: 
+  ```
+  33%
+  chance
+  for 2
+  ```
+- **Files Modified**: `ContentView.swift`
+- **Technical Implementation**:
+```swift
+// Updated getReplicationMatrixDisplayValues function
+case 1:
+    return ("33%", "for 2")  // Was: ("33%", "2")
+case 2:
+    return ("50%", "for 2-3")  // Was: ("50%", "2-3")
+
+// Updated getAbilityLines function
+return [chancePercent, "chance", itemRange]  // Was: [chancePercent, "for", itemRange]
+```
+
+#### **Files Modified**
+- **`ContentView.swift`**: Updated card text formatting functions across all views
+  - `SlottedCardView.getAbilityLines()` (cards page)
+  - `CompactCardView.getAbilityLines()` (enhancements window)  
+  - `CardSlotView.getAbilityLines()` (cards page)
+  - `getReplicationMatrixDisplayValues()` (both instances)
+
+#### **Applied To**
+- Cards page mini cards
+- Enhancement windows across all pages (Location, Resources, Construction, etc.)
+- Both SlottedCardView and CompactCardView implementations
+
+#### **Testing Results**
+- ✅ No linting errors
+- ✅ App builds successfully  
+- ✅ App launches on iPhone without errors
+- ✅ Deep Scan now shows "+X% Rare Items" consistently
+- ✅ Replication Matrix shows new format: "33% chance for 2"
+
+#### **Version 2.0.95 Release**
+- **Commit**: Successfully committed with message "2.0.95: Fix Deep Scan and Replication Matrix card text formatting"
+- **App Icon**: Updated to v2.0.95
+- **Files Changed**: 2 files changed, 181 insertions(+), 88 deletions(-)
+- **Commit Hash**: 1fb191b
+- **Chat History**: Updated with complete session details
+
+#### **Key Achievements**
+- ✅ Fixed Deep Scan card text consistency issue
+- ✅ Updated Replication Matrix format to new specification
+- ✅ Used card ID matching for more reliable card identification
+- ✅ Applied fixes across all card views and enhancement windows
+- ✅ Zero breaking changes
+- ✅ Successful app deployment
+
+---
