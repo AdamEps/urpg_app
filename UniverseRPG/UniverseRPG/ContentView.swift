@@ -3665,8 +3665,8 @@ struct SmallBaySlotView: View {
     private var simpleBorderView: some View {
         RoundedRectangle(cornerRadius: 8)
             .stroke(isCompleted ? Color.yellow : (bay?.levelColor ?? Color.gray).opacity(1.0), lineWidth: 2)
-            .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
-            .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+        .frame(width: (availableWidth - 36) / 4, height: (availableWidth - 36) / 4)
+        .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
     }
 
     var body: some View {
@@ -3735,7 +3735,7 @@ struct SmallBaySlotView: View {
                 if let bay = bay, bay.isUnlocked {
                     VStack {
                         Spacer()
-                        HStack {
+                        HStack(alignment: .center) {
                             // Bottom left - Level indicator
                             Text("L\(bay.level)")
                                 .font(.caption2)
@@ -3745,7 +3745,7 @@ struct SmallBaySlotView: View {
                             Spacer()
                             
                             // Bottom right - Time reduction indicator
-                            HStack(spacing: 2) {
+                            HStack(alignment: .center, spacing: 2) {
                                 Image(systemName: "hourglass")
                                     .font(.caption2)
                                     .foregroundColor(bay.levelColor)
@@ -3756,7 +3756,7 @@ struct SmallBaySlotView: View {
                             }
                         }
                         .padding(.horizontal, 4)
-                        .padding(.bottom, 2)
+                        .padding(.bottom, 10)
                     }
                 }
             }
@@ -3878,8 +3878,8 @@ struct MediumBaySlotView: View {
     private var simpleBorderView: some View {
         RoundedRectangle(cornerRadius: 8)
             .stroke(isCompleted ? Color.yellow : (bay?.levelColor ?? Color.gray).opacity(1.0), lineWidth: 2)
-            .frame(width: (availableWidth - 24) / 3, height: (availableWidth - 24) / 3)
-            .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
+        .frame(width: (availableWidth - 24) / 3, height: (availableWidth - 24) / 3)
+        .background(isCompleted ? Color.yellow.opacity(0.2) : Color.clear)
     }
 
     var body: some View {
@@ -3948,7 +3948,7 @@ struct MediumBaySlotView: View {
                 if let bay = bay, bay.isUnlocked {
                     VStack {
                         Spacer()
-                        HStack {
+                        HStack(alignment: .center) {
                             // Bottom left - Level indicator
                             Text("L\(bay.level)")
                                 .font(.caption2)
@@ -3958,7 +3958,7 @@ struct MediumBaySlotView: View {
                             Spacer()
                             
                             // Bottom right - Time reduction indicator
-                            HStack(spacing: 2) {
+                            HStack(alignment: .center, spacing: 2) {
                                 Image(systemName: "hourglass")
                                     .font(.caption2)
                                     .foregroundColor(bay.levelColor)
@@ -3969,7 +3969,7 @@ struct MediumBaySlotView: View {
                             }
                         }
                         .padding(.horizontal, 4)
-                        .padding(.bottom, 2)
+                        .padding(.bottom, 4)
                     }
                 }
             }
@@ -4161,7 +4161,7 @@ struct LargeBaySlotView: View {
                 if let bay = bay, bay.isUnlocked {
                     VStack {
                         Spacer()
-                        HStack {
+                        HStack(alignment: .center) {
                             // Bottom left - Level indicator
                             Text("L\(bay.level)")
                                 .font(.caption2)
@@ -4171,7 +4171,7 @@ struct LargeBaySlotView: View {
                             Spacer()
                             
                             // Bottom right - Time reduction indicator
-                            HStack(spacing: 2) {
+                            HStack(alignment: .center, spacing: 2) {
                                 Image(systemName: "hourglass")
                                     .font(.caption2)
                                     .foregroundColor(bay.levelColor)
